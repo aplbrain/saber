@@ -3,27 +3,27 @@ This is the SABER repository for computational neuroscience. The SABER project, 
 
 This project is distributed under the Apache License, Version 2.0
 
-Current release: 
+## Current release: 
 
 The current public release is a platform for optimization and deployment of computational neuroscience pipelines using the galaxy project. We build on the Galaxy docker work (https://github.com/bgruening/docker-galaxy-stable) to provide a dockerized environment scientists can rapidly get up and running. We are developing canonical workflows and dockerized tools to premote reproducible science and benchmarking of algorithms. 
 
-Requirements:
+## Requirements:
 Working docker installation, administrator access for your sytem. Note that in the current configuration, exported files are stored at /export. This can be controlled by editing ./run_galaxy.sh
 
-Installation:
+## Installation:
 
 1. cd $saber_home/conduit/galaxy
 2. ./build_galaxy.sh (creates the saber:galaxy image)
 3. ./run_galaxy.sh
 4. Use a web browser to check out galaxy at localhost:8080
 
-Ongoing work: 
+## Ongoing work: 
 
 The SABER team is actively developing two solutions for datasets at different scales: Apache Airflow and Galaxy. We will be updating this repository with these tools as we test and release them. The goal is to enable scalable neuroscience from a single desktop to large cloud computing solutions. 
 
-We are also defining canonical tools and workflows for processing neuroscience data. These data include Electron Microscopy and Xray Microtomography imaging of neural tissue. These tools and workflows, along with guidance and tools for algorithms developers, will be integrated as well.
+We are also defining canonical tools and workflows for processing neuroscience data. These data include Electron Microscopy and X-ray Microtomography imaging of neural tissue. These tools and workflows, along with guidance and tools for algorithms developers, will be integrated as well.
 
-Demos: 
+## Demos: 
 
 Installation of SABER galaxy: https://youtu.be/m32Yd5sBgzE
 
