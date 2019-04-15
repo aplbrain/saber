@@ -1,0 +1,65 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Shared
+
+# Inputs for BOSS
+host_name: api.bossdb.org
+token:  
+coll_name: XBrainGTech5
+exp_name: Proj4
+coord_name: XBrain_ingest_coord2
+xmin: 1100
+xmax: 1400
+ymin: 1000
+ymax: 11300
+zmin: 300
+zmax: 600
+padding: 0
+resolution: 0
+## Boss pull
+in_chan_name: rodrilm2
+## Boss push (membranes)
+mem_chan_name: membranes_Pub
+## Boss push (vessels)
+ves_chan_name: vessels_Pub
+## Boss push (cells)
+cell_chan_name: cells_Pub
+
+# Membrane classify
+classifier: 
+  class: File
+  path: xbrain_vessel_seg_v7.ilp
+ram_amount: 2000
+num_threads: -1
+
+
+# Cell detect
+detect_threshold: 0.2
+stop: 0.47
+initial_template_size: 18
+detect_dilation: 8
+max_cells: 1000
+cell_index: 2
+
+# Vessel segment
+segment_threshold: 0.68
+segment_dilation: 3
+minimum: 4000
+vessel_index: 1
+
+
+
+
+

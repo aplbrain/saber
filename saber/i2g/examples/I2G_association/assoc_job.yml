@@ -1,0 +1,37 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Shared
+# Inputs for BOSS
+token: 
+host_name: api.theboss.io
+coll_name: Kasthuri
+exp_name: em
+seg_chan_name: I2G_Neurons_i
+syn_chan_name: I2G_Synapses_i
+dtype_seg: uint8
+dtype_syn: uint8
+itype_name: annotation
+coord_name: KasthuriFrame
+resolution: 0
+xmin: 4820
+xmax: 6320
+ymin: 7660
+ymax: 9160
+zmin: 400
+zmax: 500 
+use_boss: 1
+#No padding on this one, for optimization
+assoc_output_name: assoc_output.pkl
+assoc_output_name_noneu: assoc_output_noneu.pkl

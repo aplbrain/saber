@@ -1,0 +1,75 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '2.1'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    webserver:
+        privileged: true
+        build:
+            context: ./conduit
+            dockerfile: WebDockerfile
+        restart: always
+        depends_on:
+            - postgres
+            - datajoint
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+        volumes:
+            # - ./dags:/usr/local/airflow/dags
+            - ./conduit:/conduit
+            - ~/.aws:/root/.aws
+            - ./volumes/logs:/root/logs
+            # Uncomment to include custom plugins
+            - ./conduit/plugins:/root/plugins
+            - /var/run/docker.sock:/var/run/docker.sock
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /home/root/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+    cwl_parser:
+        privileged: true
+        build:
+            context: ./conduit
+            dockerfile: CWLDockerfile
+        depends_on: 
+            - webserver
+        volumes:
+            - ./conduit:/conduit
+            - ~/.aws:/root/.aws
+            - ./saber/:/saber
+            - /var/run/docker.sock:/var/run/docker.sock
+
+        command: tail -F root
+    datajoint:
+        image: datajoint/mysql
+        ports:
+        - "3306:3306"
+        environment:
+        - MYSQL_ROOT_PASSWORD=airflow
+        volumes:
+        - ./volumes/data:/var/lib/mysql
+
+        

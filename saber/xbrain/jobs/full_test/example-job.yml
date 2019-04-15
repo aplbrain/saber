@@ -1,0 +1,65 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Shared
+# Inputs for BOSS
+token: TODO
+coll_name: GTXrayData
+exp_name: VS0172
+in_chan_name: full_vol
+out_chan_name: cell_test
+dtype_name: uint8
+itype_name: image
+coord_name: GT-VS0172
+resolution: 0
+xmin: 1177
+xmax: 1891
+ymin: 1692
+ymax: 2093
+zmin: 0
+zmax: 609
+padding: 5
+onesided: 1
+# Inputs for steps
+pull_output_name: pull_output.npy
+classifier: 
+  class: File
+  path: xbrain_vessel_seg_v8.ilp
+membrane_classify_output_name: membrane_classify_output.npy
+cell_detect_output_name: cell_detect_output.npy
+vessel_segment_output_name: vessel_segment_output.npy
+ram_amount: 2000
+num_threads: -1
+detect_threshold: 0.2
+stop: 0.47
+initial_template_size: 18
+detect_dilation: 8
+max_cells: 500
+segment_threshold: 0.68
+segment_dilation: 3
+minimum: 4000
+
+cell_index: 1
+vessel_index: 0
+
+
+# Inputs for merge
+template_size: 19
+map_output_name: cell_detect_map.npy
+list_output_name: cell_detect_list.npy
+centroid_volume_output_name: centroid_volume.npy
+
+out_dtype_name: uint64
+out_itype_name: annotation
+

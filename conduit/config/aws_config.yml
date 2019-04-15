@@ -1,0 +1,91 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Configuration options for AWS
+# IAM configuration
+iam:
+   RoleName: SaberAirflowBatchWF-ecsTaskWithS3-FM8X2T2J3PXJ
+   # Must start with file:// or be a url (eg. http://)
+   AssumeRolePolicyDocument: file://ec2-trust-policy.json
+   Description: Allows ECS tasks to have full access to S3
+   # Do not change
+  #  PermissionsBoundary: arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+
+
+# batch configuration
+batch:
+  computeEnvironmentName: &comp_env xbrain-compute-environment
+  # Do not change
+  type: MANAGED
+  # Do not change
+  state: ENABLED
+  computeResources:
+    type: EC2
+    # Change as needed
+    minvCpus: 0
+    maxvCpus: 256
+    desiredvCpus: 0
+    instanceTypes: [optimal]
+    instanceRole: arn:aws:iam::aws_account_id:instance-profile/ecsInstanceRole
+vpc:
+  CidrBlock: 172.31.0.0/16
+# Add additional subnets here
+subnets:
+  - CidrBlock: 172.31.16.0/20
+# - CidrBlock: xxx.xx.xx.x/xx
+
+acl:
+  # Change these settings to be more specific or secure
+  Entries:
+    - CidrBlock: 0.0.0.0/0
+      Protocol: '-1' # Means all
+      RuleAction: allow
+      RuleNumber: 100
+      Egress: True
+    - CidrBlock: 0.0.0.0/0
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: 100
+      Egress: False
+  
+#Don't need to specify if want default
+security-group:
+  Description: Default VPC security group
+  GroupName: default
+job-queue:
+  jobQueueName: saber-gen-queue
+  state: ENABLED
+  priority: 1
+  computeEnvironmentOrder:
+    - order: 1
+# Default args for job definitions
+job-definitions:
+  type: container
+  parameters: {}
+  retryStrategy:
+    attempts: 1
+  containerProperties:
+    vcpus: 4
+    memory: 40000
+    jobRoleArn: arn:aws:iam::256215146792:role/SaberAirflowBatchWF-ecsTaskWithS3-FM8X2T2J3PXJ
+    volumes: 
+      - name: saber-home
+        host: 
+          sourcePath : '/dev/xvdcz/'
+    environment: []
+    mountPoints: 
+      - sourceVolume: saber-home
+        containerPath: /saber-home
+    ulimits: []

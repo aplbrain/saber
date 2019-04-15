@@ -1,0 +1,66 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# BOSS:
+#------------------------------------------------
+# general:
+host_boss: api.theboss.io
+host_bossdb: api.bossdb.org
+token_bossdb: 
+token_boss: 
+coll_name: Kasthuri
+exp_name: em
+coord_name: KasthuriFrame
+resolution: 0
+xmin: 11980
+xmax: 12900
+ymin: 13958
+ymax: 14878
+zmin: 631
+zmax: 723
+padding: 0
+onesided: 0
+#inputs:
+in_chan_name_raw: images
+in_chan_name_ann: ann
+itype_name_in: image
+dtype_name_in: uint8
+#outputs
+out_chan_name_syn: I2G_Synapses_i_Pub
+out_chan_name_neu: I2G_Neuron_Seg_Pub 
+out_chan_name_mem: I2G_Membranes_i_Pub
+dtype_name_out: uint64
+itype_name_out: annotation
+pull_output_name_raw: pull_output_raw.npy
+pull_output_name_ann: pull_output_ann.npy
+
+#1760:8960/3680:10560/400:1800
+
+#PROCESSING:
+#------------------------------------------------
+#General: 
+width: 512
+height: 512
+#Membrane_detection:
+membrane_output: membrane_output.npy
+#Synapse_detection
+synapse_output: synapse_output.npy
+#nuron_segmentation:
+train_file: ./trained_classifier.pkl
+neuron_output: neuron_output.npy
+mode: synapse
+neuron_mode: 1
+agg_threshold: "0.5"
+seeds_cc_threshold: "5"
+

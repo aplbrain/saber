@@ -1,0 +1,266 @@
+{
+    "Description": "This AWS Cloudformation Template creates a stack necessary to run the SABER airflow pipeline.",
+    "Outputs": {
+        "BatchComputeEnvironment": {
+            "Value": {
+                "Ref": "GeneralComputeEnvironment"
+            }
+        },
+        "BatchSecurityGroup": {
+            "Value": {
+                "Ref": "BatchSecurityGroup"
+            }
+        },
+        "ExampleJobQueue": {
+            "Value": {
+                "Ref": "GenJobQueue"
+            }
+        },
+        "ExampleJobQueueGPU": {
+            "Value": {
+                "Ref": "GPUJobQueue"
+            }
+        },
+        "GPUComputeEnvironment": {
+            "Value": {
+                "Ref": "GeneralComputeEnvironment"
+            }
+        }
+    },
+    "Parameters": {
+        "KeyName": {
+            "Description": "Key pair name for EC2 managment",
+            "Type": "String"
+        },
+        "SecurityGroup": {
+            "Description": "Security Group to access Ec2 instances",
+            "Type": "String"
+        },
+        "SubnetId": {
+            "ConstraintDescription": "Must be a valid subnet Id wihthin same VPC id. (Can be found here: https://console.aws.amazon.com/vpc/home?region=us-east-1#subnets:search=vpc-6443921c;sort=State)",
+            "Type": "String"
+        },
+        "VpcId": {
+            "ConstraintDescription": "Must be a valid VPC ID. (Can be found here: https://console.aws.amazon.com/vpc/home?region=us-east-1#vpcs:sort=VpcId)",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "BatchInstanceProfile": {
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "BatchInstanceRole"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::InstanceProfile"
+        },
+        "BatchInstanceRole": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+                ],
+                "Path": "/",
+                "Policies": []
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "BatchSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Enable access to Batch instances",
+                "SecurityGroupIngress": [],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "batch-sg"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VpcId"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "BatchServiceRole": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "batch.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+                ],
+                "Path": "/",
+                "Policies": []
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "GPUComputeEnvironment": {
+            "Properties": {
+                "ComputeEnvironmentName": "saber-batch-compute-environment-GPU-enabled",
+                "ComputeResources": {
+                    "DesiredvCpus": 0,
+                    "Ec2KeyPair": {
+                        "Ref": "KeyName"
+                    },
+                    "ImageId": "ami-0612e39997371a677",
+                    "InstanceRole": {
+                        "Ref": "BatchInstanceProfile"
+                    },
+                    "InstanceTypes": [
+                        "p2.xlarge"
+                    ],
+                    "MaxvCpus": 512,
+                    "MinvCpus": 0,
+                    "SecurityGroupIds": [
+                        {
+                            "Fn::GetAtt": [
+                                "BatchSecurityGroup",
+                                "GroupId"
+                            ]
+                        },
+                        {
+                            "Ref": "SecurityGroup"
+                        }
+                    ],
+                    "Subnets": [
+                        {
+                            "Ref": "SubnetId"
+                        }
+                    ],
+                    "Type": "EC2"
+                },
+                "ServiceRole": {
+                    "Ref": "BatchServiceRole"
+                },
+                "State": "ENABLED",
+                "Type": "MANAGED"
+            },
+            "Type": "AWS::Batch::ComputeEnvironment"
+        },
+        "GPUJobQueue": {
+            "Properties": {
+                "ComputeEnvironmentOrder": [
+                    {
+                        "ComputeEnvironment": {
+                            "Ref": "GPUComputeEnvironment"
+                        },
+                        "Order": 1
+                    }
+                ],
+                "JobQueueName": "sabe-gpu-queue",
+                "Priority": 1,
+                "State": "ENABLED"
+            },
+            "Type": "AWS::Batch::JobQueue"
+        },
+        "GenJobQueue": {
+            "Properties": {
+                "ComputeEnvironmentOrder": [
+                    {
+                        "ComputeEnvironment": {
+                            "Ref": "GeneralComputeEnvironment"
+                        },
+                        "Order": 1
+                    }
+                ],
+                "JobQueueName": "saber-gen-queue",
+                "Priority": 1,
+                "State": "ENABLED"
+            },
+            "Type": "AWS::Batch::JobQueue"
+        },
+        "GeneralComputeEnvironment": {
+            "Properties": {
+                "ComputeEnvironmentName": "saber-batch-compute-environment",
+                "ComputeResources": {
+                    "DesiredvCpus": 0,
+                    "Ec2KeyPair": {
+                        "Ref": "KeyName"
+                    },
+                    "InstanceRole": {
+                        "Ref": "BatchInstanceProfile"
+                    },
+                    "InstanceTypes": [
+                        "optimal"
+                    ],
+                    "MaxvCpus": 256,
+                    "MinvCpus": 0,
+                    "SecurityGroupIds": [
+                        {
+                            "Fn::GetAtt": [
+                                "BatchSecurityGroup",
+                                "GroupId"
+                            ]
+                        },
+                        {
+                            "Ref": "SecurityGroup"
+                        }
+                    ],
+                    "Subnets": [
+                        {
+                            "Ref": "SubnetId"
+                        }
+                    ],
+                    "Type": "EC2"
+                },
+                "ServiceRole": {
+                    "Ref": "BatchServiceRole"
+                },
+                "State": "ENABLED",
+                "Type": "MANAGED"
+            },
+            "Type": "AWS::Batch::ComputeEnvironment"
+        },
+        "ecsTaskWithS3": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ecs-tasks.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                }
+            },
+            "Type": "AWS::IAM::Role"
+        }
+    }
+}

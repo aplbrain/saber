@@ -1,0 +1,75 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Shared
+# Inputs for BOSS
+token: 
+coll_name: GTXrayData
+exp_name: VS0172
+im_chan_name: full_vol
+an_chan_name: ilastik_dense_c_pixel_ahb
+dtype_name: uint8
+itype_name: image
+coord_name: GT-VS0172
+resolution: 0
+xmin: 4700
+xmax: 5000
+ymin: 600
+ymax: 900
+zmin: 210
+zmax: 310
+padding: 5
+onesided: 1
+host_name: api.bossdb.org
+# Inputs for steps
+pull_output_name: pull_output.npy
+anno_output_name: anno_output.npy
+
+ram_amount: 2000
+num_threads: -1
+detect_threshold: 0.2
+stop: 0.1
+initial_template_size: 22
+detect_dilation: 0
+max_cells: 1500
+segment_threshold: 0.68
+segment_dilation: 3
+minimum: 4000
+
+cell_index: 1
+vessel_index: 0
+
+
+# Inputs for merge
+template_size: 19
+map_output_name: cell_detect_map.npy
+list_output_name: cell_detect_list.npy
+centroid_volume_output_name: centroid_volume.npy
+
+out_dtype_name: uint64
+out_itype_name: annotation
+
+membrane_output_name: membrane_out.npy
+detect_output_name: detect_out.npy
+metrics_output_name: metrics.npy
+
+num_samp: 500000
+num_comp: 2
+erode: 1
+vessel_thres: 0.8
+min_size: 0.6
+cell_class: 1
+
+dense_output_name: dense_output.npy
+

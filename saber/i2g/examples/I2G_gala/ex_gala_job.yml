@@ -1,0 +1,28 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+membrane_detection_output_name: i2g_membranes.npy
+synapse_detection_output_name: i2g_synapses.npy
+neuron_segmentation_output_name: i2g_segment.npy
+data: input.npy
+train_file: #trained classifier
+    class: File
+    path: ../neuron_segmentation/trained_classifier.pkl
+mode: 1
+seed_thres: 5
+agg_thres: 0.5
+height: 256
+width: 256
+z_step: 1
+dilation: 3
