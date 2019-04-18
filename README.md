@@ -11,7 +11,7 @@ Simply clone this repository and run
 
 ## Execution of workflows
 
-Please see our [wiki](https://github.com/aplbrain/saber-private/wiki]) for more information!
+Please see our [wiki](https://github.com/aplbrain/saber/wiki]) for more information!
 
 ## Legal
 
