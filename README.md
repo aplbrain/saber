@@ -2,8 +2,11 @@
 
 # SABER <img src="https://avatars2.githubusercontent.com/u/34253653?s=200&v=4" alt="APL Brain logo" width="80"/>
 
+## What is SABER?
+SABER (Scalable Analytics for Brain Exploration Research) is a library of containerized tools and a workflow deployment system for enabling processing of large neuroimaging datasets. Current workflows include processing of X-ray Microtomorography data to produce cell density estimates as well as processing Electron Microscopy images to segment neuron bodies. 
+
 ## Prerequisites
-SABER requires docker and docker-compose. Please use the latest versions.
+SABER requires docker and docker-compose. Please use the latest versions. To run our example workflows, you will need an AWS account to enable cloud storage through the AWS S3 service (https://aws.amazon.com/account/). To access data for our example workflows you will need an account at https://api.bossdb.org
 
 ## Installation
 Simply clone this repository and run
