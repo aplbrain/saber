@@ -4,6 +4,7 @@
 
 ## What is SABER?
 SABER (Scalable Analytics for Brain Exploration Research) is a library of containerized tools and a workflow deployment system for enabling processing of large neuroimaging datasets. Current workflows include processing of X-ray Microtomorography data to produce cell density estimates as well as processing Electron Microscopy images to segment neuron bodies. 
+This project builds on Apache Airflow (http://airflow.apache.org) to orchestrate workflow deployment. This project interfaces with Datajoint (https://datajoint.io) and bossDB (https://github.com/jhuapl-boss/boss) to enable data storage and reproducible workflows. 
 
 ## Prerequisites
 SABER requires docker and docker-compose. Please use the latest versions. To run our example workflows, you will need an AWS account to enable cloud storage through the AWS S3 service (https://aws.amazon.com/account/). To access data for our example workflows you will need an account at https://api.bossdb.org
