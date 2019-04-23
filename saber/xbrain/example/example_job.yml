@@ -23,7 +23,7 @@ coord_name: XBrain_ingest_coord2
 xmin: 1100
 xmax: 1400
 ymin: 1000
-ymax: 11300
+ymax: 1300
 zmin: 300
 zmax: 600
 padding: 0
