@@ -14,6 +14,7 @@
 
 # Shared
 # Inputs for BOSS
+host_name: api.bossdb.org
 token: TODO
 coll_name: GTXrayData
 exp_name: VS0172

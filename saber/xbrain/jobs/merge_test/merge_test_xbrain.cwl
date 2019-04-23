@@ -18,6 +18,7 @@ cwlVersion: v1.0
 class: Workflow
 inputs:
     # Inputs for BOSS
+    host_name: string
     config: File?
     token: string?
     coll_name: string
@@ -80,6 +81,7 @@ steps:
         in:
             config: config
             token: token
+            host_name: host_name
             coll_name: coll_name
             exp_name: exp_name
             chan_name: in_chan_name
@@ -158,7 +160,7 @@ steps:
         in:
             input: cell_split/cell_map
             centroids: cell_split/cell_list
-
+            host_name: host_name
             output_name: list_output_name
             templatesize: template_size
 

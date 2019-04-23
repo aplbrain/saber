@@ -19,6 +19,8 @@ host_name: api.bossdb.org
 token:  
 coll_name: XBrainGTech5
 exp_name: Proj4
+dtype_name: uint8
+itype_name: image
 coord_name: XBrain_ingest_coord2
 xmin: 1100
 xmax: 1400
@@ -29,7 +31,7 @@ zmax: 600
 padding: 0
 resolution: 0
 ## Boss pull
-in_chan_name: rodrilm2
+in_chan_name: full_vol
 ## Boss push (membranes)
 mem_chan_name: membranes_Pub
 ## Boss push (vessels)
