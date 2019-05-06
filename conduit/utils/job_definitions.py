@@ -383,7 +383,10 @@ def create_job_definition(job_definition):
             keys=['jobDefinitionName','jobDefinitionArn','revision']
             )        
     return ret
-client = boto3.client('batch')
+try:
+    client = boto3.client('batch')
+except:
+    print('Local Execution only (no S3)')
 if __name__ == "__main__":
     logging.basicConfig()
     log = logging.getLogger(__name__)
