@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM jupyter/scipy-notebook
-RUN conda install --yes -c ilastik-forge ilastik-dependencies-no-solvers-no-gui \
+FROM jupyter/scipy-notebook:17aba6048f44
+RUN conda install --yes -c ilastik-forge/label/cf201901 ilastik-dependencies-no-solvers-no-gui \
      && conda clean -y --all
 RUN conda install --yes --force libgfortran scipy \
     && conda clean -y --all
@@ -29,5 +29,5 @@ RUN mkdir app
 RUN git clone https://github.com/jhuapl-boss/intern.git && cd intern && git checkout RemoteExtension && git pull && python3 setup.py install --user
 ADD ./unsupervised_celldetect.py /app/unsupervised_celldetect.py
 #Necessary to use for galaxy
-ADD --chown=1000:100 ./filewrap.py ./xbrain.py ./process-xbrain.py ./split_cells.py  /app/
+ADD --chown=1000:100 ./xbrain.py ./process-xbrain.py ./split_cells.py  /app/
 ENV PATH /app:$PATH
