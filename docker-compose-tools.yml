@@ -5,7 +5,7 @@ services:
         build:
             context: ./saber/xbrain
             dockerfile: Dockerfile
-        image: localhost:5000/aplbrain/xbrain
+        image: aplbrain/xbrain
 #    boss:
 #        privileged: true
 #        build:
