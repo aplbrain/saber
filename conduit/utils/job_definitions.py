@@ -232,7 +232,7 @@ def create_and_push_docker_image(tool_yml, tag, local):
         im, bgen = docker_client.images.build(
             fileobj=dockerfile_tar, 
             rm=True, 
-            pull=True, 
+            pull=Trued, 
             tag=tag,
             custom_context=True)
     except docker.errors.BuildError as e:
