@@ -201,7 +201,7 @@ def make_tag(tool_name, tool_yml, local):
         docker_registry = docker_registry_login()
         tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
     if local:
-        tag = short_docker_image_name + ":saber"
+        tag = short_docker_image_name
     return tag
 
 
@@ -232,7 +232,7 @@ def create_and_push_docker_image(tool_yml, tag, local):
         im, bgen = docker_client.images.build(
             fileobj=dockerfile_tar, 
             rm=True, 
-            pull=Trued, 
+            pull=True, 
             tag=tag,
             custom_context=True)
     except docker.errors.BuildError as e:
