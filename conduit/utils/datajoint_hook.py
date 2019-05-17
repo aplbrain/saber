@@ -22,17 +22,7 @@ import re
 
 
 
-# class DatajointHook():
-#     def __init__(self, *args, **kwargs):
-#         #Configuring datajoint
-#         dj.config['database.host'] = '10.109.9.203:3306'
-#         dj.config['database.user'] = 'root'
-#         dj.config['database.password'] = 'tutorial'
-#     def get_conn(self, host, user, password):
-#         dj.config['database.host'] = host
-#         dj.config['database.user'] = user
-#         dj.config['database.password'] = password
-#         log.info(dj.conn()))
+
 dj.config['database.host'] = 'datajoint:3306'
 dj.config['database.user'] = 'root'
 dj.config['database.password'] = 'airflow'
@@ -59,7 +49,6 @@ class JobMetadata(dj.Manual):
     score = null : float
     
     """
-# Hacky way to get a class? I hate datajoint
 
 
 def create_dj_schema(d, wf_name, is_cwl=True):
@@ -77,7 +66,6 @@ def create_dj_schema(d, wf_name, is_cwl=True):
             try:
                 djt = db_types[tp] if is_cwl else tp
             except KeyError:
-                # Unsupport type, try string lmao
                 djt = "varchar(64)"
             definition += "    {} = null : {}\n".format(k,djt)
     return type("{}Params".format(wf_name.title()), (dj.Manual,), dict(definition=definition))
@@ -100,7 +88,3 @@ db_types = {
 
 
 
-# @schema
-# class WorkflowMetadata(dj.Imported):
-#     definition = """
-#     # 
