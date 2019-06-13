@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+import argparse
+import os
+import subprocess
+import parse
+import resource 
+# Inputs will be of the form
+# TO -> --bucket test_bucket
+#       --directory 12f2/stepname
+#       f1 f2 f3 f4
+# Should upload f1..4 to S3://test_bucket/12f2/stepname
+# FROM -> --bucket test_bucket
+#         --directory 12f2/stepname
+#         f1 f2 f3 f4
+# Should download S3://test_bucket/12f2/stepname/f1..4 to current dir
+
+
+parser = argparse.ArgumentParser(
+)
+# TODO fix dependence on last file being in the same bucket
+# As an implementation note, this will fail if the last download file is from another bucket
+
+parser.add_argument('--input', help='Comma delimited list of files to download in the form /directory/file')
+parser.add_argument('--output', help='Comma delimited list of files to upload in the form /directory/file')
+parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
+
+args = parser.parse_args()
+
+if args.input:
+    infiles = args.input.split(',')
+    for f in infiles:
+        #CWL assumes local paths from the directory of jobs
+        cwd = '/' # os.getcwd()
+        fs = f.split('/')
+        filename = fs[len(fs)-1]
+        target = '/'.join(filename)
+
+        try 
+            os.copy(cwd.join(f),target)
+        except OSError as e:
+            print('Got error {} while input copying file {}'.format(e, k))
+            raise e
+
+proc = subprocess.call(args.command, shell=False)
+if proc != 0:
+    raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+if args.output:
+    outfiles = args.output.split(',')
+    for f in outfiles:
+        fs = f.split('/')
+        filename = fs[len(fs)-1]
+        fp = '/'.join(fp)
+        try 
+            os.copy(fp,f)
+        except OSError as e:
+            print('Got error {} while copying file {}'.format(e, k))
+            raise e
+        print('Deleting file to free space...')
+        os.remove(fp)
+print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))

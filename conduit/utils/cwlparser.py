@@ -25,6 +25,7 @@ import time
 import hashlib
 import boto3
 import re
+import pathlib
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
@@ -161,7 +162,7 @@ class CwlParser:
                 step_job_queue = self.queue
             
             log.debug('Score_format: {}'.format(score_format))
-            command_list = generate_command_list(tool, self.cwl['steps'][stepname])
+            command_list = generate_command_list(tool, self.cwl['steps'][stepname], self.local)
             if is_local:
                 if not self.local:
                     creds = boto3.session.Session().get_credentials()
@@ -180,6 +181,7 @@ class CwlParser:
                         pool='Local'
                         )
                 if self.local:
+                    volumes = generate_volume_list(tool)
                     t = SaberDockerOperator(
                         task_id=stepname_c,
                         workflow_id=parent_dag_id,
@@ -187,7 +189,8 @@ class CwlParser:
                         image=self.tags[stepname],
                         command=' '.join(sub_params(command_list, iteration_parameters)),
                         dag=subdag,
-                        pool='Local'
+                        pool='Local',
+                        volumes=volumes
                         )
             else:
                 t = AWSBatchOperator(
@@ -458,3 +461,15 @@ class CwlParser:
         return query.fetch(as_dict=True)
         # d1 = JobMetadata().fetch()
         # s2 = 
+
+    def generate_volume_list(self,tool_yaml):
+        input_files = []
+        volumes = []
+        if len(tool_yml['inputs']) > 0:
+            input_files = [t for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
+            cwd = '/'
+            for f in input_files:
+                fs = f.split('/')
+                fs = cwd.join(fs[:-1]) #cut off the filename to get volume
+                volumes.append(':'.join([fs,fs]))
+        return volumes

@@ -107,7 +107,7 @@ def extract(d, keys,exclude=False):
         return dict((k, d[k]) for k in d if k not in keys)
     else:
         return dict((k, d[k]) for k in keys if k in d)
-def make_build_context(docker_image_name):
+def make_build_context(docker_image_name,local=False):
     '''
     Makes a build context for the wrapped docker image
 
@@ -121,16 +121,29 @@ def make_build_context(docker_image_name):
     tempfile.NamedTemporaryFile : 
         Temporary dockerfile for build
     '''
-    s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/s3wrap'), os.O_RDONLY)
-    s3fp_info = tarfile.TarInfo('s3wrap')
-    s3fp_info.size = os.fstat(s3fd).st_size
-    dockerfile = BytesIO()
-    log.debug('Docker image name: {}'.format(docker_image_name))
-    dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
-    with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_template'), 'r') as template_file:
-        for line in template_file.readlines():
-            dockerfile.write(line.encode())
-    dockerfile.seek(0)
+    if local:
+        s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/localwrap'), os.O_RDONLY)
+        s3fp_info = tarfile.TarInfo('localwrap')
+        s3fp_info.size = os.fstat(s3fd).st_size
+        dockerfile = BytesIO()
+        log.debug('Docker image name: {}'.format(docker_image_name))
+        dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
+        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_template'), 'r') as template_file:
+            for line in template_file.readlines():
+                dockerfile.write(line.encode())
+        dockerfile.seek(0)
+
+    else:
+        s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/s3wrap'), os.O_RDONLY)
+        s3fp_info = tarfile.TarInfo('s3wrap')
+        s3fp_info.size = os.fstat(s3fd).st_size
+        dockerfile = BytesIO()
+        log.debug('Docker image name: {}'.format(docker_image_name))
+        dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
+        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_template'), 'r') as template_file:
+            for line in template_file.readlines():
+                dockerfile.write(line.encode())
+        dockerfile.seek(0)
 
 
     # Make build context
@@ -201,7 +214,7 @@ def make_tag(tool_name, tool_yml, local):
         docker_registry = docker_registry_login()
         tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
     if local:
-        tag = short_docker_image_name
+        tag = '{}:local'.format(short_docker_image_name)
     return tag
 
 
@@ -223,7 +236,7 @@ def create_and_push_docker_image(tool_yml, tag, local):
     
     '''
     orig_docker_image_name = get_original_docker_name(tool_yml)
-    dockerfile_tar = make_build_context(orig_docker_image_name)
+    dockerfile_tar = make_build_context(orig_docker_image_name,local=local)
     if not local:
         docker_client = docker_login()
     if local: 
@@ -237,7 +250,7 @@ def create_and_push_docker_image(tool_yml, tag, local):
             custom_context=True)
     except docker.errors.BuildError as e:
         log.warn('Error building image "{}", trying with local image...'.format(e))
-        dockerfile_tar = make_build_context(orig_docker_image_name)
+        dockerfile_tar = make_build_context(orig_docker_image_name,local)
 
         im, bgen = docker_client.images.build(
             fileobj=dockerfile_tar, 
