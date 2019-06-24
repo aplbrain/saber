@@ -112,6 +112,10 @@ inputs:
         inputBinding:
             prefix: --padding
             position: 17
-
+    source:
+        type: string?
+        inputBinding:
+            prefix: --source
+            position: 18
 outputs: []
 

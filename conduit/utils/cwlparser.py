@@ -233,7 +233,7 @@ class CwlParser:
             Parameterization iterable with each iteration containing the
             parameters to be changed and their values.'''
 
-        self.parameterization = parameterization
+        self.parameterization = parameterize(parameterization)
         
     def generate_dag(self,job,**kwargs):
 
@@ -295,7 +295,7 @@ class CwlParser:
         dag_steps = []
         job_params, deps = self.resolve_args(job)
         if len(self.parameterization) > 1:
-            log.info('Parameterization produces {} workflows, totaling {} jobs...'.format(len(self.parameterization), len(self.steps)*len(parameterization)))
+            log.info('Parameterization produces {} workflows, totaling {} jobs...'.format(len(self.parameterization), len(self.steps)*len(self.parameterization)))
         # If the parameter is a file, use the path
         param_db_update_dict = {}
         for param in self.cwl['inputs']:
