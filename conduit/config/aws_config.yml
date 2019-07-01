@@ -65,7 +65,7 @@ security-group:
   Description: Default VPC security group
   GroupName: default
 job-queue:
-  jobQueueName: sabe-gpu-queue
+  jobQueueName: saber-gpu-queue-enhanced-memory
   state: ENABLED
   priority: 1
   computeEnvironmentOrder:
