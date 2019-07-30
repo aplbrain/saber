@@ -19,8 +19,6 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 ENV AIRFLOW_GPL_UNIDECODE True
-RUN apt-cache search mysql-server
-RUN apt-cache search mysql-client
 RUN set -ex \
     && buildDeps=' \
         python3-dev \

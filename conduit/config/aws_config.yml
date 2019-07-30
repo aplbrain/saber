@@ -80,7 +80,6 @@ job-definitions:
     vcpus: 2
     memory: 4000
     jobRoleArn: arn:aws:iam::438004392447:role/Saber-Airflow-Workflow-BatchInstanceRole-1TQSRWFR81Y5O
-
     volumes: 
       - name: saber-home
         host: 
