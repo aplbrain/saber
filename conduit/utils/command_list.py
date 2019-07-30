@@ -37,17 +37,17 @@ def generate_command_list(tool_yml, step, local=False):
         command_list = ['python3', '/app/localwrap']
         # Only care about file inputs
         input_files = []
+        seperator ="," # moved this line up here to avoid seperator reference without assignment error
         if len(tool_yml['inputs']) > 0:
-            input_files = [t for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
+            input_files = [tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
             if len(input_files) > 0:
                 command_list.append('--input')
-                seperator =','
                 command_list.append(seperator.join(input_files))
 
         # Append the data outputs to S3
         output_files = []
         if len(tool_yml['outputs']) > 0:
-            output_files = [t for tn,t in tool_yml['outputs'].items() if t['type'] == 'File']
+            output_files = [tn for tn,t in tool_yml['outputs'].items() if t['type'] == 'File']
             if len(output_files) > 0:
                 command_list.append('--output')
                 command_list.append(seperator.join(output_files))

@@ -17,6 +17,8 @@
 
 cwlVersion: v1.0
 class: Workflow
+#doc: local
+
 inputs:
 
     # Inputs for BOSS
@@ -97,6 +99,9 @@ steps:
             padding: padding
             output_name: pull_output_name_raw
             coord_name: coord_name
+        hints:
+            saber:
+                local: True
         out:
             [pull_output]
            
@@ -107,7 +112,12 @@ steps:
             width: width
             height: height
             output: membrane_output
+        hints:
+            saber:
+                local: True
         out: [membrane_detection_out]
+        
+
     synapse_detection:
         run: ../../../../saber/i2g/detection/synapse_detection.cwl
         in:
@@ -116,7 +126,12 @@ steps:
             height: height
             mode: mode
             output: synapse_output
+        hints:
+            saber:
+                local: True
         out: [synapse_detection_out]
+        
+
     neuron_segmentation:
         run: ../../../../saber/i2g/neuron_segmentation/neuron_segmentation.cwl
         in:
@@ -126,6 +141,9 @@ steps:
             agg_threshold: agg_threshold
             seeds_cc_threshold: seeds_cc_threshold
             outfile: neuron_output
+        hints:
+            saber:
+                local: True
         out: [neuron_segmentation_out]
 
     boss_push_neurons_bossdb:
@@ -148,6 +166,9 @@ steps:
             padding: padding
             input: neuron_segmentation/neuron_segmentation_out
             coord_name: coord_name_out
+        hints:
+            saber:
+                local: True
         out: []
 
     boss_push_synapses_bossdb:
@@ -170,6 +191,9 @@ steps:
             padding: padding
             input: synapse_detection/synapse_detection_out
             coord_name: coord_name_out
+        hints:
+            saber:
+                local: True
         out: []
 
     boss_push_membranes_bossdb:
@@ -192,4 +216,7 @@ steps:
             padding: padding
             input: membrane_detection/membrane_detection_out
             coord_name: coord_name_out
+        hints:
+            saber:
+                local: True
         out: []

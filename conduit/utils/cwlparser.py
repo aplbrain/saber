@@ -88,6 +88,19 @@ class CwlParser:
                 "Doc specified but not running locally."
         except KeyError:
             self.local = False
+
+    def generate_volume_list(self, tool_yml):
+        input_files = []
+        volumes = []
+        if len(tool_yml['inputs']) > 0:
+            input_files = [tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
+            cwd = '/'
+            for f in input_files:
+                fs = f.split('/')
+                fs = cwd.join(fs[:-1]) #cut off the filename to get volume
+                volumes.append(':'.join([fs,fs]))
+        return volumes
+    
     def create_job_definitions(self):
         for stepname, tool in self.steps.items():
             log.info('Generating job definition for step {}'.format(stepname))
@@ -181,7 +194,7 @@ class CwlParser:
                         pool='Local'
                         )
                 if self.local:
-                    volumes = generate_volume_list(tool)
+                    volumes = self.generate_volume_list(tool)
                     t = SaberDockerOperator(
                         task_id=stepname_c,
                         workflow_id=parent_dag_id,
@@ -461,15 +474,3 @@ class CwlParser:
         return query.fetch(as_dict=True)
         # d1 = JobMetadata().fetch()
         # s2 = 
-
-    def generate_volume_list(self,tool_yaml):
-        input_files = []
-        volumes = []
-        if len(tool_yml['inputs']) > 0:
-            input_files = [t for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
-            cwd = '/'
-            for f in input_files:
-                fs = f.split('/')
-                fs = cwd.join(fs[:-1]) #cut off the filename to get volume
-                volumes.append(':'.join([fs,fs]))
-        return volumes
