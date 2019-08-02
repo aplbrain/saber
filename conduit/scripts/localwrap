@@ -15,7 +15,7 @@
 
 
 import argparse
-import os
+import shutil
 import subprocess
 import parse
 import resource 
@@ -49,9 +49,8 @@ if args.input:
         fs = f.split('/')
         filename = fs[len(fs)-1]
         target = '/'.join(filename)
-
-        try 
-            os.copy(cwd.join(f),target)
+        try: 
+            shutil.copy(cwd.join(f),target)
         except OSError as e:
             print('Got error {} while input copying file {}'.format(e, k))
             raise e
@@ -64,12 +63,13 @@ if args.output:
     for f in outfiles:
         fs = f.split('/')
         filename = fs[len(fs)-1]
-        fp = '/'.join(fp)
-        try 
-            os.copy(fp,f)
-        except OSError as e:
-            print('Got error {} while copying file {}'.format(e, k))
-            raise e
-        print('Deleting file to free space...')
-        os.remove(fp)
+        if len(fs) > 1:
+            fp = '/'.join(fs[:-1])
+            try: 
+                shutil.copy(fp,f)
+            except OSError as e:
+                print('Got error {} while copying file {}'.format(e, k))
+                raise e
+            print('Deleting file to free space...')
+            os.remove(fp)
 print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))

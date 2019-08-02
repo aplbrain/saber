@@ -121,14 +121,14 @@ def make_build_context(docker_image_name,local=False):
     tempfile.NamedTemporaryFile : 
         Temporary dockerfile for build
     '''
-    if local:
+    if local: 
         s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/localwrap'), os.O_RDONLY)
         s3fp_info = tarfile.TarInfo('localwrap')
         s3fp_info.size = os.fstat(s3fd).st_size
         dockerfile = BytesIO()
         log.debug('Docker image name: {}'.format(docker_image_name))
         dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
-        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_template'), 'r') as template_file:
+        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_local_template'), 'r') as template_file:
             for line in template_file.readlines():
                 dockerfile.write(line.encode())
         dockerfile.seek(0)
@@ -140,7 +140,7 @@ def make_build_context(docker_image_name,local=False):
         dockerfile = BytesIO()
         log.debug('Docker image name: {}'.format(docker_image_name))
         dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
-        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_template'), 'r') as template_file:
+        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_s3_template'), 'r') as template_file:
             for line in template_file.readlines():
                 dockerfile.write(line.encode())
         dockerfile.seek(0)
@@ -237,10 +237,10 @@ def create_and_push_docker_image(tool_yml, tag, local):
     '''
     orig_docker_image_name = get_original_docker_name(tool_yml)
     dockerfile_tar = make_build_context(orig_docker_image_name,local=local)
-    if not local:
-        docker_client = docker_login()
-    if local: 
+    if local:
         docker_client = docker.from_env()
+    else:
+        docker_client = docker_login()
     try:
         im, bgen = docker_client.images.build(
             fileobj=dockerfile_tar, 
