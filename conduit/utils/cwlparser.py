@@ -173,9 +173,14 @@ class CwlParser:
                 step_job_queue = self.cwl['steps'][stepname]['hints']['saber']['queue']
             except KeyError:
                 step_job_queue = self.queue
+            try:
+                s3_path = self.cwl['steps'][stepname]['hints']['saber']['s3_path']
+                s3_path = '{}:{}'.format(job['_saber_bucket'], s3_path)
+            except KeyError:
+                s3_path = ''
             
             log.debug('Score_format: {}'.format(score_format))
-            command_list = generate_command_list(tool, self.cwl['steps'][stepname], self.local)
+            command_list = generate_command_list(tool, self.cwl['steps'][stepname], self.local, s3_path)
             if is_local:
                 if not self.local:
                     creds = boto3.session.Session().get_credentials()
