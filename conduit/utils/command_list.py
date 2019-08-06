@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import parse
-def generate_command_list(tool_yml, step, local=False, s3_path = ''):
+def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = ''):
     '''
     Generates an AWS Batch command list from a tool YML
 
@@ -34,26 +34,27 @@ def generate_command_list(tool_yml, step, local=False, s3_path = ''):
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
+        if file_path =='':
+            raise ValueError('File path not specified.')
         command_list = ['python3', '/app/localwrap']
         # Only care about file inputs
-        input_files = []
-        seperator ="," # moved this line up here to avoid seperator reference without assignment error
-        if len(tool_yml['inputs']) > 0:
-            input_files = [tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
-            if len(input_files) > 0:
-                command_list.append('--input')
-                command_list.append(seperator.join(input_files))
+        seperator ="," 
+        input_files = iteration_parameters.get('_saber_input', [])
+        if len(input_files) > 0:
+            input_files = input_files.split(',')
+            command_list.append('--input')
+            command_list.append(seperator.join(input_files))
 
         # Append the data outputs to S3
-        output_files = []
-        if len(tool_yml['outputs']) > 0:
-            output_files = [tn for tn,t in tool_yml['outputs'].items() if t['type'] == 'File']
-            if len(output_files) > 0:
-                command_list.append('--output')
-                command_list.append(seperator.join(output_files))
+        output_files = iteration_parameters.get('_saber_output', [])
+        if len(output_files) > 0:
+            output_files = output_files.split(',')
+            command_list.append('--output')
+            command_list.append(seperator.join(output_files))
+        print(command_list)
     else:
-        if s3_path != '':
-            command_list = ['python3', '/app/s3wrap', '--to', s3_path, '--fr', 'Ref::_saber_home']
+        if file_path != '':
+            command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', 'Ref::_saber_home']
         else:
             command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home']
         # Only care about file inputs

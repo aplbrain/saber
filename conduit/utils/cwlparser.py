@@ -89,16 +89,19 @@ class CwlParser:
         except KeyError:
             self.local = False
 
-    def generate_volume_list(self, tool_yml):
+    def generate_volume_list(self, tool_yml, local_path):
+        """
+        # Why do we need to generate volumes for inputs? Can't they just get them from previous output
         input_files = []
+        if len([tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']) > 0:
+            f = iteration_parameters['input']
+            fs = f.split('/')
+            volumes.append(':'.join([fs,fs]))
+        """
         volumes = []
-        if len(tool_yml['inputs']) > 0:
-            input_files = [tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
-            cwd = '/'
-            for f in input_files:
-                fs = f.split('/')
-                fs = cwd.join(fs[:-1]) #cut off the filename to get volume
-                volumes.append(':'.join([fs,fs]))
+        if len(tool_yml['outputs']) > 0:
+            volumes.append(local_path+':/volumes/data/local')
+        print('VOLUMES :'+ str(volumes))
         return volumes
     
     def create_job_definitions(self):
@@ -174,13 +177,14 @@ class CwlParser:
             except KeyError:
                 step_job_queue = self.queue
             try:
-                s3_path = self.cwl['steps'][stepname]['hints']['saber']['s3_path']
-                s3_path = '{}:{}'.format(job['_saber_bucket'], s3_path)
+                file_path = self.cwl['steps'][stepname]['hints']['saber']['file_path']
+                if not self.local:
+                    file_path = '{}:{}'.format(job['_saber_bucket'], file_path)
             except KeyError:
-                s3_path = ''
+                file_path = ''
             
             log.debug('Score_format: {}'.format(score_format))
-            command_list = generate_command_list(tool, self.cwl['steps'][stepname], self.local, s3_path)
+            command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path)
             if is_local:
                 if not self.local:
                     creds = boto3.session.Session().get_credentials()
@@ -199,7 +203,7 @@ class CwlParser:
                         pool='Local'
                         )
                 if self.local:
-                    volumes = self.generate_volume_list(tool)
+                    volumes = self.generate_volume_list(tool, file_path)
                     t = SaberDockerOperator(
                         task_id=stepname_c,
                         workflow_id=parent_dag_id,

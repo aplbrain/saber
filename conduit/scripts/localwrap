@@ -16,6 +16,7 @@
 
 import argparse
 import shutil
+import os
 import subprocess
 import parse
 import resource 
@@ -37,6 +38,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--input', help='Comma delimited list of files to download in the form /directory/file')
 parser.add_argument('--output', help='Comma delimited list of files to upload in the form /directory/file')
+#parser.add_argument('--fr', help='file path for input files')
 parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
 
 args = parser.parse_args()
@@ -45,31 +47,37 @@ if args.input:
     infiles = args.input.split(',')
     for f in infiles:
         #CWL assumes local paths from the directory of jobs
-        cwd = '/' # os.getcwd()
         fs = f.split('/')
         filename = fs[len(fs)-1]
-        target = '/'.join(filename)
+        target = '/src/'.join(fs[:-1])
+        os.makedirs(target)
+        data_path = '../volumes/data/local/'
+        source = data_path + filename
         try: 
-            shutil.copy(cwd.join(f),target)
+            shutil.copy(source, f)
         except OSError as e:
-            print('Got error {} while input copying file {}'.format(e, k))
+            print('Got error {} while input copying file {}'.format(e, filename))
             raise e
+        print(os.path.exists(f))
 
 proc = subprocess.call(args.command, shell=False)
 if proc != 0:
     raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+
 if args.output:
     outfiles = args.output.split(',')
     for f in outfiles:
         fs = f.split('/')
-        filename = fs[len(fs)-1]
-        if len(fs) > 1:
-            fp = '/'.join(fs[:-1])
-            try: 
-                shutil.copy(fp,f)
-            except OSError as e:
-                print('Got error {} while copying file {}'.format(e, k))
-                raise e
-            print('Deleting file to free space...')
-            os.remove(fp)
+        fn = fs[len(fs)-1]
+        #fp = '/'.join(fs[:-1])
+        #data_path = os.makedirs('../volumes/data/local/{}'.format(fp))
+        data_path = '../volumes/data/local/'
+        try: 
+            #TODO: fix output file names
+            shutil.copy(fn,data_path)
+        except OSError as e:
+            print('Got error {} while copying file {}'.format(e, fn))
+            raise e
+        print('Deleting file to free space...')
+        os.remove(fn)
 print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))
