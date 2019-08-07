@@ -19,8 +19,6 @@ host_bossdb: api.bossdb.org
 token_bossdb: 9feb8eedea069626a7e96336d5dd8229a61cc99a
 coll_name: Kasthuri
 exp_name: em
-exp_name_out: I2G_Saber_pipeline_results 
-coord_name_out: KasthuriI2GResults
 coord_name: KasthuriFrame
 resolution: 1
 xmin: 6990
@@ -37,9 +35,6 @@ in_chan_name_ann: ann
 itype_name_in: image
 dtype_name_in: uint8
 #outputs
-out_chan_name_syn: I2G_Synapses_i_1
-dtype_name_out: uint64
-itype_name_out: annotation
 pull_output_name_raw: pull_output_raw.npy
 pull_output_name_ann: pull_output_ann.npy
 
@@ -54,4 +49,13 @@ height: 16
 mode: synapse
 #Synapse_detection
 synapse_output: synapse_output.npy
-_saber_bucket: saber-batch
+#Membrane_detection
+membrane_output: membrane_output.npy
+#neuron_segmentation:
+train_file: ./trained_classifier.pkl
+neuron_output: neuron_output.npy
+mode: synapse
+neuron_mode: 1
+agg_threshold: "0.5"
+seeds_cc_threshold: "5"
+#_saber_bucket: saber-batch

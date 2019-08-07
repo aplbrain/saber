@@ -34,9 +34,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
-        if file_path =='':
-            raise ValueError('File path not specified.')
-        command_list = ['python3', '/app/localwrap']
+        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_home']
         # Only care about file inputs
         seperator ="," 
         input_files = iteration_parameters.get('_saber_input', [])
@@ -51,7 +49,6 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
             output_files = output_files.split(',')
             command_list.append('--output')
             command_list.append(seperator.join(output_files))
-        print(command_list)
     else:
         if file_path != '':
             command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', 'Ref::_saber_home']

@@ -158,12 +158,16 @@ class CwlParser:
                     param_db_update_dict[self.cwl['steps'][stepname]['in'][key]] = value
                 iteration_parameters.update(iteration[stepname]) 
             (in_string, out_string) = generate_io_strings(tool, wf_id, iteration_parameters,i)
-            iteration_parameters['_saber_home'] = '{}/{}'.format(job['_saber_bucket'], wf_id)
+            if self.local:
+                iteration_parameters['_saber_home'] = wf_id
+                iteration_parameters['_saber_stepname'] = '{}/{}'.format(wf_id,stepname_c)
+            else: 
+                iteration_parameters['_saber_home'] = '{}/{}'.format(job['_saber_bucket'], wf_id)
+                iteration_parameters['_saber_stepname'] = '{}:{}/{}'.format(job['_saber_bucket'], wf_id,stepname_c)
             if in_string:
                 iteration_parameters['_saber_input'] = in_string
             if out_string:
                 iteration_parameters['_saber_output'] = out_string
-            iteration_parameters['_saber_stepname'] = '{}:{}/{}'.format(job['_saber_bucket'], wf_id,stepname_c)
             try:
                 score_format = self.cwl['steps'][stepname]['hints']['saber']['score_format']
             except KeyError:

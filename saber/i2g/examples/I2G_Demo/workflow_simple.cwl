@@ -26,15 +26,10 @@ inputs:
     token_bossdb: string?
     coll_name: string
     exp_name: string
-    exp_name_out: string
     in_chan_name_raw: string
-    out_chan_name_syn: string
     dtype_name_in: string
-    dtype_name_out: string
     itype_name_in: string
-    itype_name_out: string
     coord_name: string
-    coord_name_out: string
     resolution: int?
     xmin: int?
     xmax: int?
@@ -51,8 +46,16 @@ inputs:
     height: int?
     mode: string
 
+    #Inputs for neuron_segmentation
+    train_file: File?
+    neuron_mode: string
+    seeds_cc_threshold: string
+    agg_threshold: string
+
     #Inputs for output names:
     synapse_output: string
+    membrane_output: string
+    neuron_output: string
 
 outputs:
     pull_output_raw:
@@ -61,6 +64,12 @@ outputs:
     synapse_detection:
         type: File
         outputSource: synapse_detection/synapse_detection_out
+    membrane_detection:
+        type: File
+        outputSource: membrane_detection/membrane_detection_out
+    neuron_segmentation:
+        type: File
+        outputSource: neuron_segmentation/neuron_segmentation_out
 
 steps:
     boss_pull_raw:
@@ -105,29 +114,30 @@ steps:
                 file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
         out: [synapse_detection_out]
 
-
-    boss_push_synapses_bossdb:
-        run: ../../../../saber/boss_access/boss_push_nos3.cwl
+    membrane_detection:
+        run: ../../../../saber/i2g/detection/membrane_detection.cwl
         in:
-            token: token_bossdb
-            host_name: host_bossdb
-            coll_name: coll_name
-            exp_name: exp_name_out
-            chan_name: out_chan_name_syn
-            dtype_name: dtype_name_in
-            itype_name: itype_name_in
-            resolution: resolution
-            xmin: xmin
-            xmax: xmax
-            ymin: ymin
-            ymax: ymax
-            zmin: zmin
-            zmax: zmax
-            padding: padding
-            input: synapse_detection/synapse_detection_out
-            coord_name: coord_name_out
+            input: boss_pull_raw/pull_output
+            width: width
+            height: height
+            output: membrane_output
         hints:
             saber:
                 local: True
                 file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
-        out: []
+        out: [membrane_detection_out]
+
+    neuron_segmentation:
+        run: ../../../../saber/i2g/neuron_segmentation/neuron_segmentation.cwl
+        in:
+            prob_file: membrane_detection/membrane_detection_out
+            mode: neuron_mode
+            train_file: train_file
+            agg_threshold: agg_threshold
+            seeds_cc_threshold: seeds_cc_threshold
+            outfile: neuron_output
+        hints:
+            saber:
+                local: True
+                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+        out: [neuron_segmentation_out]
