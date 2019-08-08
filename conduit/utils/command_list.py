@@ -26,6 +26,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     step : dict
         Step from CWL. Used to make sure that the input is enabled in the
         workflow
+    file_path = path to store intermediate files (local or s3)
     
     Returns:
     --------

@@ -98,6 +98,7 @@ if args.upload:
         fp = '/'.join([d,fn])
         try:
             print('Uploading {} to {}'.format(f,fp))
+            
             s3.meta.client.upload_file(
                 Bucket=b,
                 Filename=f,

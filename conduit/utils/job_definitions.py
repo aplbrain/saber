@@ -121,7 +121,7 @@ def make_build_context(docker_image_name,local=False):
     tempfile.NamedTemporaryFile : 
         Temporary dockerfile for build
     '''
-    if local: 
+    if local:
         s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/localwrap'), os.O_RDONLY)
         s3fp_info = tarfile.TarInfo('localwrap')
         s3fp_info.size = os.fstat(s3fd).st_size
