@@ -101,7 +101,6 @@ class CwlParser:
         volumes = []
         if len(tool_yml['outputs']) > 0:
             volumes.append(local_path+':/volumes/data/local')
-        print('VOLUMES :'+ str(volumes))
         return volumes
     
     def create_job_definitions(self):

@@ -58,4 +58,4 @@ mode: synapse
 neuron_mode: 1
 agg_threshold: "0.5"
 seeds_cc_threshold: "5"
-#_saber_bucket: saber-batch
+_saber_bucket: saber-batch

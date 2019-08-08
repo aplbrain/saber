@@ -13,7 +13,7 @@
 # limitations under the License.
 
 #!/usr/bin/env cwl-runner
-## This workflow will make use of the general synapse and membrane detection cwl files, meaning the processes will happen on CPU rather than on GPU. 
+## This workflow will make use of the general synapse and membrane detection cwl files, meaning the processes will happen on CPU rather than on GPU. Does not include Boss push steps. 
 
 cwlVersion: v1.0
 class: Workflow
