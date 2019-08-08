@@ -21,6 +21,8 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     -----------
     tool_yml : dict
         Tool YML from file
+    iteration_parameters: dict
+        Job parameters for a particular step
     step : dict
         Step from CWL. Used to make sure that the input is enabled in the
         workflow
@@ -55,18 +57,14 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
         else:
             command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home']
         # Only care about file inputs
-        input_files = []
-        if len(tool_yml['inputs']) > 0:
-            input_files = [t for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']
-            if len(input_files) > 0:
+        input_files = iteration_parameters.get('_saber_input', [])
+        if len(input_files) > 0:
                 command_list.append('--download')
                 command_list.append('Ref::_saber_input')
 
         # Append the data outputs to S3
-        output_files = []
-        if len(tool_yml['outputs']) > 0:
-            output_files = [t for tn,t in tool_yml['outputs'].items() if t['type'] == 'File']
-            if len(output_files) > 0:
+        output_files = iteration_parameters.get('_saber_output', [])
+        if len(output_files) > 0:
                 command_list.append('--upload')
                 command_list.append('Ref::_saber_output')
     # Not really necessary to split but I dont see a use case where one would want a space in their command...
