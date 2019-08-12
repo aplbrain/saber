@@ -22,10 +22,10 @@ exp_name: em
 coord_name: KasthuriFrame
 resolution: 1
 xmin: 6990
-xmax: 7006
+xmax: 7150
 ymin: 7882
-ymax: 7898
-zmin: 604
+ymax: 8042
+zmin: 600
 zmax: 620
 padding: 0
 onesided: 0
@@ -44,8 +44,8 @@ pull_output_name_ann: pull_output_ann.npy
 #PROCESSING:
 #------------------------------------------------
 #General: 
-width: 16
-height: 16
+width: 160
+height: 160
 mode: synapse
 #Synapse_detection
 synapse_output: synapse_output.npy

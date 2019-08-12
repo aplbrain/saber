@@ -13,9 +13,7 @@
 # limitations under the License.
 
 COPY ./localwrap /app/
-RUN python -m pip install boto3
 RUN python -m pip install parse
-RUN python3 -m pip install boto3
 RUN python3 -m pip install parse
 
 ENV PATH="/app:${PATH}"

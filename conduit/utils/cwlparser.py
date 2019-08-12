@@ -317,7 +317,6 @@ class CwlParser:
             default_args=self.default_args,
             schedule_interval=None
         )
-        dag_steps = []
         job_params, deps = self.resolve_args(job)
         if len(self.parameterization) > 1:
             log.info('Parameterization produces {} workflows, totaling {} jobs...'.format(len(self.parameterization), len(self.steps)*len(self.parameterization)))
