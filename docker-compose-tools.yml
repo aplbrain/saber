@@ -1,23 +1,23 @@
 version: '2.1'
 services:
-    xbrain:
+#    xbrain:
+#        privileged: true
+#        build:
+#            context: ./saber/xbrain
+#            dockerfile: Dockerfile
+#        image: aplbrain/xbrain
+    boss:
         privileged: true
         build:
-            context: ./saber/xbrain
+            context: ./saber/boss_access
             dockerfile: Dockerfile
-        image: aplbrain/xbrain
-#    boss:
-#        privileged: true
-#        build:
-#            context: ./saber/boss_access
-#            dockerfile: Dockerfile
-#        image: localhost:5000/aplbrain/boss-access
-#    i2gdetect:
-#        privileged: true
-#        build:
-#            context: ./saber/i2g/detection
-#            dockerfile: Dockerfile
-#        image: localhost:5000/aplbrain/i2gdetect
+        image: localhost:5000/aplbrain/boss-access
+    i2gdetect:
+        privileged: true
+        build:
+            context: ./saber/i2g/detection
+            dockerfile: Dockerfile
+        image: localhost:5000/aplbrain/i2gdetect
 #    i2gdetect_gpu:
 #        privileged: true
 #        build:
@@ -30,12 +30,12 @@ services:
 #            context: ./saber/i2g/metric_computation
 #            dockerfile: Dockerfile
 #        image: localhost:5000/aplbrain/i2gmetrics
-#    i2gseg:
-#        privileged: true
-#        build:
-#            context: ./saber/i2g/neuron_segmentation
-#            dockerfile: Dockerfile
-#        image: localhost:5000/aplbrain/i2gseg
+    i2gseg:
+        privileged: true
+        build:
+            context: ./saber/i2g/neuron_segmentation
+            dockerfile: Dockerfile
+        image: localhost:5000/aplbrain/i2gseg
 #    i2gseg:
 #        privileged: true
 #        build:
