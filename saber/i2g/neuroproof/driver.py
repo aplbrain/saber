@@ -14,7 +14,8 @@
 
 from subprocess import call
 import argparse
-import os
+import h5py
+import numpy as np
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Neuroproof Aggolmeration script')
@@ -45,20 +46,29 @@ def get_parser():
             '--outfile',
             required=True,
             help='Output file')
-    parser.add_argument('--num_iterations', type=int, default=1,
+    parser.add_argument('--num_iterations', default='1',
                         help='Number of training iterations')
-    parser.add_argument('--use_mito', type=int, default=0,
+    parser.add_argument('--use_mito', default='0',
                         help='Toggles context-aware training with mitochrondria prediciton (0 or 1)')
     return parser
 
 def train(args):
-    call(['neuroproof_graph_learn', args.ws_file, args.pred_file, args.gt_file, args.num_iterations, args.use_mito])
-    os.rename('classifier.xml', args.outfile)
+    proc = call(['neuroproof_graph_learn', args.ws_file, args.pred_file, args.gt_file,
+    "--num-iterations", args.num_iterations,
+    "--use_mito", args.use_mito,
+    "--classifier-name", args.outfile])
+    if proc != 0:
+        raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
 
 def deploy(args):
     #probability map
-    pass
-
+    proc = call(['neuroproof_graph_predict', args.ws_file, args.pred_file, args.train_file])
+    if proc != 0:
+        raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+    f = h5py.File('segmentation.h5', 'r')
+    seg_array = f.get('stack')[()]
+    np.save(args.outfile, seg_array)
+    return
 
 if __name__ == '__main__':
     parser = get_parser()

@@ -29,17 +29,17 @@ inputs:
     type: File
     inputBinding:
       position: 2
-      prefix: --watershed
+      prefix: --ws_file
   pred_file:
     type: File?
     inputBinding:
       position: 2
-      prefix: --prediction
+      prefix: --pred_file
   gt_file:
     type: File
     inputBinding:
       position: 3
-      prefix: --groundtruth
+      prefix: --gt_file
   train_file:
     type: File?
     inputBinding:
