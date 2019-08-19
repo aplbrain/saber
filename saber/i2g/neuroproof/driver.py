@@ -52,8 +52,20 @@ def get_parser():
                         help='Toggles context-aware training with mitochrondria prediciton (0 or 1)')
     return parser
 
+def npy_to_h5(file):
+    raw_arr = np.load(file)
+    fn = file.split('.')[0] + '.h5'
+    hf = h5py.File(fn, 'w')
+    hf.create_dataset('stack', data = raw_arr)
+    hf.close()
+    return fn
+
 def train(args):
-    proc = call(['neuroproof_graph_learn', args.ws_file, args.pred_file, args.gt_file,
+    files = [args.ws_file, args.pred_file, args.gt_file]
+    for i in range(len(files)):
+        if files[i][-2:] != 'h5' and files[i] != '':
+            files[i] = npy_to_h5(files[i])
+    proc = call(['neuroproof_graph_learn', files[0], files[1], files[2],
     "--num-iterations", args.num_iterations,
     "--use_mito", args.use_mito,
     "--classifier-name", args.outfile])
@@ -61,8 +73,11 @@ def train(args):
         raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
 
 def deploy(args):
-    #probability map
-    proc = call(['neuroproof_graph_predict', args.ws_file, args.pred_file, args.train_file])
+    files = [args.ws_file, args.pred_file]
+    for i in range(len(files)):
+        if files[i][-2:] != 'h5' and files[i] != '':
+            files[i] = npy_to_h5(files[i])
+    proc = call(['neuroproof_graph_predict', files[0], files[1], args.train_file])
     if proc != 0:
         raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
     f = h5py.File('segmentation.h5', 'r')

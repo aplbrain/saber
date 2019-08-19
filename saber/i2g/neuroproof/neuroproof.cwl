@@ -31,12 +31,12 @@ inputs:
       position: 2
       prefix: --ws_file
   pred_file:
-    type: File?
+    type: File
     inputBinding:
       position: 2
       prefix: --pred_file
   gt_file:
-    type: File
+    type: File?
     inputBinding:
       position: 3
       prefix: --gt_file
@@ -46,12 +46,12 @@ inputs:
       position: 4
       prefix: --train_file
   iterations:
-    type: int
+    type: string?
     inputBinding:
       position: 5
       prefix: --num_iterations
   use_mito:
-    type: string
+    type: string?
     inputBinding:
       position: 6
       prefix: --use_mito
@@ -61,7 +61,7 @@ inputs:
       position: 7
       prefix: --outfile
 outputs:
-  neuron_segmentation_out:
+  neuroproof_out:
     type: File
     outputBinding:
       glob: $(inputs.outfile)

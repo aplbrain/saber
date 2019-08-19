@@ -24,5 +24,5 @@ RUN pip install numpy h5py
 
 WORKDIR /app
 COPY driver.py /app/driver.py
-RUN git clone https://github.com/janelia-flyem/neuroproof_examples.git
-#ENTRYPOINT ["python3", "driver.py" ]
+#RUN git clone https://github.com/janelia-flyem/neuroproof_examples.git
+ENTRYPOINT ["python3", "driver.py" ]

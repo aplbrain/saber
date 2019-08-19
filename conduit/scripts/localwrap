@@ -54,14 +54,19 @@ if args.input:
     for f in infiles:
         fs = f.split('/') #splits directory from file name e.g. ['boss_pull_raw.0', 'pull_output.npy']
         fn = fs[len(fs)-1] #gets the file name e.g. 'pull_output.npy'
-        target = '/'.join(fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
-        target = target[:-2] #gets rid of the '.0' 
+        source = volume_path + fn
+        if len(fs) > 1: 
+            target = '/'.join(fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
+            target = target[:-2] #gets rid of the '.0' 
+            
+            if not os.path.exists(target):
+                os.makedirs(target) # creates the parent directories in the CWD if it doesn't exist already
+        else:
+            #fs is just the filename
+            target = fs[0]
         
-        if not os.path.exists(target):
-            os.makedirs(target) # creates the parent directories in the CWD if it doesn't exist already
-        source = volume_path + fn 
-        
-        try: 
+        try:
+            print(source,target) 
             shutil.copy(source, target)
         except OSError as e:
             print('Got error {} while input copying file {}'.format(e, fn))
