@@ -19,20 +19,6 @@ from pathlib import Path
 from airflow.hooks.base_hook import BaseHook
 import re
 
-
-
-
-# class DatajointHook():
-#     def __init__(self, *args, **kwargs):
-#         #Configuring datajoint
-#         dj.config['database.host'] = '10.109.9.203:3306'
-#         dj.config['database.user'] = 'root'
-#         dj.config['database.password'] = 'tutorial'
-#     def get_conn(self, host, user, password):
-#         dj.config['database.host'] = host
-#         dj.config['database.user'] = user
-#         dj.config['database.password'] = password
-#         log.info(dj.conn()))
 dj.config['database.host'] = 'datajoint:3306'
 dj.config['database.user'] = 'root'
 dj.config['database.password'] = 'airflow'
@@ -59,7 +45,6 @@ class JobMetadata(dj.Manual):
     score = null : float
     
     """
-# Hacky way to get a class? I hate datajoint
 
 
 def create_dj_schema(d, wf_name, is_cwl=True):
@@ -97,10 +82,3 @@ db_types = {
     'File' : 'varchar(64)'
 }
 
-
-
-
-# @schema
-# class WorkflowMetadata(dj.Imported):
-#     definition = """
-#     # 
