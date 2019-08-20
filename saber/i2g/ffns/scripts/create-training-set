@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+"""
+Copyright 2018 The Johns Hopkins University Applied Physics Laboratory.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+import argparse
+import numpy as np
+from intern.remote.boss import BossRemote
+
+
+
+def produce_boss_remote(config_file_path):
+    """
+    Create a new boss remote, with a given config, if available.
+    """
+    if config_file_path:
+        return BossRemote(config_file_path)
+    else:
+        return BossRemote()
+
+
+def download_volume(boss, channel, resolution, xs, ys, zs):
+    return boss.get_cutout(channel, resolution, xs, ys, zs)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--boss_config_file", default=None, help="The boss config file to use.")
+    parser.add_argument("uri", help="Data URI to download, of form [bossdb://col/exp/chan].")
+    parser.add_argument("extents", help="XYZ extents of the form [x:x/y:y/z:z]")
+    parser.add_argument("--res", default='0', help="Resolution. 0 default.")
+    parser.add_argument("--out", default='raw', help="File path to save .npy raw")
+    args = parser.parse_args()
+
+    boss = produce_boss_remote(args.boss_config_file)
+
+    protocol, _, col, exp, chan = args.uri.split("/")
+    channel = boss.get_channel(chan, col, exp)
+
+    xs, ys, zs = [[int(e) for e in  d.split(":")] for d in args.extents.split("/")]
+
+    raw = download_volume(boss, channel, int(args.res), xs, ys, zs)
+
+    np.save(args.out, raw)

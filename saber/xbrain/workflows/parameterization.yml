@@ -1,0 +1,24 @@
+x:
+  range:
+    start: 0
+    stop: 10000
+    step: 10
+  parameters:
+    - xmin
+    - xmax
+y:
+  range:
+    start: 0
+    stop: 10000
+    step: 10
+  parameters:
+    - ymin
+    - ymax
+z:
+  range:
+    start: 0
+    stop: 10000
+    step: 10
+  parameters:
+    - zmin
+    - zmax

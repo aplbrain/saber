@@ -1,0 +1,63 @@
+n_epochs:
+  range:
+    start: 100
+    stop: 400
+    step: 100
+  parameters:
+    abs: n_epochs
+  steps:
+    - optimize
+mb_size:
+  range:
+    start: 2
+    stop: 6
+    step: 2
+  parameters:
+    abs: mb_size
+  steps:
+    - optimize
+n_mb_per_epoch:
+  range:
+    start: 2
+    stop: 4
+    step: 1
+  parameters:
+    abs: n_mb_per_epoch
+  steps:
+    - optimize
+tile_size:
+  range:
+    start: 64
+    stop: 256
+    step: 64
+  parameters:
+    abs: tile_size
+  steps:
+    - optimize
+learning_rate:
+  range:
+    start: 0.005
+    stop: 0.02
+    step: 0.005
+  parameters:
+    abs: learning_rate
+  steps:
+    - optimize
+decay:
+  range: 
+    start: 0.0000005
+    stop: 0.000002
+    step: 0.0000005
+  parameters:
+    abs: decay
+  steps:
+    - optimize
+momentum:
+  range:
+    start: 0.95
+    stop: 0.99
+    step: 0.01
+  parameters:
+    abs: momentum
+  steps:
+    -optimize

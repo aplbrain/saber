@@ -3,18 +3,23 @@
 cwlVersion: v1.0
 class: Workflow
 inputs:
+    # i/o
     data: File
-    classifier: File
     membrane_classify_output_name: string
     cell_detect_output_name: string
     vessel_segment_output_name: string
-    ram_amount: int?
-    num_threads: int?
+    bucket: string
+    
+    # Cell detect
     detect_threshold: float?
     stop: float?
     initial_template_size: int?
     detect_dilation: int?
     max_cells: int?
+    classifier: File
+    # Membrane classify 
+    ram_amount: int?
+    num_threads: int?
     segment_threshold: float?
     segment_dilation: int?
     minimum: int?
@@ -33,6 +38,7 @@ steps:
     membrane_classify:
         run: ../tools/membrane_classify.cwl
         in:
+            bucket: bucket
             input: data
             output_name: membrane_classify_output_name
             classifier: classifier
@@ -42,9 +48,9 @@ steps:
     cell_detect:
         run: ../tools/cell_detect.cwl
         in:
+            bucket: bucket
             input: membrane_classify/membrane_probability_map
             output_name: cell_detect_output_name
-            classifier: classifier
             threshold: detect_threshold
             stop: stop
             initial_template_size: initial_template_size
@@ -54,9 +60,9 @@ steps:
     vessel_segment:
         run: ../tools/vessel_segment.cwl
         in:
+            bucket: bucket
             input: membrane_classify/membrane_probability_map
             output_name: vessel_segment_output_name
-            classifier: classifier
             threshold: segment_threshold
             dilation: segment_dilation
             minimum: minimum

@@ -1,0 +1,10 @@
+FROM ffn-base 
+
+LABEL maintainer="Jordan Matelsky <jordan.matelsky@jhuapl.edu>"
+
+WORKDIR "ffn"
+COPY ./inference/main.sh .
+COPY ./inference/config.pbtxt .
+COPY ./inference/get-latest-checkpoint .
+
+ENTRYPOINT ["bash", "-c", "./main.sh"]
