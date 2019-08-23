@@ -28,7 +28,7 @@ from intern.resource.boss.resource import *
 from cnn_tools import *
 from data_tools import *
 
-K.set_image_dim_ordering('th')
+K.set_image_data_format('channels_first') #replaces K.set_image_dim_ordering('th')
 
 
 

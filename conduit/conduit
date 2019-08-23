@@ -83,8 +83,8 @@ def optimize(args):
         print(iteration)
         if type(iteration) == list:
             p.set_parameterization(iteration)
-        elif type(iteration) == dict:
-            p.set_parameterization([iteration])
+        #elif type(iteration) == dict:
+        #    p.set_parameterization([iteration])
         dag = p.generate_dag(args.job)
         p.dag_write(dag)
         r = requests.get("http://webserver:8080/dagbag/fill")

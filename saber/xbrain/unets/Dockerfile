@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
   libhdf5-dev \
   python-h5py \
   python-yaml \
+  python3-pip \
   vim
 
 RUN pip install --upgrade pip
@@ -35,7 +36,9 @@ RUN pip install --ignore-installed keras
 RUN pip install --ignore-installed intern
 #RUN pip install awscli
 #RUN pip install boto3
+RUN pip install enum34
 RUN pip install --ignore-installed SimpleITK
+RUN pip install numpy==1.15.4
 
 # Create workspace
 # TODO: Re-org this to use git clone and S3
@@ -48,7 +51,7 @@ COPY ./*.py /src/
 ENV KERAS_BACKEND=theano
 ENV PATH=/src:$PATH
 
-ENV THEANO_FLAGS="DEVICE=cuda0"
+ENV THEANO_FLAGS="device=cuda0"
 #ENV THEANO_FLAGS='device=cuda,lib.cnmem=1'
 
 CMD ["python", "train_unet_docker.py"]

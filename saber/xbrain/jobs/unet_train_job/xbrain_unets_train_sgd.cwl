@@ -2,6 +2,7 @@
 
 cwlVersion: v1.0
 class: Workflow
+#doc: local
 inputs:
     use_boss: int
     img_file: File?
@@ -84,3 +85,4 @@ steps:
             saber: 
                 score_format: "F1: {score}\n" 
                 local: True
+                #file_path: /home/ubuntu/saber/volumes/data/local
