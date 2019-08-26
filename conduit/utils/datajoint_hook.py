@@ -22,6 +22,7 @@ import re
 dj.config['database.host'] = 'datajoint:3306'
 dj.config['database.user'] = 'root'
 dj.config['database.password'] = 'airflow'
+dj.config["safemode"] = False
 dj.conn()
 schema = dj.schema('airflow', locals())
 

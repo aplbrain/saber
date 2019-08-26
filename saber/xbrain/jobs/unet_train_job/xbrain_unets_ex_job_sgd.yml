@@ -4,7 +4,7 @@ use_boss: 1
 coord: GT-VS0172
 img_file: merp 
 lbl_file: merp
-token: 
+token: c99099353ca905d2ec6999ef7f2691103ef35411 
 coll: GTXrayData
 exp: VS0172
 chan_labels: ilastik_dense_c_pixel_ahb

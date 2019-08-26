@@ -15,8 +15,9 @@
 import yaml
 import numpy as np
 import itertools
-from abc import ABC, abstractmethod
 import random
+from abc import ABC, abstractmethod
+
 def parameterize(p):
     param_ranges = []
     for mp_name, metaparam in p.items():
@@ -50,6 +51,7 @@ def parameterize(p):
                 
         iterations.append(iteration)
     return iterations
+
 class Sampler(ABC):
     '''
     Abstract class for a sampler
@@ -75,11 +77,12 @@ class RandomSampler(Sampler):
         super().__init__(parameterization_dict, job)
 
     def update(self, results):
-        
         self.next_job = random.choice(self.param_grid)
+    
     def sample(self):
         for i in range(self.max_iterations):
             yield self.next_job
+
 if __name__ == '__main__':
     with open('parameterization.yml') as fp:
         p = yaml.load(fp)

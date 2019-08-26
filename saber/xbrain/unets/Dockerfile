@@ -36,9 +36,13 @@ RUN pip install --ignore-installed keras
 RUN pip install --ignore-installed intern
 #RUN pip install awscli
 #RUN pip install boto3
-RUN pip install enum34
 RUN pip install --ignore-installed SimpleITK
-RUN pip install numpy==1.15.4
+
+#Default python2 doesn't include enum34
+RUN pip install enum34
+
+#Theano needs numpy ver < 1.16.0 to work
+RUN pip install numpy==1.15.4 
 
 # Create workspace
 # TODO: Re-org this to use git clone and S3

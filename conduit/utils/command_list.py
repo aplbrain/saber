@@ -37,7 +37,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
-        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_home']
+        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname']
         # Only care about file inputs
         seperator ="," 
         input_files = iteration_parameters.get('_saber_input', [])

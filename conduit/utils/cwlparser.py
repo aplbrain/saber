@@ -26,6 +26,7 @@ import hashlib
 import boto3
 import re
 import pathlib
+import datajoint
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
@@ -91,7 +92,6 @@ class CwlParser:
 
     def generate_volume_list(self, tool_yml, local_path):
         """
-        # Why do we need to generate volumes for inputs? Can't they just get them from previous output
         input_files = []
         if len([tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']) > 0:
             f = iteration_parameters['input']
