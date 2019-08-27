@@ -1,21 +1,21 @@
-# n_epochs:
-#   range:
-#     start: 100
-#     stop: 400
-#     step: 100
-#   parameters:
-#     abs: n_epochs
-#   steps:
-#     - optimize
-mb_size:
- range:
-   start: 2
-   stop: 6
-   step: 2
- parameters:
-   abs: mb_size
- steps:
-   - optimize
+n_epochs:
+  range:
+    start: 1
+    stop: 10
+    step: 1
+  parameters:
+    abs: n_epochs
+  steps:
+    - optimize
+# mb_size:
+#  range:
+#    start: 2
+#    stop: 8
+#    step: 2
+#  parameters:
+#    abs: mb_size
+#  steps:
+#    - optimize
 #n_mb_per_epoch:
 #  range:
 #    start: 2
@@ -52,7 +52,7 @@ mb_size:
 #    abs: decay
 #  steps:
 #    - optimize
-#momentum:
+# momentum:
 #  range:
 #    start: 0.95
 #    stop: 0.99
@@ -60,4 +60,4 @@ mb_size:
 #  parameters:
 #    abs: momentum
 #  steps:
-#    -optimize
+#    - optimize

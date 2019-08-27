@@ -4,7 +4,7 @@ use_boss: 1
 coord: GT-VS0172
 img_file: merp 
 lbl_file: merp
-token: c99099353ca905d2ec6999ef7f2691103ef35411 
+token: [your token here] 
 coll: GTXrayData
 exp: VS0172
 chan_labels: ilastik_dense_c_pixel_ahb
@@ -19,7 +19,7 @@ ymax: 599
 zmin: 211
 zmax: 300
 train_pct: 0.7
-n_epochs: 50
+n_epochs: 5
 mb_size: 4
 n_mb_per_epoch: 3
 learning_rate: 0.01
