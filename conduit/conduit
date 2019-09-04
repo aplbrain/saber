@@ -71,7 +71,6 @@ def write_results(results, args):
 def optimize(args):
     p = construct_parser(args)
     p.create_job_definitions()
-    opti_out = []
     with open(args.job) as fp:
         job = yaml.load(fp)
     with open(args.parameterize) as fp:
@@ -88,11 +87,13 @@ def optimize(args):
     for i,iteration in enumerate(sampler.sample()):
         print('Executing iteration {} of {} sampling'.format(i, args.sampling_strategy))
         print("Parameters: "+ str(iteration))
-        p.opti_iter = iteration
-        if type(iteration) == list: #parameterization specified by sampler
+        p.opti_iter = i #keeps track of job iterations for subDAG
+        if type(iteration) == list: 
             p.parameterization = iteration
-        elif type(iteration) == dict: #parameterization set by /util/paramaterization.py
+        elif type(iteration) == dict: 
             p.parameterization = ([iteration])
+        
+        # Runs job with parameters from iteration
         dag = p.generate_dag(args.job)
         p.dag_write(dag)
         r = requests.get("http://webserver:8080/dagbag/fill")
@@ -101,10 +102,11 @@ def optimize(args):
             time.sleep(60)
         wait_for_success(p)
 
+        # Obtains results (iterable of ordered dictionary of all completed iterations) and updates sampler
         results = p.collect_results()
         sampler.update(results)
-        opti_out.append(results[0])
-    write_results(opti_out, args)
+    
+    write_results(results, args)
     print('Done')
 
 def wait_for_success(parser):

@@ -30,7 +30,7 @@ import datajoint
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
-from utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata
+from utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata, safe_toggle
 from datajoint.errors import DuplicateError, DataJointError
 import cwltool.main as cwltool
 import parse
@@ -338,7 +338,8 @@ class CwlParser:
             use_subdag = True
         for i,iteration in enumerate(self.parameterization):
             if 'optimize' in self.parameterization[0].keys():
-                    iteration = self.opti_iter
+                    i = self.opti_iter
+                    safe_toggle()
             if use_subdag:
                 subdag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
                 iteration_subdag_step = SubDagOperator(

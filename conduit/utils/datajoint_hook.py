@@ -22,7 +22,6 @@ import re
 dj.config['database.host'] = 'datajoint:3306'
 dj.config['database.user'] = 'root'
 dj.config['database.password'] = 'airflow'
-dj.config["safemode"] = False
 dj.conn()
 schema = dj.schema('airflow', locals())
 
@@ -68,7 +67,8 @@ def create_dj_schema(d, wf_name, is_cwl=True):
             definition += "    {} = null : {}\n".format(k,djt)
     return type("{}Params".format(wf_name.title()), (dj.Manual,), dict(definition=definition))
 
-
+def safe_toggle():
+    dj.config["safemode"] = False
 
 
     

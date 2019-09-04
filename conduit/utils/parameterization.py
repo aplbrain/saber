@@ -83,10 +83,5 @@ class RandomSampler(Sampler):
         for i in range(self.max_iterations):
             yield self.next_job
 
-if __name__ == '__main__':
-    with open('parameterization.yml') as fp:
-        p = yaml.load(fp)
-    para = parameterize(p)
-    print(para[0])
-    print(len(para))
+# New sampling methods can be added below!
     
