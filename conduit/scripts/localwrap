@@ -68,8 +68,11 @@ if args.input:
         try:
             shutil.copy(source, target)
         except OSError as e:
-            print('Got error {} while input copying file {}'.format(e, fn))
-            raise e
+            if os.path.exists(fn):
+                pass
+            else:
+                print('Got error {} while copying file {}'.format(e, fn))
+                raise e
 
 proc = subprocess.call(args.command, shell=False)
 if proc != 0:

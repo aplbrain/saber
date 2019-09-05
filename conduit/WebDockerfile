@@ -44,6 +44,8 @@ RUN set -ex \
         rsync \
         netcat \
         locales \
+        default-mysql-server \
+        default-mysql-client \
     && apt-get install -y git \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \

@@ -151,11 +151,10 @@ class CwlParser:
             stepname_c = '{}.{}'.format(stepname,i)
             
             iteration_parameters = job_params[stepname].copy()
-            
-            if iteration and stepname in iteration:
+            if stepname in iteration:
                 for key,value in iteration[stepname].items():
                     param_db_update_dict[self.cwl['steps'][stepname]['in'][key]] = value
-                iteration_parameters.update(iteration[stepname]) 
+                iteration_parameters.update(iteration[stepname])
             (in_string, out_string) = generate_io_strings(tool, wf_id, iteration_parameters,i)
             if self.local:
                 iteration_parameters['_saber_home'] = wf_id

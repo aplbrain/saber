@@ -41,6 +41,8 @@ RUN set -ex \
         curl \
         rsync \
         netcat \
+        default-mysql-server \
+        default-mysql-client \
         locales
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
