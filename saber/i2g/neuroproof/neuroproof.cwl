@@ -40,7 +40,7 @@ inputs:
     inputBinding:
       position: 3
       prefix: --gt_file
-  train_file:
+  class_file:
     type: File?
     inputBinding:
       position: 4

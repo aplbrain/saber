@@ -53,19 +53,39 @@ def get_parser():
     return parser
 
 def npy_to_h5(file):
-    raw_arr = np.load(file)
+    raw_arr = np.load(file) #X, Y, Z
+    raw_arr = np.transpose(np.squeeze(raw_arr),(2,0,1)) #Z, X, Y
     fn = file.split('.')[0] + '.h5'
     hf = h5py.File(fn, 'w')
-    hf.create_dataset('stack', data = raw_arr)
+    hf.create_dataset('stack', data = raw_arr.astype('int32'))
     hf.close()
     return fn
 
+def boundary_preprocessing(membrane):
+    """
+    Takes an npy membrane boundary file and turns it into a probability h5 file
+    """
+    if membrane[-3:] != 'npy':
+        raise Exception('Prediction file must be an npy or h5 file')
+    
+    mem_arr = np.load(membrane) # X, Y, Z
+    mem_arr = np.transpose(np.squeeze(mem_arr),(2,0,1)) #Z, X, Y
+    mem_arr = mem_arr/np.max(mem_arr) 
+    cyto_arr = 1 - mem_arr
+    
+    pred_arr = np.array([mem_arr, cyto_arr]) # chan, Z, X, Y
+    pred_arr = np.moveaxis(pred_arr, 0,3) # Z,X,Y,chan
+    
+    pred_file = h5py.File(membrane[:-3]+'h5', 'w')
+    pred_file.create_group('volume').create_dataset('predictions', data = pred_arr.astype('float32'))
+    pred_file.close()
+    return membrane[:-3]+'h5'
+
 def train(args):
-    files = [args.ws_file, args.pred_file, args.gt_file]
-    for i in range(len(files)):
-        if files[i][-2:] != 'h5' and files[i] != '':
-            files[i] = npy_to_h5(files[i])
-    proc = call(['neuroproof_graph_learn', files[0], files[1], files[2],
+    if args.gt_file[-2:] != 'h5':
+        args.gt_file = npy_to_h5(args.gt_file)
+    
+    proc = call(['neuroproof_graph_learn', args.ws_file, args.pred_file, args.gt_file,
     "--num-iterations", args.num_iterations,
     "--use_mito", args.use_mito,
     "--classifier-name", args.outfile])
@@ -73,24 +93,22 @@ def train(args):
         raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
 
 def deploy(args):
-    files = [args.ws_file, args.pred_file]
-    for i in range(len(files)):
-        if files[i][-2:] != 'h5' and files[i] != '':
-            files[i] = npy_to_h5(files[i])
-    proc = call(['neuroproof_graph_predict', files[0], files[1], args.train_file])
+    proc = call(['neuroproof_graph_predict', args.ws_file, args.pred_file, args.train_file])
     if proc != 0:
         raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
     f = h5py.File('segmentation.h5', 'r')
-    seg_array = f.get('stack')[()]
+    seg_array = f['stack']
     np.save(args.outfile, seg_array)
     return
 
 if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
+    if args.pred_file[-2:] != 'h5':
+        args.pred_file = boundary_preprocessing(args.pred_file)
+    if args.ws_file[-2:] != 'h5':
+        args.ws_file = npy_to_h5(args.ws_file)
     if(int(args.mode)==0):
         train(args)
     else:
         deploy(args)
-
-
