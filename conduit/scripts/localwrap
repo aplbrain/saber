@@ -38,23 +38,22 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--input', help='Comma delimited list of files to download in the form /directory/file')
 parser.add_argument('--output', help='Comma delimited list of files to upload in the form /directory/file')
-parser.add_argument('--wf', help = 'Workflow name in the form of saber_bucket/wf_hash')
+parser.add_argument('--wf', help = 'Workflow stepname in the form of workflow_name/step_name')
 parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
 
 args = parser.parse_args()
 if args.wf:
-    volume_path = '../volumes/data/local/{}/'.format(args.wf)
-else:
-    volume_path = '../volumes/data/local/' 
-if not os.path.exists(volume_path):
-        os.makedirs(volume_path) # creates the volume path if it doesn't exist already
+    input_path = '../volumes/data/local/' + args.wf.split('/')[0] + '/' 
+    output_path = '../volumes/data/local/' + args.wf + '/' 
+if not os.path.exists(output_path):
+        os.makedirs(output_path) # creates the volume path if it doesn't exist already
 
 if args.input:
     infiles = args.input.split(',') #list of input files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
     for f in infiles:
         fs = f.split('/') #splits directory from file name e.g. ['boss_pull_raw.0', 'pull_output.npy']
         fn = fs[len(fs)-1] #gets the file name e.g. 'pull_output.npy'
-        source = volume_path + fn
+        source = input_path + f
         if len(fs) > 1: 
             target = '/'.join(fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
             target = target[:-2] #gets rid of the '.0' 
@@ -87,7 +86,7 @@ if args.output:
         #data_path = os.makedirs('../volumes/data/local/{}'.format(fp))
         try: 
             #TODO: change output file names
-            shutil.copy(fn, volume_path)
+            shutil.copy(fn, output_path)
         except OSError as e:
             print('Got error {} while copying file {}'.format(e, fn))
             raise e
