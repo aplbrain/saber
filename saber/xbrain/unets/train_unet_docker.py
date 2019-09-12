@@ -51,7 +51,7 @@ def parse_args(json_file=None):
 def get_boss_data(args):
 
     config = {"protocol": "https",
-              "host": "api.bossdb.org",
+              "host": "api.bossdb.io",
               "token": args.token}
     rmt = BossRemote(config)
     print('[info] Downloading data from BOSS')
