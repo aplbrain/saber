@@ -2,9 +2,17 @@ FROM ffn-base
 
 LABEL maintainer="Jordan Matelsky <jordan.matelsky@jhuapl.edu>"
 
+RUN apt-get install -yqq \
+    python3-dev \
+    python3-pip
+
 WORKDIR "ffn"
 COPY ./inference/main.sh .
 COPY ./inference/config.pbtxt .
 COPY ./inference/get-latest-checkpoint .
-
-ENTRYPOINT ["bash", "-c", "./main.sh"]
+COPY ./model /model
+COPY ./data /data
+RUN mkdir /latest-model
+RUN export LATEST=`./get-latest-checkpoint`
+RUN cp /model/model.ckpt-$LATEST* /latest-model
+ENTRYPOINT ["python", "run_inference.py"]

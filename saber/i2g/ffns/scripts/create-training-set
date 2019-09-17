@@ -40,8 +40,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--boss_config_file", default=None, help="The boss config file to use.")
-    parser.add_argument("uri", help="Data URI to download, of form [bossdb://col/exp/chan].")
-    parser.add_argument("extents", help="XYZ extents of the form [x:x/y:y/z:z]")
+    parser.add_argument("--uri", help="Data URI to download, of form [bossdb://col/exp/chan].")
+    parser.add_argument("--extents", help="XYZ extents of the form [x:x/y:y/z:z]")
     parser.add_argument("--res", default='0', help="Resolution. 0 default.")
     parser.add_argument("--out", default='raw', help="File path to save .npy raw")
     args = parser.parse_args()

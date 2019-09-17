@@ -5,7 +5,7 @@ image_mean: 128
 image_stddev: 33
 checkpoint_interval: 1800
 seed_policy: "PolicyPeaks"
-model_checkpoint_path: "/latest-model/model.ckpt-409999"
+model_checkpoint_path: "/latest-model/model.ckpt-27465036"
 model_name: "convstack_3d.ConvStack3DFFNModel"
 model_args: "{\"depth\": 12, \"fov_size\": [33, 33, 33], \"deltas\": [8, 8, 8]}"
 segmentation_output_dir: "/results"

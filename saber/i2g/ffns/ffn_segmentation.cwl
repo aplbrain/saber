@@ -16,92 +16,28 @@ cwlVersion: v1.0
 class: CommandLineTool
 hints:
     DockerRequirement:
-        dockerPull: aplbrain/ffn_train
-baseCommand: /bin/bash
-arguments: ["main.sh"]
+        dockerPull: aplbrain/ffn-inference
+baseCommand: python
+arguments: ["run_inference.py"]
 inputs:
-  input:
+  config_file:
     type: File
     inputBinding:
       position: 1
-      prefix: --input
-  seg_input:
-    type: File
+      prefix: --config_file
+  bounding_box:
+    type: string
     inputBinding:
       position: 2
-      prefix: --seg_input
-  min_thres:
-    type: float?
+      prefix: --bounding_box
+  outfile:
+    type: string
     inputBinding:
       position: 3
-      prefix: --min_thres
-  max_thres:
-    type: float?
-    inputBinding:
-      position: 4
-      prefix: --max_thres
-  thres_step:
-    type: float?
-    inputBinding:
-      position: 5
-      prefix: --thres_step
-  lom_radius:
-    type: int?
-    inputBinding:
-      position: 6
-      prefix: --lom_radius
-  min_size:
-    type: int?
-    inputBinding:
-      position: 7
-      prefix: --min_size
-  margin:
-    type: int?
-    inputBinding:
-      position: 8
-      prefix: --margin
-  model_name:
-    type: string
-    inputBinding:
-      position: 9
-      prefix: --name
-  depth:
-    type: int?
-    inputBinding:
-      position: 10
-      prefix: --depth  
-  fov:
-    type: int?
-    inputBinding:
-      position: 11
-      prefix: --fov  
-  deltas:
-    type: int?
-    inputBinding:
-      position: 12
-      prefix: --deltas  
-  image_mean:
-    type: int?
-    inputBinding:
-      position: 13
-      prefix: --image_mean  
-  image_std:
-    type: int?
-    inputBinding:
-      position: 14
-      prefix: --image_std  
-  max_steps:
-    type: int?
-    inputBinding:
-      position: 15
-      prefix: --max_steps  
-  output:
-    type: string
-    inputBinding:
-      position: 16
-      prefix: --output
+      prefix: --outfile 
+
 outputs:
-  training_out:
+  ffn_out:
     type: File
     outputBinding:
-      glob: $(inputs.output)
+      glob: $(inputs.outfile)
