@@ -1,4 +1,4 @@
 # FFN segmentation
-config_file: ../../ffns/inference/config.pbtxt
-bounding_box: 'start { x:0 y:0 z:0 } size { x:64 y:64 z:63 }'
-outfile: 'seg-0_0_0.npz'
+config_file: config.pbtxt
+bounding_box: ['start { x:0 y:0 z:0 } size { x:64 y:64 z:63 }']
+outfile: seg_out.npy

@@ -45,3 +45,6 @@ The model checkpoints will be saved to `$(pwd)/model`.
 ```shell
 sudo docker run --runtime=nvidia -it -v $(pwd)/data:/data -v $(pwd)/model:/model -v $(pwd)/results:/results ffn-inference
 ```
+
+## python driver test
+docker run --rm -v $(pwd)/results:/ffn/output/ aplbrain/ffn-inference -c config.pbtxt -bb ['start { x:0 y:0 z:0 } size { x:64 y:64 z:63 }'] -o output/my_seg.npy

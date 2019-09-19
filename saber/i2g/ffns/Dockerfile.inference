@@ -7,6 +7,7 @@ RUN apt-get install -yqq \
     python3-pip
 
 WORKDIR "ffn"
+COPY ./inference/driver.py . 
 COPY ./inference/main.sh .
 COPY ./inference/config.pbtxt .
 COPY ./inference/get-latest-checkpoint .
@@ -15,4 +16,4 @@ COPY ./data /data
 RUN mkdir /latest-model
 RUN export LATEST=`./get-latest-checkpoint`
 RUN cp /model/model.ckpt-$LATEST* /latest-model
-ENTRYPOINT ["python", "run_inference.py"]
+ENTRYPOINT ["python", "driver.py"]

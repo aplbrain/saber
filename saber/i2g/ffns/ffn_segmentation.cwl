@@ -18,10 +18,10 @@ hints:
     DockerRequirement:
         dockerPull: aplbrain/ffn-inference
 baseCommand: python
-arguments: ["run_inference.py"]
+arguments: ["driver.py"]
 inputs:
   config_file:
-    type: File
+    type: string
     inputBinding:
       position: 1
       prefix: --config_file

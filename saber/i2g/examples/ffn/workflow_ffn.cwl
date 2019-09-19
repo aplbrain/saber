@@ -21,7 +21,7 @@ doc: local
 
 inputs:
     #Inputs for FFN
-    config_file: File
+    config_file: string
     bounding_box: string
     outfile: string 
 
@@ -40,5 +40,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [ffn_out]
