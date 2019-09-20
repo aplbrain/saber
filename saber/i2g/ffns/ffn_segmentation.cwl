@@ -20,20 +20,30 @@ hints:
 baseCommand: python
 arguments: ["driver.py"]
 inputs:
+  input:
+    type: File
+    inputBinding:
+      position: 1
+      prefix: --input_file 
   config_file:
     type: string
     inputBinding:
-      position: 1
-      prefix: --config_file
-  bounding_box:
-    type: string
-    inputBinding:
       position: 2
-      prefix: --bounding_box
-  outfile:
+      prefix: --config_file
+  bound_start:
     type: string
     inputBinding:
       position: 3
+      prefix: --bound_start
+  bound_stop:
+    type: string
+    inputBinding:
+      position: 4
+      prefix: --bound_stop
+  outfile:
+    type: string
+    inputBinding:
+      position: 5
       prefix: --outfile 
 
 outputs:

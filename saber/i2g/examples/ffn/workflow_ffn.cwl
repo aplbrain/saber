@@ -20,22 +20,75 @@ class: Workflow
 doc: local
 
 inputs:
+    # Inputs for BOSS
+    host_bossdb: string
+    token_bossdb: string?
+    coll_name: string
+    exp_name: string
+    in_chan_name_raw: string
+    dtype_name_in: string
+    itype_name_in: string
+    coord_name: string
+    resolution: int?
+    xmin: int?
+    xmax: int?
+    ymin: int?
+    ymax: int?
+    zmin: int?
+    zmax: int?
+    padding: int?
+    pull_output_name_raw: string
+    pull_output_name_ann: string
+    
     #Inputs for FFN
     config_file: string
-    bounding_box: string
+    bound_start: string
+    bound_stop: string
     outfile: string 
 
 outputs:
+    pull_output_raw:
+        type: File
+        outputSource: boss_pull_raw/pull_output
     ffn_segmentation:
         type: File
         outputSource: ffn_segmentation/ffn_out
 
 steps:
+    boss_pull_raw:
+        run: ../../../../saber/boss_access/boss_pull_nos3.cwl
+        in:
+            token: token_bossdb
+            host_name: host_bossdb
+            coll_name: coll_name
+            exp_name: exp_name
+            chan_name: in_chan_name_raw
+            dtype_name: dtype_name_in
+            itype_name: itype_name_in
+            resolution: resolution
+            xmin: xmin
+            xmax: xmax
+            ymin: ymin
+            ymax: ymax
+            zmin: zmin
+            zmax: zmax
+            padding: padding
+            output_name: pull_output_name_raw
+            coord_name: coord_name
+        hints:
+            saber:
+                local: True
+                file_path: /home/ubuntu/saber/volumes/data/local
+        out:
+            [pull_output]
+
     ffn_segmentation:
         run: ../../../../saber/i2g/ffns/ffn_segmentation.cwl
         in:
+            input: boss_pull_raw/pull_output
             config_file: config_file
-            bounding_box: bounding_box
+            bound_start: bound_start
+            bound_stop: bound_stop
             outfile: outfile
         hints:
             saber:
