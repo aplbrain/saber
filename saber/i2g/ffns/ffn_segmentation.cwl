@@ -25,25 +25,75 @@ inputs:
     inputBinding:
       position: 1
       prefix: --input_file 
-  config_file:
+  image_mean:
     type: string
     inputBinding:
       position: 2
-      prefix: --config_file
-  bound_start:
+      prefix: --image_mean   
+  image_stddev:
     type: string
     inputBinding:
       position: 3
+      prefix: --image_stddev 
+  depth:
+    type: string
+    inputBinding:
+      position: 4
+      prefix: --depth
+  fov_size:
+    type: string
+    inputBinding:
+      position: 5
+      prefix: --fov_size
+  deltas:
+    type: string
+    inputBinding:
+      position: 6
+      prefix: --deltas
+  init_activation:
+    type: string
+    inputBinding:
+      position: 7
+      prefix: --init_activation 
+  pad_value:
+    type: string
+    inputBinding:
+      position: 8
+      prefix: --pad_value
+  move_threshold:
+    type: string
+    inputBinding:
+      position: 9
+      prefix: --move_threshold 
+  min_boundary_dist:
+    type: string
+    inputBinding:
+      position: 10
+      prefix: --min_boundary_dist
+  segment_threshold:
+    type: string
+    inputBinding:
+      position: 11
+      prefix: --segment_threshold
+  min_segment_size:
+    type: string
+    inputBinding:
+      position: 12
+      prefix: --min_segment_size
+  bound_start:
+    type: string
+    inputBinding:
+      position: 13
       prefix: --bound_start
   bound_stop:
     type: string
     inputBinding:
-      position: 4
+      position: 14
       prefix: --bound_stop
   outfile:
     type: string
     inputBinding:
-      position: 5
+      position: 15
       prefix: --outfile 
 
 outputs:

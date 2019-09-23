@@ -27,12 +27,50 @@ def get_parser():
             required=True,
             help='Raw EM Volume')
     parser.add_argument(
-            '-c',
-            '--config_file',
+            '--image_mean',
             required=True,
-            help='Configuration File')
+            help='image mean')
     parser.add_argument(
-            '-d',
+            '--image_stddev',
+            required=True,
+            help='image std dev')
+    parser.add_argument(
+            '--depth',
+            required=True,
+            help='depth, fov size, deltas')
+    parser.add_argument(
+            '--fov_size',
+            required=True,
+            help='depth, fov size, deltas')
+    parser.add_argument(
+            '--deltas',
+            required=True,
+            help='depth, fov size, deltas')
+    parser.add_argument(
+            '--init_activation',
+            required=True,
+            help='init activation')
+    parser.add_argument(
+            '--pad_value',
+            required=True,
+            help='pad value')
+    parser.add_argument(
+            '--move_threshold',
+            required=True,
+            help='move threshold')
+    parser.add_argument(
+            '--min_boundary_dist',
+            required=True,
+            help='min boundary dist')
+    parser.add_argument(
+            '--segment_threshold',
+            required=True,
+            help='segment thresh')
+    parser.add_argument(
+            '--min_segment_size',
+            required=True,
+            help='segment size')
+    parser.add_argument(
             '--bound_start',
             required=True,
             help='X,Y,Z start bound')
@@ -48,8 +86,42 @@ def get_parser():
             help='Output file')
     return parser
 
+def config_file_parser(args):
+    model_args = "\"{{\\\"depth\\\": {}, \\\"fov_size\\\": [{}], \\\"deltas\\\": [{}]}}\"".format(
+        args.depth,
+        args.fov_size,
+        args.deltas
+    )
+    min_boundary_dist = "{{ x: {} y: {} z: {}}}".format(
+        args.min_boundary_dist.split(',')[0],
+        args.min_boundary_dist.split(',')[1],
+        args.min_boundary_dist.split(',')[2]
+    )
+    params = {
+    'image_mean': args.image_mean,
+    'image_stddev': args.image_stddev,
+    'model_args': model_args,
+    'init_activation': args.init_activation,
+    'pad_value': args.pad_value,
+    'move_threshold': args.move_threshold,
+    'min_boundary_dist': min_boundary_dist,
+    'segment_threshold': args.segment_threshold,
+    'min_segment_size': args.min_segment_size
+    }
+    
+    config_file = open('config.pbtxt','w')
+    with open('config_template.pbtxt', 'r') as template_file:
+        for line in template_file.readlines():
+            if "{}" in line:
+                param = line.split(':')[0].strip()
+                if param in params.keys():
+                    line = line.format(params[param])
+                elif 'min_boundary_dist' in line:
+                    line = line.format(params['min_boundary_dist'])
+            config_file.write(line)
+    config_file.close()
+
 def bounding_box_parser(start,stop):
-    print(start,stop)
     start_list = start.split(',')
     stop_list = stop.split(',')
     if len(start_list) != 3 and len(stop_list) != 3:
@@ -61,9 +133,10 @@ def bounding_box_parser(start,stop):
     return flag
 
 def deploy(args):
-    npy2h5.convert(args.input_file, 'data/raw.h5', 'raw')
+    config_file_parser(args)
+    npy2h5.convert(args.input_file, '/data/raw.h5', 'raw')
     bounding_box = bounding_box_parser(args.bound_start, args.bound_stop)
-    with open(args.config_file) as params:
+    with open('config.pbtxt') as params:
         params = params.read()
     ec = call(['python', 'run_inference.py', 
     '--inference_request={}'.format(params), 

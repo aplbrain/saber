@@ -41,7 +41,17 @@ inputs:
     pull_output_name_ann: string
     
     #Inputs for FFN
-    config_file: string
+    image_mean: string
+    image_stddev: string
+    depth: string
+    fov_size: string
+    deltas: string
+    init_activation: string
+    pad_value: string
+    move_threshold: string
+    min_boundary_dist: string
+    segment_threshold: string
+    min_segment_size: string
     bound_start: string
     bound_stop: string
     outfile: string 
@@ -86,7 +96,17 @@ steps:
         run: ../../../../saber/i2g/ffns/ffn_segmentation.cwl
         in:
             input: boss_pull_raw/pull_output
-            config_file: config_file
+            image_mean: image_mean
+            image_stddev: image_stddev
+            depth: depth
+            fov_size: fov_size
+            deltas: deltas
+            init_activation: init_activation
+            pad_value: pad_value
+            move_threshold: move_threshold
+            min_boundary_dist: min_boundary_dist
+            segment_threshold: segment_threshold
+            min_segment_size: min_segment_size
             bound_start: bound_start
             bound_stop: bound_stop
             outfile: outfile

@@ -8,11 +8,11 @@ RUN apt-get install -yqq \
 
 WORKDIR "ffn"
 COPY ./inference/main.sh .
-COPY ./inference/config.pbtxt .
+COPY ./inference/config_template.pbtxt .
 COPY ./inference/get-latest-checkpoint .
 COPY ./inference/npy2h5.py .
 COPY ./model /model
-RUN mkdir data/
+RUN mkdir /data
 RUN mkdir /latest-model
 RUN export LATEST=`./get-latest-checkpoint`
 RUN cp /model/model.ckpt-$LATEST* /latest-model

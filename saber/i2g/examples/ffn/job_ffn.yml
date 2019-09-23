@@ -1,4 +1,41 @@
+# BOSS:
+#------------------------------------------------
+# general:
+host_bossdb: api.theboss.io
+token_bossdb: token
+coll_name: kasthuri2015
+exp_name: ac4
+coord_name: ac4-coord
+resolution: 0
+xmin: 0
+xmax: 64
+ymin: 0
+ymax: 64
+zmin: 0
+zmax: 63
+padding: 0
+onesided: 0
+#inputs:
+in_chan_name_raw: em
+in_chan_name_ann: neuron
+itype_name_in: image
+dtype_name_in: uint8
+#outputs
+pull_output_name_raw: pull_output_raw.npy
+pull_output_name_ann: pull_output_ann.npy
+
 # FFN segmentation
-config_file: config.pbtxt
-bounding_box: ['start { x:0 y:0 z:0 } size { x:64 y:64 z:63 }']
+image_mean: 128
+image_stddev: 33
+depth: 12
+fov_size: 33,33,33
+deltas: 8,8,8
+init_activation: 0.95
+pad_value: 0.05
+move_threshold: 0.9
+min_boundary_dist: 1,1,1
+segment_threshold: 0.6
+min_segment_size: 100
+bound_start: 0,0,0
+bound_stop: 64,64,63
 outfile: seg_out.npy
