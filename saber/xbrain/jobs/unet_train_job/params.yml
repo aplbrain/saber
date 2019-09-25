@@ -1,0 +1,54 @@
+n_epochs:
+  range:
+    start: 200
+    stop: 300
+    step: 25
+  parameters:
+    abs: n_epochs
+  steps:
+    - optimize
+mb_size:
+  range:
+    start: 3
+    stop: 5
+    step: 1
+  parameters:
+    abs: mb_size
+  steps:
+    - optimize
+n_mb_per_epoch:
+  range:
+    start: 2
+    stop: 4
+    step: 1
+  parameters:
+    abs: n_mb_per_epoch
+  steps:
+    - optimize
+learning_rate:
+  range:
+    start: 0.0001
+    stop: 0.0004
+    step: 0.0001
+  parameters:
+    abs: learning_rate
+  steps:
+    - optimize
+beta1:
+  range: 
+    start: 0.88
+    stop: 0.92
+    step: 0.01
+  parameters:
+    abs: beta1
+  steps:
+    - optimize
+beta2:
+  range:
+    start: 0.997
+    stop: 0.999
+    step: 0.001
+  parameters:
+    abs: beta2
+  steps:
+    -optimize
