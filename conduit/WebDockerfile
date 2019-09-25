@@ -10,7 +10,7 @@ ENV TERM linux
 
 # Airflow
 ARG AIRFLOW_VERSION=1.10.4
-ARG AIRFLOW_HOME=/conduit
+ARG AIRFLOW_HOME=/root
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
