@@ -16,7 +16,7 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.org
-token_bossdb: [your token here]
+token_bossdb: <your token here>
 coll_name: Kasthuri
 exp_name: em
 coord_name: KasthuriFrame

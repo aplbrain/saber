@@ -16,7 +16,7 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.org
-token_bossdb: 9feb8eedea069626a7e96336d5dd8229a61cc99a
+token_bossdb: 6edf6eacfe4b5a36b7184ad477db1fd7876e7982
 coll_name: Kasthuri
 exp_name: em
 exp_name_out: I2G_Saber_pipeline_results 

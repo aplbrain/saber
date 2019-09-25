@@ -1,0 +1,33 @@
+# Unets
+use_boss: 1
+#Boss files
+coord: GT-VS0172
+img_file: 
+lbl_file: 
+token: 
+coll: GTXrayData
+exp: VS0172
+chan_labels: ilastik_dense_c_pixel_ahb
+chan_img: full_vol
+dtype_img: uint8
+dtype_lbl: uint64
+res: 0
+xmin: 4400
+xmax: 4656
+ymin: 343
+ymax: 599
+zmin: 211
+zmax: 300
+train_pct: 0.7
+n_epochs: 250
+mb_size: 4
+n_mb_per_epoch: 3
+learning_rate: 0.0001
+beta1: 0.9
+beta2: 0.999
+save_freq: 50
+do_warp: False
+tile_size: 256
+weights_file: 
+output: out_weights.h5
+score_out: f1_score.npy
