@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from airflow.operators.docker_operator import DockerOperator
-from utils.datajoint_hook import JobMetadata
+from utils.datajoint_hook import DatajointHook,JobMetadata
 from datajoint import DuplicateError
 import time
 import parse
@@ -24,7 +24,7 @@ class SaberDockerOperator(DockerOperator):
         self.score_format = score_format
         self.workflow_id = workflow_id
         self.task_id = kwargs['task_id']
-        self.jobmetadata_db = JobMetadata()
+        self.dj_hook = DatajointHook()
     def execute(self, *args, **kwargs):
         begin_time = time.time()
         super().execute(*args, **kwargs)
@@ -33,16 +33,14 @@ class SaberDockerOperator(DockerOperator):
         iteration = self.task_id.split('.')[1]
         real_task_id = self.task_id.split('.')[0]
         self.log.info('Inserting {} {} {} {} {} into job metadata database'.format(self.workflow_id, iteration, real_task_id, task_time, score))
-        try:
-            self.jobmetadata_db.insert1({
-                'iteration' : iteration,
-                'workflow_id' : self.workflow_id,
-                'job_id' : real_task_id,
-                'cost' : task_time,
-                'score' : score
-            })
-        except DuplicateError:
-            pass
+        self.dj_hook.insert1({
+            'iteration' : iteration,
+            'workflow_id' : self.workflow_id,
+            'job_id' : real_task_id,
+            'cost' : task_time,
+            'score' : score
+        },JobMetadata)
+       
     def _get_score(self):
         
         if self.score_format:
