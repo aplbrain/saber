@@ -19,15 +19,13 @@ host_bossdb: api.bossdb.org
 token_bossdb: 6edf6eacfe4b5a36b7184ad477db1fd7876e7982
 coll_name: Kasthuri
 exp_name: em
-exp_name_out: I2G_Saber_pipeline_results 
-coord_name_out: KasthuriI2GResults
 coord_name: KasthuriFrame
 resolution: 1
-xmin: 5990
-xmax: 7824
-ymin: 6059
-ymax: 7892
-zmin: 610
+xmin: 6990
+xmax: 7150
+ymin: 7882
+ymax: 8042
+zmin: 600
 zmax: 620
 padding: 0
 onesided: 0
@@ -37,11 +35,6 @@ in_chan_name_ann: ann
 itype_name_in: image
 dtype_name_in: uint8
 #outputs
-out_chan_name_syn: I2G_Synapses_i_1
-out_chan_name_neu: I2G_Neurons_Seg_1
-out_chan_name_mem: I2G_Membranes_i_1
-dtype_name_out: uint64
-itype_name_out: annotation
 pull_output_name_raw: pull_output_raw.npy
 pull_output_name_ann: pull_output_ann.npy
 
@@ -51,13 +44,14 @@ pull_output_name_ann: pull_output_ann.npy
 #PROCESSING:
 #------------------------------------------------
 #General: 
-width: 512
-height: 512
-#Membrane_detection:
-membrane_output: membrane_output.npy
+width: 160
+height: 160
+mode: synapse
 #Synapse_detection
 synapse_output: synapse_output.npy
-#nuron_segmentation:
+#Membrane_detection
+membrane_output: membrane_output.npy
+#neuron_segmentation:
 train_file: ./trained_classifier.pkl
 neuron_output: neuron_output.npy
 mode: synapse
@@ -65,4 +59,3 @@ neuron_mode: 1
 agg_threshold: "0.5"
 seeds_cc_threshold: "5"
 _saber_bucket: saber-batch
-

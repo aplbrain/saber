@@ -15,7 +15,7 @@
 #### CWL parser dockerfile ####
 
 FROM python:3.6-slim
-ARG AIRFLOW_VERSION=1.10.0
+ARG AIRFLOW_VERSION=1.10.1
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 RUN set -ex \
     && buildDeps=' \
@@ -36,8 +36,6 @@ RUN set -ex \
         $buildDeps \
         python3-pip \
         python3-requests \
-        mysql-client \
-        mysql-server \
         default-libmysqlclient-dev \
         apt-utils \
         curl \

@@ -12,18 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data: 
-  class: File
-  path: /your/path/to/data.nii
-cell_gt: 
-  class: File
-  path: /your/path/to/tj_anno.nii
-detect_threshold: 0.67
-stop: 0.47
-initial_template_size: 18
-detect_dilation: 2
-erode: 1
-max_cells: 400
-num_samp: 500000
-num_comp: 2
-_saber_bucket: saber-batch
+COPY ./localwrap /app/
+RUN python -m pip install parse
+RUN python3 -m pip install parse
+
+ENV PATH="/app:${PATH}"
+ENTRYPOINT []

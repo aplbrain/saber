@@ -1,0 +1,64 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '2.1'
+services:
+#    xbrain:
+#        privileged: true
+#        build:
+#            context: ./saber/xbrain
+#            dockerfile: Dockerfile
+#        image: aplbrain/xbrain
+    boss:
+        privileged: true
+        build:
+            context: ./saber/boss_access
+            dockerfile: Dockerfile
+        image: localhost:5000/aplbrain/boss-access
+    i2gdetect:
+        privileged: true
+        build:
+            context: ./saber/i2g/detection
+            dockerfile: Dockerfile
+        image: localhost:5000/aplbrain/i2gdetect
+#    i2gdetect_gpu:
+#        privileged: true
+#        build:
+#            context: ./saber/i2g/detection/gpu
+#            dockerfile: Dockerfile
+#        image: localhost:5000/aplbrain/i2gdetect_gpu
+#    i2gmetrics:
+#        privileged: true
+#        build:
+#            context: ./saber/i2g/metric_computation
+#            dockerfile: Dockerfile
+#        image: localhost:5000/aplbrain/i2gmetrics
+    i2gseg:
+        privileged: true
+        build:
+            context: ./saber/i2g/neuron_segmentation
+            dockerfile: Dockerfile
+        image: localhost:5000/aplbrain/i2gseg
+#    i2gseg:
+#        privileged: true
+#        build:
+#            context: ./saber/i2g/neuron_segmentation
+#            dockerfile: Dockerfile
+#        image: localhost:5000/aplbrain/i2gseg
+#    i2gassoc:
+#        privileged: true
+#        build:
+#            context: ./saber/i2g/seg_syn_association
+#            dockerfile: Dockerfile
+#        image: localhost:5000/aplbrain/i2gassoc

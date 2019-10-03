@@ -155,6 +155,9 @@ def boss_push_cutout(args):
 
     if  data.dtype != args.dtype:
         data = data.astype(numpyType)
+    sources = []
+    if  args.source:
+        sources.append(args.source)
 
     COLL_NAME = args.coll
     EXP_NAME = args.exp
@@ -162,7 +165,7 @@ def boss_push_cutout(args):
 
     # Create or get a channel to write to
     chan_setup = ChannelResource(
-        CHAN_NAME, COLL_NAME, EXP_NAME, type=args.itype, datatype=args.dtype)
+        CHAN_NAME, COLL_NAME, EXP_NAME, type=args.itype, datatype=args.dtype, sources=sources)
     try:
         chan_actual = rmt.get_project(chan_setup)
     except HTTPError:
@@ -532,6 +535,7 @@ def main():
     )
 
     push_parser.add_argument('-i', '--input', required=True, help='Input file')
+    push_parser.add_argument('--source', required=False, help='Source channel for upload')
     push_parser.set_defaults(func=boss_push_cutout)
 
     merge_parser.add_argument('--templatesize', required=True, help='Template size (diameter of spherical template)',type=int)

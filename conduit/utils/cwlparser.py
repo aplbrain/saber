@@ -25,6 +25,7 @@ import time
 import hashlib
 import boto3
 import re
+import pathlib
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
@@ -87,6 +88,21 @@ class CwlParser:
                 "Doc specified but not running locally."
         except KeyError:
             self.local = False
+
+    def generate_volume_list(self, tool_yml, local_path):
+        """
+        # Why do we need to generate volumes for inputs? Can't they just get them from previous output
+        input_files = []
+        if len([tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']) > 0:
+            f = iteration_parameters['input']
+            fs = f.split('/')
+            volumes.append(':'.join([fs,fs]))
+        """
+        volumes = []
+        if len(tool_yml['outputs']) > 0:
+            volumes.append(local_path+':/volumes/data/local')
+        return volumes
+    
     def create_job_definitions(self):
         for stepname, tool in self.steps.items():
             log.info('Generating job definition for step {}'.format(stepname))
@@ -141,12 +157,16 @@ class CwlParser:
                     param_db_update_dict[self.cwl['steps'][stepname]['in'][key]] = value
                 iteration_parameters.update(iteration[stepname]) 
             (in_string, out_string) = generate_io_strings(tool, wf_id, iteration_parameters,i)
-            iteration_parameters['_saber_home'] = '{}/{}'.format(job['_saber_bucket'], wf_id)
+            if self.local:
+                iteration_parameters['_saber_home'] = wf_id
+                iteration_parameters['_saber_stepname'] = '{}/{}'.format(wf_id,stepname_c)
+            else: 
+                iteration_parameters['_saber_home'] = '{}/{}'.format(job['_saber_bucket'], wf_id)
+                iteration_parameters['_saber_stepname'] = '{}:{}/{}'.format(job['_saber_bucket'], wf_id,stepname_c)
             if in_string:
                 iteration_parameters['_saber_input'] = in_string
             if out_string:
                 iteration_parameters['_saber_output'] = out_string
-            iteration_parameters['_saber_stepname'] = '{}:{}/{}'.format(job['_saber_bucket'], wf_id,stepname_c)
             try:
                 score_format = self.cwl['steps'][stepname]['hints']['saber']['score_format']
             except KeyError:
@@ -159,9 +179,15 @@ class CwlParser:
                 step_job_queue = self.cwl['steps'][stepname]['hints']['saber']['queue']
             except KeyError:
                 step_job_queue = self.queue
+            try:
+                file_path = self.cwl['steps'][stepname]['hints']['saber']['file_path']
+                if not self.local:
+                    file_path = '{}:{}'.format(job['_saber_bucket'], file_path)
+            except KeyError:
+                file_path = ''
             
             log.debug('Score_format: {}'.format(score_format))
-            command_list = generate_command_list(tool, self.cwl['steps'][stepname])
+            command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path)
             if is_local:
                 if not self.local:
                     creds = boto3.session.Session().get_credentials()
@@ -180,6 +206,7 @@ class CwlParser:
                         pool='Local'
                         )
                 if self.local:
+                    volumes = self.generate_volume_list(tool, file_path)
                     t = SaberDockerOperator(
                         task_id=stepname_c,
                         workflow_id=parent_dag_id,
@@ -187,7 +214,8 @@ class CwlParser:
                         image=self.tags[stepname],
                         command=' '.join(sub_params(command_list, iteration_parameters)),
                         dag=subdag,
-                        pool='Local'
+                        pool='Local',
+                        volumes=volumes
                         )
             else:
                 t = AWSBatchOperator(
@@ -230,7 +258,7 @@ class CwlParser:
             Parameterization iterable with each iteration containing the
             parameters to be changed and their values.'''
 
-        self.parameterization = parameterization
+        self.parameterization = parameterize(parameterization)
         
     def generate_dag(self,job,**kwargs):
 
@@ -289,10 +317,9 @@ class CwlParser:
             default_args=self.default_args,
             schedule_interval=None
         )
-        dag_steps = []
         job_params, deps = self.resolve_args(job)
         if len(self.parameterization) > 1:
-            log.info('Parameterization produces {} workflows, totaling {} jobs...'.format(len(self.parameterization), len(self.steps)*len(parameterization)))
+            log.info('Parameterization produces {} workflows, totaling {} jobs...'.format(len(self.parameterization), len(self.steps)*len(self.parameterization)))
         # If the parameter is a file, use the path
         param_db_update_dict = {}
         for param in self.cwl['inputs']:
