@@ -29,16 +29,16 @@ import pathlib
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
-from utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata
+from conduit.utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata
 from datajoint.errors import DuplicateError, DataJointError
 import cwltool.main as cwltool
 import parse
 
-from utils.parameterization import parameterize
-from utils.job_definitions import create_job_definition, generate_job_definition, make_tag, create_and_push_docker_image
-from utils.command_list import *
-from utils.awsbatch_operator import AWSBatchOperator
-from utils.saber_docker_operator import SaberDockerOperator
+from conduit.utils.parameterization import parameterize
+from conduit.utils.job_definitions import create_job_definition, generate_job_definition, make_tag, create_and_push_docker_image
+from conduit.utils.command_list import *
+from conduit.utils.awsbatch_operator import AWSBatchOperator
+from conduit.utils.saber_docker_operator import SaberDockerOperator
 
 log = logging.getLogger(__name__)
 class CwlParser:
