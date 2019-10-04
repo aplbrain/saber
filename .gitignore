@@ -1,6 +1,6 @@
 #Ignore all local volume and test files
 volumes/
-saber/i2g/neuroproof/test_data/=
+saber/i2g/neuroproof/test_data/
 saber/i2g/ffns/data/
 saber/i2g/ffns/results/
 #Ignore cache and DS_Store files
