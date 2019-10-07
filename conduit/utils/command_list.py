@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import parse
-def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = ''):
+def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = '', use_cache = 'False'):
     '''
     Generates an AWS Batch command list from a tool YML
 
@@ -37,7 +37,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
-        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname']
+        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', str(use_cache)]
         # Only care about file inputs
         seperator ="," 
         input_files = iteration_parameters.get('_saber_input', [])
