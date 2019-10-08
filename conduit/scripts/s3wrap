@@ -41,72 +41,80 @@ parser.add_argument('--download', help='Comma delimited list of files to downloa
 parser.add_argument('--upload', help='Comma delimited list of files to upload in the form bucket/directory/file')
 parser.add_argument('--to', required=True, help='Where to upload to. Should be bucket/wf_hash/stepname')
 parser.add_argument('--fr', required=True, help='Where to download from. Should be bucket/wf_hash')
+parser.add_argument('--use_cache', required=True, help='whether s3 cache should be used ')
 parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
 
 args = parser.parse_args()
 
-s3 = boto3.resource('s3')
-if args.download:
-    infiles = args.download.split(',')
-    for f in infiles:
-        fs = f.split('/')
-        param_parse =  parse.parse('{}.{}',fs[0])
+if args.use_cache == 'True':
+    print('Using Cached S3 File')
+else:
+    s3 = boto3.resource('s3')
+    if args.download:
+        infiles = args.download.split(',')
+        for f in infiles:
+            fs = f.split('/') 
+            fn = fs[-1]
+            if os.path.exists(fn): #Check if file already copied into tool container
+                pass
+            else:
+                param_parse =  parse.parse('{}.{}',fs[0])
+                if len(fs) > 1 and param_parse:
+                    # The workflow has been parameterized
+                    fs[0] = param_parse[0]
+                bwf = args.fr.split(':')
+                b=bwf[0]
+                wf=bwf[1]
+                # Path is of the form bucket/wf_hash/...dirs../filename
+                fp = '/'.join(fs[:-1])
+                # If the filepath needs to be made
+                if fp:
+                    if not os.path.exists(fp):
+                        os.makedirs(fp, exist_ok=True)
+                    k = '/'.join([wf,f])
+                else:
+                    # This means the file should just be downloaded from the root bucket
+                    # to the current directory
+                    fp = '.'
+                    k = f
+                try:
+                    print('Downloading {} to {}'.format(k,'/'.join(fs)))
+                    s3.meta.client.download_file(
+                        Bucket=b,
+                        Filename='/'.join(fs),
+                        Key=k
+                    )
+                except botocore.exceptions.ClientError as e:
+                    else:
+                        print('Got error {} while trying to download file {}'.format(e, k))
+                        raise e
 
-        if len(fs) > 1 and param_parse:
-            # The workflow has been parameterized
-            fs[0] = param_parse[0]
-        bwf = args.fr.split('/')
-        b=bwf[0]
-        wf=bwf[1]
-        # Path is of the form bucket/wf_hash/...dirs../filename
-        fp = '/'.join(fs[:-1])
-        # If the filepath needs to be made
-        if fp:
-            if not os.path.exists(fp):
-                os.makedirs(fp, exist_ok=True)
-            k = '/'.join([wf,f])
-        else:
-            # This means the file should just be downloaded from the root bucket
-            # to the current directory
-            fp = '.'
-            k = f
-        try:
-            print('Downloading {} to {}'.format(k,'/'.join(fs)))
-            s3.meta.client.download_file(
-                Bucket=b,
-                Filename='/'.join(fs),
-                Key=k
-            )
-        except botocore.exceptions.ClientError as e:
-            print('Got error {} while trying to download file {}'.format(e, k))
-            raise e
-
-proc = subprocess.call(args.command, shell=False)
-if proc != 0:
-    raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
-if args.upload:
-    outfiles = args.upload.split(',')
-    for f in outfiles:
-        fs = f.split('/')
-        
-        # Path is of the form /...dirs../filename
-        fn = fs[-1]
-        
-        bs = args.to.split(':')
-        b = bs[0]
-        d = bs[1]
-        fp = '/'.join([d,fn])
-        try:
-            print('Uploading {} to {}'.format(f,fp))
+    proc = subprocess.call(args.command, shell=False)
+    if proc != 0:
+        raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+    if args.upload:
+        outfiles = args.upload.split(',')
+        for f in outfiles:
+            fs = f.split('/')
             
-            s3.meta.client.upload_file(
-                Bucket=b,
-                Filename=f,
-                Key=fp
-            )
-        except botocore.exceptions.ClientError as e:
-            print('Got error {} while trying to upload file {}'.format(e, k))
-            raise e
-        print('Deleting file to free space...')
-        os.remove(f)
-print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))
+            # Path is of the form /...dirs../filename
+            fn = fs[-1]
+            
+            bs = args.to.split(':')
+            b = bs[0]
+            d = bs[1]
+            fp = '/'.join([d,fn])
+            try:
+                print('Uploading {} to {}'.format(f,fp))
+                
+                s3.meta.client.upload_file(
+                    Bucket=b,
+                    Filename=f,
+                    Key=fp
+                )
+            except botocore.exceptions.ClientError as e:
+                print('Got error {} while trying to upload file {}'.format(e, k))
+                raise e
+            print('Deleting file to free space...')
+            os.remove(f)
+    print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))

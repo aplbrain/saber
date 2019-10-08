@@ -182,7 +182,7 @@ class CwlParser:
             try:
                 file_path = self.cwl['steps'][stepname]['hints']['saber']['file_path']
                 if not self.local:
-                    file_path = '{}:{}'.format(job['_saber_bucket'], file_path)
+                    file_path = '{}:{}/{}'.format(job['_saber_bucket'], file_path, stepname_c)
             except KeyError:
                 file_path = ''
             try:

@@ -54,9 +54,10 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
             command_list.append(seperator.join(output_files))
     else:
         if file_path != '':
-            command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', 'Ref::_saber_home']
+            source = '/'.join(file_path.split('/')[:-1]) # bucket/
+            command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', source, '--use_cache', str(use_cache)]
         else:
-            command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home']
+            command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home','--use_cache', str(use_cache)]
         # Only care about file inputs
         input_files = iteration_parameters.get('_saber_input', [])
         if len(input_files) > 0:
@@ -79,7 +80,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     for inpn,inp in sorted_inps:
         if inpn in step['in']:
             command_list.append(inp['inputBinding']['prefix'])
-            command_list.append('Ref::{}'.format(inpn))
+            command_list.append('Ref::{}'.format(inpn)) 
     return command_list
 
 def sub_params(command_list,params):
