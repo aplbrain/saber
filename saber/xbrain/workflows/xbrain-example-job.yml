@@ -1,0 +1,22 @@
+
+
+data: 
+  class: File
+  path: V2_imgdata_gt.npy
+classifier: 
+  class: File
+  path: xbrain_vessel_seg_v7.ilp
+membrane_classify_output_name: membrane_classify_output.npy
+cell_detect_output_name: cell_detect_output.npy
+vessel_segment_output_name: vessel_segment_output.npy
+bucket: saber-batch
+# ram_amount: int?
+# num_threads: int?
+# detect_threshold: float?
+# stop: float?
+# initial_template_size: int?
+# detect_dilation: int?
+# max_cells: int?
+# segment_threshold: float?
+# segment_dilation: int?
+# minimum: int?

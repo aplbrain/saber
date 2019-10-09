@@ -54,4 +54,4 @@ ENV KERAS_BACKEND=theano
 ENV PATH=/src:$PATH
 
 RUN mkdir ~/.aws
-ENTRYPOINT ["python3", "deploy_pipeline.py"]
+ENTRYPOINT ["python", "deploy_pipeline.py"]

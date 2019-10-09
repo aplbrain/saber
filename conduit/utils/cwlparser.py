@@ -26,10 +26,13 @@ import hashlib
 import boto3
 import re
 import pathlib
+import datajoint
 
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
-from conduit.utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata
+
+from utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata, safe_toggle
+
 from datajoint.errors import DuplicateError, DataJointError
 import cwltool.main as cwltool
 import parse
@@ -80,7 +83,8 @@ class CwlParser:
         # Create AWS job defs and push images
         self.workflow_db = Workflow()
         self.job_param_db = schema(create_dj_schema(self.cwl['inputs'], self.workflow_name))()
-        self.parameterization = [{}]
+        self.parameterization = [{}] 
+        self.opti_iter = 0 
         try:
             if self.cwl['doc'] == 'local':
                 self.local = True
@@ -91,7 +95,6 @@ class CwlParser:
 
     def generate_volume_list(self, tool_yml, local_path):
         """
-        # Why do we need to generate volumes for inputs? Can't they just get them from previous output
         input_files = []
         if len([tn for tn,t in tool_yml['inputs'].items() if t['type'] == 'File']) > 0:
             f = iteration_parameters['input']
@@ -151,11 +154,10 @@ class CwlParser:
             stepname_c = '{}.{}'.format(stepname,i)
             
             iteration_parameters = job_params[stepname].copy()
-            
-            if iteration and stepname in iteration:
+            if stepname in iteration:
                 for key,value in iteration[stepname].items():
                     param_db_update_dict[self.cwl['steps'][stepname]['in'][key]] = value
-                iteration_parameters.update(iteration[stepname]) 
+                iteration_parameters.update(iteration[stepname])
             (in_string, out_string) = generate_io_strings(tool, wf_id, iteration_parameters,i)
             if self.local:
                 iteration_parameters['_saber_home'] = wf_id
@@ -336,6 +338,9 @@ class CwlParser:
         except KeyError:
             use_subdag = True
         for i,iteration in enumerate(self.parameterization):
+            if 'optimize' in self.parameterization[0].keys():
+                    i = self.opti_iter
+                    safe_toggle()
             if use_subdag:
                 subdag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
                 iteration_subdag_step = SubDagOperator(

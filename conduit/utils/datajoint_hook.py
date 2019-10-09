@@ -70,7 +70,8 @@ def create_dj_schema(d, wf_name, is_cwl=True):
             definition += "    {} = null : {}\n".format(k,djt)
     return type("{}Params".format(wf_name.title()), (dj.Manual,), dict(definition=definition))
 
-
+def safe_toggle():
+    dj.config["safemode"] = False
 
 
     
