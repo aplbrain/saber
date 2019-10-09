@@ -79,7 +79,7 @@ class CwlParser:
         self.config = config
         self.queue = self.config['job-queue']['jobQueueName']
         # Create AWS job defs and push images
-        self.dj_hook = DatajointHook()
+        self.dj_hook = DatajointHook(config=config['datajoint'])
 
         self.job_param_def = self.dj_hook.create_definition(self.cwl['inputs'], self.workflow_name)
         self.parameterization = [{}] 

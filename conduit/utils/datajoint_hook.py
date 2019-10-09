@@ -65,11 +65,6 @@ def handle_key(key):
     
 
 
-
-def safe_toggle():
-    dj.config["safemode"] = False
-
-
     
     
 
@@ -83,13 +78,6 @@ db_types = {
 }
 
 
-def supress_stdout(func):
-    def wrapper(*a, **ka):
-      
-        with contextlib.redirect_stdout(logwr):
-            func(*a, **ka)
-    return wrapper
-
 
 class DatajointHook(BaseHook):
     
@@ -100,6 +88,8 @@ class DatajointHook(BaseHook):
             self.config['host'] = 'datajoint:3306'
             self.config['user'] = 'root'
             self.config['password'] = 'airflow'
+        else:
+            self.config = config
         self.classdef = classdef
         self.context = {}
         with closing(self.get_conn()) as conn:
