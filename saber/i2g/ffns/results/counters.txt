@@ -1,9 +1,0 @@
-client-wait-calls: 9636
-client-wait-time-ms: 320214
-executor-clients: 1
-executor-inference-calls: 9636
-executor-inference-time-ms: 300277
-executor-input-calls: 9635
-executor-input-time-ms: 43221
-executor-output-calls: 9636
-executor-output-time-ms: 17

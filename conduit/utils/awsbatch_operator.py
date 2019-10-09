@@ -21,7 +21,9 @@ from time import sleep, time
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils import apply_defaults
-from utils.datajoint_hook import DatajointHook, JobMetadata
+
+from conduit.utils.datajoint_hook import DatajointHook, JobMetadata
+
 from airflow.contrib.hooks.aws_hook import AwsHook
 from datajoint.errors import DuplicateError
 class AWSBatchOperator(BaseOperator):

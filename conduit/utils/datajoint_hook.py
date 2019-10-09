@@ -47,10 +47,12 @@ class JobMetadata(dj.Manual):
 
 
 
+
 def handle_key(key):
     """
     Handles keys to fit into DataJoint tables
     Returns false if saber key
+
 
     """
     assert isinstance(key, str)
@@ -76,6 +78,7 @@ db_types = {
     'string' : 'varchar(64)',
     'File' : 'varchar(64)'
 }
+
 
 
 
@@ -165,4 +168,4 @@ class DatajointHook(BaseHook):
         ), classdef=Workflow)
     
     
-        
+

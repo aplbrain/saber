@@ -39,7 +39,6 @@ inputs:
     zmax: int?
     padding: int?
     pull_output_name_raw: string
-    pull_output_name_ann: string
 
     #Inputs for processing
     width: int?
