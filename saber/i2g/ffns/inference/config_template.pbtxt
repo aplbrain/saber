@@ -1,0 +1,19 @@
+image {
+  hdf5: "/data/raw.h5:raw"
+}
+image_mean: {}
+image_stddev: {}
+checkpoint_interval: 1800
+seed_policy: "PolicyPeaks"
+model_checkpoint_path: "/latest-model/model.ckpt-27465036"
+model_name: "convstack_3d.ConvStack3DFFNModel"
+model_args: {}
+segmentation_output_dir: "/results"
+inference_options {
+  init_activation: {}
+  pad_value: {}
+  move_threshold: {}
+  min_boundary_dist {}
+  segment_threshold: {}
+  min_segment_size: {}
+}

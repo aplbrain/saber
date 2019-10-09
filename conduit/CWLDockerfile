@@ -15,7 +15,7 @@
 #### CWL parser dockerfile ####
 
 FROM python:3.6-slim
-ARG AIRFLOW_VERSION=1.10.1
+ARG AIRFLOW_VERSION=1.10.4
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 RUN set -ex \
     && buildDeps=' \
@@ -41,6 +41,8 @@ RUN set -ex \
         curl \
         rsync \
         netcat \
+        default-mysql-server \
+        default-mysql-client \
         locales
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \

@@ -37,7 +37,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
-        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_home']
+        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname']
         # Only care about file inputs
         seperator ="," 
         input_files = iteration_parameters.get('_saber_input', [])
@@ -118,19 +118,16 @@ def generate_io_strings(tool_yml, wf_hash, step_params,j):
         inp_string = []
         out_string = []
         if len(tool_yml['inputs']) > 0:
-            input_files = dict([(tn,t) for tn,t in tool_yml['inputs'].items() if t['type'] == 'File'])
+            input_files = dict([(tn,t) for tn,t in tool_yml['inputs'].items() if t['type'] == 'File' or t['type'] == 'File?'])
             for i in input_files:
-                s = step_params[i].split('/')
-
-                if len(s) > 1:
-                    # Form input/file
-                    # TODO make naming more consistent
-                    s[0] = s[0] #dumb fix
-                    s[0] += '.{}'.format(j)
-                inp_string.append('/'.join(s))
-            
-
-
+                if i in step_params.keys():
+                    s = step_params[i].split('/')
+                    if len(s) > 1:
+                        # Form input/file
+                        # TODO make naming more consistent
+                        s[0] = s[0] #dumb fix
+                        s[0] += '.{}'.format(j)
+                    inp_string.append('/'.join(s))
         if len(tool_yml['outputs']) > 0:
             output_files = dict([(tn,t) for tn,t in tool_yml['outputs'].items() if t['type'] == 'File'])
             out_string = []
