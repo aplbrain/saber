@@ -31,7 +31,7 @@ import datajoint
 from airflow import DAG
 from airflow.operators.subdag_operator import SubDagOperator
 
-from utils.datajoint_hook import Workflow, schema, create_dj_schema, JobMetadata, safe_toggle
+from conduit.utils.datajoint_hook import Workflow, JobMetadata, DatajointHook
 
 from datajoint.errors import DuplicateError, DataJointError
 import cwltool.main as cwltool
@@ -81,8 +81,9 @@ class CwlParser:
         self.config = config
         self.queue = self.config['job-queue']['jobQueueName']
         # Create AWS job defs and push images
-        self.workflow_db = Workflow()
-        self.job_param_db = schema(create_dj_schema(self.cwl['inputs'], self.workflow_name))()
+        self.dj_hook = DatajointHook(config=config['datajoint'])
+
+        self.job_param_def = self.dj_hook.create_definition(self.cwl['inputs'], self.workflow_name)
         self.parameterization = [{}] 
         self.opti_iter = 0 
         try:
@@ -240,12 +241,7 @@ class CwlParser:
             'iteration' : i,
         }
         param_db_update_dict.update(unique_keys)
-        try:
-            self.job_param_db.insert1(param_db_update_dict)
-        except DuplicateError:
-            log.warning('Duplicate entry found for param db, updating')
-            (self.job_param_db & unique_keys).delete()
-            self.job_param_db.insert1(param_db_update_dict)
+        self.dj_hook.update(param_db_update_dict, classdef=self.job_param_def, primary_keys=unique_keys)
         for dep in deps:
             subdag_steps[dep[0]].set_upstream(subdag_steps[dep[1]])
         return subdag
@@ -297,20 +293,9 @@ class CwlParser:
         }
 
         try:
-            self.workflow_db.insert1({
-                'workflow_id' : dag_id,
-                'workflow_name' : self.workflow_name
-            })
+            self.dj_hook.init_workflow(id=dag_id, name=self.workflow_name)
         except( DuplicateError,DataJointError):
             log.warning('Workflow database entry for {} already exists, reinserting'.format(self.workflow_name))
-            # This is the dumbest way to delete an entry that I've ever seen
-            # delstr = {'workflow_id' : dag_id}
-            # (self.workflow_db & delstr).delete()
-            # self.workflow_db.insert1({
-            #     'workflow_id' : dag_id,
-            #     'workflow_name' : self.workflow_name
-                
-            # },skip_duplicates=True)
             pass
         if self.cwl['class'] != 'Workflow':
             raise TypeError('CWL is not a workflow')
@@ -340,7 +325,6 @@ class CwlParser:
         for i,iteration in enumerate(self.parameterization):
             if 'optimize' in self.parameterization[0].keys():
                     i = self.opti_iter
-                    safe_toggle()
             if use_subdag:
                 subdag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
                 iteration_subdag_step = SubDagOperator(
