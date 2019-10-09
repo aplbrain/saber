@@ -67,8 +67,6 @@ class TestParameterization(unittest.TestCase):
         # print(d1str, d2str)
         d1l = yaml.load(d1str)
         d2l = yaml.load(d2str)
-        print("formatted",d1l)
-        print("actual", d2l)
         self.assertEqual(d1l,d2l) 
         
 if __name__ == "__main__":
