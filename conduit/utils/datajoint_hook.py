@@ -19,6 +19,10 @@ from pathlib import Path
 from airflow.hooks.base_hook import BaseHook
 import re
 
+
+
+
+
 dj.config['database.host'] = 'datajoint:3306'
 dj.config['database.user'] = 'root'
 dj.config['database.password'] = 'airflow'
@@ -62,7 +66,6 @@ def create_dj_schema(d, wf_name, is_cwl=True):
             try:
                 djt = db_types[tp] if is_cwl else tp
             except KeyError:
-                # Unsupport type, try string lmao
                 djt = "varchar(64)"
             definition += "    {} = null : {}\n".format(k,djt)
     return type("{}Params".format(wf_name.title()), (dj.Manual,), dict(definition=definition))
@@ -82,4 +85,7 @@ db_types = {
     'string' : 'varchar(64)',
     'File' : 'varchar(64)'
 }
+
+
+
 

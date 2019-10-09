@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from airflow.operators.docker_operator import DockerOperator
-from utils.datajoint_hook import JobMetadata
+from conduit.utils.datajoint_hook import JobMetadata
 from datajoint import DuplicateError
 import time
 import parse
