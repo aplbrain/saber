@@ -8,6 +8,7 @@ from conduit.utils.job_definitions import (create_and_push_docker_image,
                                            get_original_docker_name,
                                            make_build_context, make_tag)
 class TestJobDefinitions(unittest.TestCase):
+    # TODO need to make job definitions into a class in order to test properly
     def setUp(self):
         pass
     def test_create_and_push_docker_image(self):

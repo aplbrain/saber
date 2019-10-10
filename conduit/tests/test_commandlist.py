@@ -3,6 +3,8 @@ from conduit.utils.command_list import generate_command_list, generate_io_string
 import yaml
 
 class TestCommandlist(unittest.TestCase):
+    # TODO needs to be class
+    
     def setUp(self):
         pass
     def test_generate_command_list(self):
