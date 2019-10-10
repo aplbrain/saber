@@ -6,13 +6,10 @@ import os
 import itertools
 import numpy as np
 from conduit.utils.parameterization import parameterize
-
+from conduit.tests.testing_utils import load_test_data
 class TestParameterization(unittest.TestCase):
     def setUp(self):
-        fileloc = os.path.dirname(__file__)
-        fn = os.path.join(fileloc, 'test_data', 'test_parameterization.yml')
-        with open(fn) as fp:
-            self._test_data = yaml.load(fp)
+        self._test_data = load_test_data('test_parameterization.yml')
         
     def test_parameterize_single(self):
         data = self._test_data['metaparam1']
