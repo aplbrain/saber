@@ -47,7 +47,7 @@ parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual comman
 args = parser.parse_args()
 
 if args.use_cache == 'True':
-    print('Using Cached S3 File')
+    print('Using Cached S3 File located in {}'.format(args.fr))
 else:
     s3 = boto3.resource('s3')
     if args.download:

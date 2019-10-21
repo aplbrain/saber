@@ -184,7 +184,7 @@ class CwlParser:
                 if not self.local:
                     file_path = '{}:{}'.format(job['_saber_bucket'], os.path.join(file_path, stepname_c))
             except KeyError:
-                file_path = '' 
+                file_path = None 
             
             log.debug('Score_format: {}'.format(score_format))
             command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path)
