@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import parse
-def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = '', use_cache = 'False'):
+def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = ''):
     '''
     Generates an AWS Batch command list from a tool YML
 
@@ -36,6 +36,10 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     '''
     # Command list generation
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
+    try:
+        use_cache = step['hints']['saber']['use_cache']
+    except KeyError:
+        use_cache = 'False'
     if local:
         command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', str(use_cache)]
         # Only care about file inputs
@@ -54,7 +58,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
             command_list.append(seperator.join(output_files))
     else:
         if file_path != '':
-            source = '/'.join(file_path.split('/')[:-1]) # bucket/
+            source = '/'.join(file_path.split('/')[:-1]) # bucket/file_path/wf_id/
             command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', source, '--use_cache', str(use_cache)]
         else:
             command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home','--use_cache', str(use_cache)]
@@ -80,7 +84,8 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
     for inpn,inp in sorted_inps:
         if inpn in step['in']:
             command_list.append(inp['inputBinding']['prefix'])
-            command_list.append('Ref::{}'.format(inpn)) 
+            command_list.append('Ref::{}'.format(inpn))
+    print(file_path) 
     return command_list
 
 def sub_params(command_list,params):

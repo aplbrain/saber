@@ -182,16 +182,12 @@ class CwlParser:
             try:
                 file_path = self.cwl['steps'][stepname]['hints']['saber']['file_path']
                 if not self.local:
-                    file_path = '{}:{}/{}'.format(job['_saber_bucket'], file_path, stepname_c)
+                    file_path = '{}:{}'.format(job['_saber_bucket'], os.path.join(file_path, stepname_c))
             except KeyError:
-                file_path = ''
-            try:
-                use_cache = self.cwl['steps'][stepname]['hints']['saber']['use_cache']
-            except KeyError:
-                use_cache = 'False' 
+                file_path = '' 
             
             log.debug('Score_format: {}'.format(score_format))
-            command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path, use_cache)
+            command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path)
             if is_local:
                 if not self.local:
                     creds = boto3.session.Session().get_credentials()

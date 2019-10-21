@@ -85,7 +85,6 @@ else:
                         Key=k
                     )
                 except botocore.exceptions.ClientError as e:
-                    else:
                         print('Got error {} while trying to download file {}'.format(e, k))
                         raise e
 
