@@ -100,7 +100,7 @@ class CwlParser:
             volumes.append(':'.join([fs,fs]))
         """
         volumes = []
-        if len(tool_yml['outputs']) > 0:
+        if len(tool_yml['outputs']) > 0 or len(tool_yml['inputs']) > 0:
             volumes.append(local_path+':/volumes/data/local')
         return volumes
     
