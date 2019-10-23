@@ -1,0 +1,46 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# BOSS:
+#------------------------------------------------
+# general:
+host_bossdb: api.bossdb.io
+token_bossdb: 565bc40a9555561a04547bfc941c2663e56f8799
+coll_name: Kasthuri
+exp_name: ac4
+coord_name: ac4-cf
+resolution: 0
+xmin: 0
+xmax: 256
+ymin: 0
+ymax: 256
+zmin: 0
+zmax: 25
+padding: 0
+onesided: 0
+#inputs:
+in_chan_name_raw: em
+in_chan_name_ann: ann
+itype_name_in: image
+dtype_name_in: uint8
+#outputs
+pull_output_name_raw: pull_output_raw.npy
+pull_output_name_ann: pull_output_ann.npy
+
+#General: 
+width: 256
+height: 256
+mode: synapse
+#Synapse_detection
+synapse_output: synapse_output.npy
