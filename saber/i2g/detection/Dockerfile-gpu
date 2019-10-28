@@ -42,11 +42,12 @@ RUN apt-get -y install \
 
 # Setup python packages
 RUN pip install --ignore-installed Theano
-RUN pip install numpy
-RUN pip3 install numpy
+RUN pip install --ignore-installed numpy 
+RUN pip3 install --ignore-installed numpy
 RUN pip3 install --ignore-installed awscli
 RUN pip3 install --ignore-installed boto3
 RUN pip install --ignore-installed SimpleITK
+RUN pip install --ignore-installed enum 
 
 # Upgrade six
 RUN pip3 install --upgrade six

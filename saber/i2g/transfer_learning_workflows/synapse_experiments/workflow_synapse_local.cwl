@@ -23,26 +23,29 @@ inputs:
     #Inputs for processing
     width: int?
     height: int?
+    mode: string
     input: File
 
     #Inputs for output names:
-    output: string
+    synapse_output: string
 
 outputs:
     synapse_detection:
         type: File
-        outputSource: membrane_detection/membrane_detection_out
+        outputSource: synapse_detection/synapse_detection_out
 
 steps:
-    membrane_detection:
-        run: ../../../../saber/i2g/detection/membrane_detection_gpu.cwl
+
+    synapse_detection:
+        run: ../../../i2g/detection/synapse_detection_gpu.cwl
         in:
             input: input
             width: width
             height: height
-            output: output
+            mode: mode
+            output: synapse_output
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [membrane_detection_out]
+                file_path: ""
+        out: [synapse_detection_out]

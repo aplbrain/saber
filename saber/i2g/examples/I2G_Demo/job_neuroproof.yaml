@@ -15,11 +15,11 @@
 # BOSS:
 #------------------------------------------------
 # general:
-host_bossdb: api.theboss.io
+host_bossdb: api.bossdb.io
 token_bossdb: 
 coll_name: kasthuri2015
 exp_name: ac4
-coord_name: ac4-coord
+coord_name: ac4-cf
 resolution: 0
 xmin: 256
 xmax: 320
@@ -57,6 +57,6 @@ neuron_mode: 1
 agg_threshold: "0.5"
 seeds_cc_threshold: "5"
 #neuroproof
-class_file: ./out.xml
+class_file: ./kasthuri_classifier.xml
 neuroproof_output: neuroproof_output.npy
 
