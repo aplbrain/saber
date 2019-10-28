@@ -16,15 +16,15 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.io
-token_bossdb: token
+token_bossdb: 565bc40a9555561a04547bfc941c2663e56f8799
 coll_name: Kasthuri
 exp_name: ac4
 coord_name: ac4-cf
 resolution: 0
 xmin: 0
-xmax: 512
+xmax: 160
 ymin: 0
-ymax: 512
+ymax: 160
 zmin: 0
 zmax: 50
 padding: 0
@@ -42,3 +42,4 @@ height: 160
 mode: synapse
 #Synapse_detection
 synapse_output: synapse_output.npy
+_saber_bucket: saber-batch
