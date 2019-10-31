@@ -14,12 +14,11 @@
 
 
 #General: 
-width: 160
-height: 160
-mode: synapse
+width: 352
+height: 352
 #Synapse_detection
 input:
   class: File
-  path: test_dir/pull_output_raw.npy 
-synapse_output: synapse_output.npy
+  path: ISBI/isbi_to_kasthuri_cyclegan_padded.npy 
+output: isbi_cyclegan_membrane_output.npy
 

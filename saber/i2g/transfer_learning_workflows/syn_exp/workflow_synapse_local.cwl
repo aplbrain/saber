@@ -47,5 +47,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: ""
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [synapse_detection_out]

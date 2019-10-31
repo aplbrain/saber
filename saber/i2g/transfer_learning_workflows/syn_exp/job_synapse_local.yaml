@@ -14,11 +14,12 @@
 
 
 #General: 
-width: 352
-height: 352
+width: 1264
+height: 1264
+mode: synapse
 #Synapse_detection
 input:
   class: File
-  path: ISBI/isbi_resample_train_raw_padded.npy 
-output: isbi_resample_train_membrane_output.npy
+  path: kasthuri/kasthuri_cyclegans_train_raw_padded.npy
+synapse_output: ac4_cyclegans_synapse_output.npy
 
