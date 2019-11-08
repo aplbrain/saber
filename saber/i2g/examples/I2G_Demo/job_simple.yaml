@@ -16,36 +16,32 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.io
-token_bossdb: token
+token_bossdb: <>
 coll_name: Kasthuri
-exp_name: em
-coord_name: KasthuriFrame
-resolution: 1
-xmin: 6990
-xmax: 7150
-ymin: 7882
-ymax: 8042
-zmin: 600
-zmax: 620
+exp_name: ac4
+coord_name: ac4-cf
+resolution: 0
+xmin: 0
+xmax: 512
+ymin: 0
+ymax: 512
+zmin: 0
+zmax: 50
 padding: 0
 onesided: 0
 #inputs:
-in_chan_name_raw: images
-in_chan_name_ann: ann
+in_chan_name_raw: em
 itype_name_in: image
 dtype_name_in: uint8
 #outputs
 pull_output_name_raw: pull_output_raw.npy
-pull_output_name_ann: pull_output_ann.npy
 
-#1760:8960/3680:10560/400:1800
-# ```{'x_bounds': [11980, 15648], 'y_bounds': [12118, 15784], 'z_bounds': [631, 998]}```
 
 #PROCESSING:
 #------------------------------------------------
 #General: 
-width: 160
-height: 160
+width: 512
+height: 512
 mode: synapse
 #Synapse_detection
 synapse_output: synapse_output.npy
