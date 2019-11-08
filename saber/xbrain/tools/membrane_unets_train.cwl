@@ -4,7 +4,7 @@ cwlVersion: v1.0
 class: CommandLineTool
 hints:
     DockerRequirement:
-        dockerPull: aplbrain/xbrain:unets
+        dockerPull: aplbrain/unets
 baseCommand: python 
 arguments: [/src/train_unet_docker.py]
 inputs:
