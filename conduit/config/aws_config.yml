@@ -89,3 +89,7 @@ job-definitions:
       - sourceVolume: saber-home
         containerPath: /saber-home
     ulimits: []
+datajoint:
+  host: 'datajoint:3306'
+  user: root
+  password: airflow

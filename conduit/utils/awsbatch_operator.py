@@ -21,7 +21,9 @@ from time import sleep, time
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils import apply_defaults
-from utils.datajoint_hook import JobMetadata
+
+from conduit.utils.datajoint_hook import DatajointHook, JobMetadata
+
 from airflow.contrib.hooks.aws_hook import AwsHook
 from datajoint.errors import DuplicateError
 class AWSBatchOperator(BaseOperator):
@@ -65,6 +67,8 @@ class AWSBatchOperator(BaseOperator):
         self.jobParameters = job_parameters
         self.jobId = None
         self.jobName = None
+        self.dj_hook = DatajointHook()
+
         self.workflow_id = workflow_id
         self.jobmetadata_db = JobMetadata()
         self.hook = self.get_hook()
@@ -100,16 +104,14 @@ class AWSBatchOperator(BaseOperator):
             iteration = self.task_id.split('.')[1]
             real_task_id = self.task_id.split('.')[0]
             self.log.info('Inserting {} {} {} {} {} into job metadata database'.format(self.workflow_id, iteration, real_task_id, task_time, score))
-            try:
-                self.jobmetadata_db.insert1({
-                    'iteration' : iteration,
-                    'workflow_id' : self.workflow_id,
-                    'job_id' : real_task_id,
-                    'cost' : task_time,
-                    'score' : score
-                })
-            except DuplicateError:
-                pass
+            self.dj_hook.insert1({
+                'iteration' : iteration,
+                'workflow_id' : self.workflow_id,
+                'job_id' : real_task_id,
+                'cost' : task_time,
+                'score' : score
+                },JobMetadata)
+       
 
             self.log.info('AWS Batch Job has been successfully executed: %s', response)
         except Exception as e:
