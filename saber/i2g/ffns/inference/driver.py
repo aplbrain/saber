@@ -146,7 +146,7 @@ def deploy(args):
     for file in os.listdir('/results/0/0/'):
         if file[-4:] == '.npz':
             data = np.load('/results/0/0/'+file)
-            seg_arr = data['segmentation']
+            seg_arr = data['segmentation'].astype(np.uint64)
     with open(args.outfile, 'wb') as f:
         np.save(f,seg_arr)
     return
