@@ -16,7 +16,7 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.io
-token_bossdb: 565bc40a9555561a04547bfc941c2663e56f8799
+token_bossdb: 
 coll_name: Kasthuri
 exp_name: ac4
 coord_name: ac4-cf
