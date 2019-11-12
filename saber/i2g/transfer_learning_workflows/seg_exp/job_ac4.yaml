@@ -16,21 +16,21 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.io
-token_bossdb: 
-coll_name: kasthuri2015
-exp_name: ac4
-coord_name: ac4-cf
+token_bossdb: 565bc40a9555561a04547bfc941c2663e56f8799
+coll_name: Kasthuri
+exp_name: em
+coord_name: KasthuriFrame
 resolution: 0
-xmin: 256
-xmax: 320
-ymin: 256
-ymax: 320
-zmin: 0
-zmax: 64
+xmin: 8000
+xmax: 8512
+ymin: 8000
+ymax: 8512
+zmin: 100
+zmax: 150
 padding: 0
 onesided: 0
 #inputs:
-in_chan_name_raw: em
+in_chan_name_raw: images
 in_chan_name_ann: neuron
 itype_name_in: image
 dtype_name_in: uint8
@@ -44,9 +44,8 @@ pull_output_name_ann: pull_output_ann.npy
 #PROCESSING:
 #------------------------------------------------
 #General: 
-width: 64
-height: 64
-mode: synapse
+width: 160
+height: 160
 #Membrane_detection
 membrane_output: membrane_output.npy
 #neuron_segmentation:

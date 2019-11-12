@@ -16,47 +16,30 @@
 #------------------------------------------------
 # general:
 host_bossdb: api.bossdb.io
-token_bossdb: 
-coll_name: kasthuri2015
+token_bossdb: 565bc40a9555561a04547bfc941c2663e56f8799
+coll_name: Kasthuri
 exp_name: ac4
 coord_name: ac4-cf
 resolution: 0
-xmin: 256
-xmax: 320
-ymin: 256
-ymax: 320
+xmin: 0
+xmax: 160
+ymin: 0
+ymax: 160
 zmin: 0
-zmax: 64
+zmax: 50
 padding: 0
 onesided: 0
 #inputs:
 in_chan_name_raw: em
-in_chan_name_ann: neuron
 itype_name_in: image
 dtype_name_in: uint8
 #outputs
 pull_output_name_raw: pull_output_raw.npy
-pull_output_name_ann: pull_output_ann.npy
 
-#1760:8960/3680:10560/400:1800
-# ```{'x_bounds': [11980, 15648], 'y_bounds': [12118, 15784], 'z_bounds': [631, 998]}```
-
-#PROCESSING:
-#------------------------------------------------
 #General: 
-width: 64
-height: 64
+width: 160
+height: 160
 mode: synapse
-#Membrane_detection
-membrane_output: membrane_output.npy
-#neuron_segmentation:
-train_file: ./trained_classifier.pkl
-neuron_output: neuron_output.npy
-mode: synapse
-neuron_mode: 1
-agg_threshold: "0.5"
-seeds_cc_threshold: "5"
-#neuroproof
-class_file: ./kasthuri_classifier.xml
-neuroproof_output: neuroproof_output.npy
-
+#Synapse_detection
+synapse_output: synapse_output.npy
+_saber_bucket: saber-batch

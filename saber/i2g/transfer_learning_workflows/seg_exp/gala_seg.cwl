@@ -39,6 +39,7 @@ inputs:
     zmax: int?
     padding: int?
     pull_output_name_raw: string
+    pull_output_name_ann: string
 
     #Inputs for processing
     width: int?
@@ -52,23 +53,26 @@ inputs:
     agg_threshold: string
 
     #Inputs for output names:
-    synapse_output: string
     membrane_output: string
     neuron_output: string
+
+    #Inputs for Neuroproof
+    class_file: File
+    neuroproof_output: string
 
 outputs:
     pull_output_raw:
         type: File
         outputSource: boss_pull_raw/pull_output
-    synapse_detection:
-        type: File
-        outputSource: synapse_detection/synapse_detection_out
     membrane_detection:
         type: File
         outputSource: membrane_detection/membrane_detection_out
     neuron_segmentation:
         type: File
         outputSource: neuron_segmentation/neuron_segmentation_out
+    neuroproof:
+        type: File
+        outputSource: neuroproof/neuroproof_out
 
 steps:
     boss_pull_raw:
@@ -95,23 +99,9 @@ steps:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
+                use_cache: True
         out:
             [pull_output]
-
-
-    synapse_detection:
-        run: ../../../../saber/i2g/detection/synapse_detection.cwl
-        in:
-            input: boss_pull_raw/pull_output
-            width: width
-            height: height
-            mode: mode
-            output: synapse_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [synapse_detection_out]
 
     membrane_detection:
         run: ../../../../saber/i2g/detection/membrane_detection.cwl
@@ -124,6 +114,7 @@ steps:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
+                #use_cache: False
         out: [membrane_detection_out]
 
     neuron_segmentation:
@@ -139,4 +130,19 @@ steps:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
+                #use_cache: True
         out: [neuron_segmentation_out]
+    
+    neuroproof:
+        run: ../../../../saber/i2g/neuroproof/neuroproof.cwl
+        in:
+            mode: neuron_mode
+            ws_file: neuron_segmentation/neuron_segmentation_out
+            pred_file: membrane_detection/membrane_detection_out
+            class_file: class_file
+            outfile: neuroproof_output
+        hints:
+            saber:
+                local: True
+                file_path: /home/ubuntu/saber/volumes/data/local
+        out: [neuroproof_out]

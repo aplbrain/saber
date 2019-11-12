@@ -20,7 +20,6 @@ class: Workflow
 doc: local
 
 inputs:
-
     # Inputs for BOSS
     host_bossdb: string
     token_bossdb: string?
@@ -40,39 +39,33 @@ inputs:
     padding: int?
     pull_output_name_raw: string
 
-    #Inputs for processing
-    width: int?
-    height: int?
-    mode: string
-
-    #Inputs for neuron_segmentation
-    train_file: File?
-    neuron_mode: string
-    seeds_cc_threshold: string
-    agg_threshold: string
-
-    #Inputs for output names:
-    synapse_output: string
-    membrane_output: string
-    neuron_output: string
+    #Inputs for FFN
+    image_mean: string
+    image_stddev: string
+    depth: string
+    fov_size: string
+    deltas: string
+    init_activation: string
+    pad_value: string
+    move_threshold: string
+    min_boundary_dist: string
+    segment_threshold: string
+    min_segment_size: string
+    bound_start: string
+    bound_stop: string
+    outfile: string 
 
 outputs:
     pull_output_raw:
         type: File
         outputSource: boss_pull_raw/pull_output
-    synapse_detection:
+    ffn_segmentation:
         type: File
-        outputSource: synapse_detection/synapse_detection_out
-    membrane_detection:
-        type: File
-        outputSource: membrane_detection/membrane_detection_out
-    neuron_segmentation:
-        type: File
-        outputSource: neuron_segmentation/neuron_segmentation_out
+        outputSource: ffn_segmentation/ffn_out
 
 steps:
     boss_pull_raw:
-        run: ../../../../saber/boss_access/boss_pull_nos3.cwl
+        run: ../../../boss_access/boss_pull_nos3.cwl
         in:
             token: token_bossdb
             host_name: host_bossdb
@@ -97,46 +90,26 @@ steps:
                 file_path: /home/ubuntu/saber/volumes/data/local
         out:
             [pull_output]
-
-
-    synapse_detection:
-        run: ../../../../saber/i2g/detection/synapse_detection.cwl
+    ffn_segmentation:
+        run: ../../../../saber/i2g/ffns/ffn_segmentation.cwl
         in:
             input: boss_pull_raw/pull_output
-            width: width
-            height: height
-            mode: mode
-            output: synapse_output
+            image_mean: image_mean
+            image_stddev: image_stddev
+            depth: depth
+            fov_size: fov_size
+            deltas: deltas
+            init_activation: init_activation
+            pad_value: pad_value
+            move_threshold: move_threshold
+            min_boundary_dist: min_boundary_dist
+            segment_threshold: segment_threshold
+            min_segment_size: min_segment_size
+            bound_start: bound_start
+            bound_stop: bound_stop
+            outfile: outfile
         hints:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
-        out: [synapse_detection_out]
-
-    membrane_detection:
-        run: ../../../../saber/i2g/detection/membrane_detection.cwl
-        in:
-            input: boss_pull_raw/pull_output
-            width: width
-            height: height
-            output: membrane_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [membrane_detection_out]
-
-    neuron_segmentation:
-        run: ../../../../saber/i2g/neuron_segmentation/neuron_segmentation.cwl
-        in:
-            prob_file: membrane_detection/membrane_detection_out
-            mode: neuron_mode
-            train_file: train_file
-            agg_threshold: agg_threshold
-            seeds_cc_threshold: seeds_cc_threshold
-            outfile: neuron_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [neuron_segmentation_out]
+        out: [ffn_out]

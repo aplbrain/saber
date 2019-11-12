@@ -17,7 +17,6 @@
 
 cwlVersion: v1.0
 class: Workflow
-doc: local
 
 inputs:
 
@@ -52,7 +51,6 @@ inputs:
     agg_threshold: string
 
     #Inputs for output names:
-    synapse_output: string
     membrane_output: string
     neuron_output: string
 
@@ -60,9 +58,6 @@ outputs:
     pull_output_raw:
         type: File
         outputSource: boss_pull_raw/pull_output
-    synapse_detection:
-        type: File
-        outputSource: synapse_detection/synapse_detection_out
     membrane_detection:
         type: File
         outputSource: membrane_detection/membrane_detection_out
@@ -72,7 +67,7 @@ outputs:
 
 steps:
     boss_pull_raw:
-        run: ../../../../saber/boss_access/boss_pull_nos3.cwl
+        run: ../../../../../saber/boss_access/boss_pull_nos3.cwl
         in:
             token: token_bossdb
             host_name: host_bossdb
@@ -94,24 +89,10 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: tl_study/param_sweep
+                use_cache: True
         out:
             [pull_output]
-
-
-    synapse_detection:
-        run: ../../../../saber/i2g/detection/synapse_detection.cwl
-        in:
-            input: boss_pull_raw/pull_output
-            width: width
-            height: height
-            mode: mode
-            output: synapse_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [synapse_detection_out]
 
     membrane_detection:
         run: ../../../../saber/i2g/detection/membrane_detection.cwl
@@ -123,7 +104,8 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: tl_study/param_sweep
+                use_cache: True
         out: [membrane_detection_out]
 
     neuron_segmentation:
@@ -138,5 +120,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: tl_study/param_sweep
         out: [neuron_segmentation_out]

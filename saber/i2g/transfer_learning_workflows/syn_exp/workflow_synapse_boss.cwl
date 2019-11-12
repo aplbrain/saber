@@ -45,16 +45,8 @@ inputs:
     height: int?
     mode: string
 
-    #Inputs for neuron_segmentation
-    train_file: File?
-    neuron_mode: string
-    seeds_cc_threshold: string
-    agg_threshold: string
-
     #Inputs for output names:
     synapse_output: string
-    membrane_output: string
-    neuron_output: string
 
 outputs:
     pull_output_raw:
@@ -63,16 +55,10 @@ outputs:
     synapse_detection:
         type: File
         outputSource: synapse_detection/synapse_detection_out
-    membrane_detection:
-        type: File
-        outputSource: membrane_detection/membrane_detection_out
-    neuron_segmentation:
-        type: File
-        outputSource: neuron_segmentation/neuron_segmentation_out
 
 steps:
     boss_pull_raw:
-        run: ../../../../saber/boss_access/boss_pull_nos3.cwl
+        run: ../../../../boss_access/boss_pull_nos3.cwl
         in:
             token: token_bossdb
             host_name: host_bossdb
@@ -94,13 +80,14 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                #use_cache: True
         out:
             [pull_output]
 
 
     synapse_detection:
-        run: ../../../../saber/i2g/detection/synapse_detection.cwl
+        run: ../../../../i2g/detection/synapse_detection.cwl
         in:
             input: boss_pull_raw/pull_output
             width: width
@@ -110,33 +97,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
         out: [synapse_detection_out]
-
-    membrane_detection:
-        run: ../../../../saber/i2g/detection/membrane_detection.cwl
-        in:
-            input: boss_pull_raw/pull_output
-            width: width
-            height: height
-            output: membrane_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [membrane_detection_out]
-
-    neuron_segmentation:
-        run: ../../../../saber/i2g/neuron_segmentation/neuron_segmentation.cwl
-        in:
-            prob_file: membrane_detection/membrane_detection_out
-            mode: neuron_mode
-            train_file: train_file
-            agg_threshold: agg_threshold
-            seeds_cc_threshold: seeds_cc_threshold
-            outfile: neuron_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
-        out: [neuron_segmentation_out]

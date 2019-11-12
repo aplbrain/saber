@@ -103,7 +103,7 @@ class CwlParser:
             volumes.append(':'.join([fs,fs]))
         """
         volumes = []
-        if len(tool_yml['outputs']) > 0:
+        if len(tool_yml['outputs']) > 0 or len(tool_yml['inputs']) > 0:
             volumes.append(local_path+':/volumes/data/local')
         return volumes
     
@@ -185,9 +185,9 @@ class CwlParser:
             try:
                 file_path = self.cwl['steps'][stepname]['hints']['saber']['file_path']
                 if not self.local:
-                    file_path = '{}:{}'.format(job['_saber_bucket'], file_path)
+                    file_path = '{}:{}'.format(job['_saber_bucket'], os.path.join(file_path, stepname_c))
             except KeyError:
-                file_path = ''
+                file_path = None 
             
             log.debug('Score_format: {}'.format(score_format))
             command_list = generate_command_list(tool, iteration_parameters, self.cwl['steps'][stepname], self.local, file_path)
