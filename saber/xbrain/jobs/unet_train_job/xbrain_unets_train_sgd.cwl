@@ -5,8 +5,6 @@ class: Workflow
 doc: local
 inputs:
     use_boss: int
-    img_file: File?
-    lbl_file: File?
     coord: string?
     token: string?
     coll: string?
@@ -35,7 +33,6 @@ inputs:
     save_freq: int?
     do_warp: boolean?
     tile_size: int?
-    weights_file: File?
     output: string
     score_out: string
 outputs:
@@ -47,8 +44,6 @@ steps:
         run: ../../tools/membrane_unets_train.cwl
         in:
             use_boss: use_boss
-            img_file: img_file
-            lbl_file: lbl_file
             coord: coord
             token: token
             coll: coll
@@ -77,7 +72,6 @@ steps:
             save_freq: save_freq
             do_warp: do_warp
             tile_size: tile_size
-            weights_file: weights_file
             output: output
             score_out: score_out
         out: [classifier_weights,scores]

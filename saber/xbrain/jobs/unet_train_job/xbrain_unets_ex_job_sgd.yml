@@ -2,9 +2,7 @@
 use_boss: 1
 #Boss files
 coord: GT-VS0172
-img_file: merp 
-lbl_file: merp
-token: [your token here] 
+token:
 coll: GTXrayData
 exp: VS0172
 chan_labels: ilastik_dense_c_pixel_ahb
@@ -31,7 +29,6 @@ decay: 0.000001
 save_freq: 50
 do_warp: False
 tile_size: 256
-weights_file: None
 output: new_weights.h5
 score_out: f1_score.npy
 _saber_bucket: saber-batch
