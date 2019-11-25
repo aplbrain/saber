@@ -158,7 +158,15 @@ class DatajointHook(BaseHook):
                     (table & primary_keys).delete()
                 ret = table.insert1(row, skip_duplicates=False, **kwargs)
         return ret
-       
+    def query(self, classdef=None)
+        if classdef is None:
+            classdef = self.classdef
+        with closing(self.get_conn()) as conn:
+            table = self.create_table(conn, classdef=classdef)
+            
+            jmdb = self.create_table(conn, JobMetadata)
+            query = table*jmdb
+        return query.fetch(as_dict=True)
             
     def init_workflow(self, id, name):
 

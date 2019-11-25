@@ -470,7 +470,6 @@ class CwlParser:
         '''
         # Datajoint has not implemented unions yet, so it would be as simple as
         
-        query = JobMetadata() * self.job_param_db
-        return query.fetch(as_dict=True)
+        return self.dj_hook.query(self.job_param_def)
         # d1 = JobMetadata().fetch()
         # s2 = 
