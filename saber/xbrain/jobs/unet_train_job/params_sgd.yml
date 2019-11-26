@@ -1,8 +1,8 @@
 n_epochs:
   range:
-    start: 100
-    stop: 400
-    step: 100
+    start: 5
+    stop: 10
+    step: 1
   parameters:
     abs: n_epochs
   steps:

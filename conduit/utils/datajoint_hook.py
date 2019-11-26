@@ -158,7 +158,7 @@ class DatajointHook(BaseHook):
                     (table & primary_keys).delete()
                 ret = table.insert1(row, skip_duplicates=False, **kwargs)
         return ret
-    def query(self, classdef=None)
+    def query(self, classdef=None):
         if classdef is None:
             classdef = self.classdef
         with closing(self.get_conn()) as conn:
