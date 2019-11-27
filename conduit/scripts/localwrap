@@ -64,10 +64,8 @@ else:
                 target = fn
             
             source = os.path.join(input_path,f)
-            print(source)
             if not os.path.exists(source):
                 source = os.path.join(VOLUME_PATH, fs[0][:-2], fn) #file is not located under workflow name (outside directory)
-                print(source)
             
             try:
                 shutil.copy(source, target)
