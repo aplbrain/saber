@@ -149,7 +149,6 @@ def deploy(args):
             seg_arr = data['segmentation'].astype(np.uint64)
     with open(args.outfile, 'wb') as f:
         np.save(f,seg_arr)
-    return
 
 
 if __name__ == '__main__':
