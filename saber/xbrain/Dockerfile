@@ -31,3 +31,4 @@ ADD ./unsupervised_celldetect.py /app/unsupervised_celldetect.py
 #Necessary to use for galaxy
 ADD --chown=1000:100 ./xbrain.py ./process-xbrain.py ./split_cells.py  /app/
 ENV PATH /app:$PATH
+USER root

@@ -42,7 +42,7 @@ parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual comman
 
 args = parser.parse_args()
 # define paths relative to where mounted volume to local system exists 
-VOLUME_PATH = '../volumes/data/local/'
+VOLUME_PATH = '/volumes/data/local/'
 
 if args.use_cache == 'True':
     print('Using files in {}'.format(args.wf))
