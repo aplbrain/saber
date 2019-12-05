@@ -1,9 +1,24 @@
 import unittest
-from conduit.utils.cwlparser import CwlParser
-
+import unittest.mock as mock
+import conduit.utils.cwlparser as cwlparser
+from conduit.tests.testing_utils import load_data, resolve_filename
+import nose
+@mock.patch("conduit.utils.datajoint_hook.DatajointHook")
 class TestCwlParser(unittest.TestCase):
+    
     def setUp(self):
-        pass
+
+        fns = [
+            'workflow_single_tool.cwl',
+            'workflow_multi_tool.cwl',
+        ]
+        fake_config = {
+            'job-queue':{
+                'jobQueueName' : ""
+            }
+        }
+        cwlp1 = cwlparser.CwlParser(fns[1],config=fake_config)
+        print(cwlp1.dj_hook)
     def test_resolve_tools(self):
         # Test cases:
         # 1. Single tool
@@ -70,3 +85,6 @@ class TestCwlParser(unittest.TestCase):
         # 2. Non-parseable glob
         # 3. Parseable but non-input glob
         pass
+
+if __name__ == "__main__":
+    nose.main()

@@ -6,10 +6,10 @@ import os
 import itertools
 import numpy as np
 from conduit.utils.parameterization import parameterize
-from conduit.tests.testing_utils import load_test_data
+from conduit.tests.testing_utils import load_data
 class TestParameterization(unittest.TestCase):
     def setUp(self):
-        self._test_data = load_test_data('test_parameterization.yml')
+        self._test_data = load_data('test_parameterization.yml')
         
     def test_parameterize_single(self):
         data = self._test_data['metaparam1']

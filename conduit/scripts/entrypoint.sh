@@ -80,10 +80,12 @@ if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
   AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
   wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
 fi
-airflow pool -s Local 4 "local execution pool"
+
 case "$1" in
   webserver)
     airflow initdb
+    sleep 10
+    airflow pool -s Local 4 "local execution pool"
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
       # With the "Local" executor it should all run in one container.
       airflow scheduler &
