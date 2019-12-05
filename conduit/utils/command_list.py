@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import parse
-def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path = ''):
+def generate_command_list(tool_yml,iteration_parameters, step, local=False, file_path=None):
     '''
     Generates an AWS Batch command list from a tool YML
 
@@ -27,7 +27,7 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
         Step from CWL. Used to make sure that the input is enabled in the
         workflow
     file_path = path to store intermediate files (local or s3)
-    
+
     Returns:
     --------
     list of str:
@@ -35,9 +35,13 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
         input to a docker RUN cmd
     '''
     # Command list generation
+    try:
+        use_cache = step['hints']['saber']['use_cache']
+    except KeyError:
+        use_cache = 'False'
     # Prepend to copy data from S3 (if any of the tool inputs are Files)
     if local:
-        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname']
+        command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', str(use_cache)]
         # Only care about file inputs
         seperator ="," 
         input_files = iteration_parameters.get('_saber_input', [])
@@ -53,10 +57,12 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
             command_list.append('--output')
             command_list.append(seperator.join(output_files))
     else:
-        if file_path != '':
-            command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', 'Ref::_saber_home']
+        if file_path is not None:
+            # bucket/directory/wf_id/
+            source = '/'.join(file_path.split('/')[:-1]) 
+            command_list = ['python3', '/app/s3wrap', '--to', file_path, '--fr', source, '--use_cache', str(use_cache)]
         else:
-            command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home']
+            command_list = ['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home','--use_cache', str(use_cache)]
         # Only care about file inputs
         input_files = iteration_parameters.get('_saber_input', [])
         if len(input_files) > 0:
@@ -99,6 +105,7 @@ def sub_params(command_list,params):
         if parsed_command is not None:
             command_list[i] = params[parsed_command['p']]
     return command_list
+
 def generate_io_strings(tool_yml, wf_hash, step_params,j):
         '''
         Generates IO strings for the S3 wrapper

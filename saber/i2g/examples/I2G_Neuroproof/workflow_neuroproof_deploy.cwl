@@ -39,7 +39,6 @@ inputs:
     zmax: int?
     padding: int?
     pull_output_name_raw: string
-    pull_output_name_ann: string
 
     #Inputs for processing
     width: int?
@@ -98,7 +97,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out:
             [pull_output]
 
@@ -112,7 +111,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [membrane_detection_out]
 
     neuron_segmentation:
@@ -127,7 +126,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [neuron_segmentation_out]
     
     neuroproof:
@@ -141,5 +140,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [neuroproof_out]

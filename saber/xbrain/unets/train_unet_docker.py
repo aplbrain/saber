@@ -96,9 +96,10 @@ def get_file_data(args):
         x_train = ih.load_nii(args.img_file, data_type='uint8')
         y_train = ih.load_nii(args.lbl_file, data_type='uint8')
 
-    elif file_type == 'npz':
-        x_train = np.load(args.img_file)
-        y_train = np.load(args.lbl_file)
+    elif file_type == 'npy' or file_type == 'npz':
+        # Data input is X,Y,Z
+        x_train = np.load(args.img_file).T #Z,Y,X
+        y_train = np.load(args.lbl_file).T #Z,Y,X
 
     # Data must be [slices, chan, row, col] (i.e., [Z, chan, Y, X])
     x_train = x_train[:, np.newaxis, :, :].astype(np.float32)

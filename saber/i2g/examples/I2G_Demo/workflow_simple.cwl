@@ -94,7 +94,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out:
             [pull_output]
 
@@ -110,7 +110,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [synapse_detection_out]
 
     membrane_detection:
@@ -123,7 +123,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [membrane_detection_out]
 
     neuron_segmentation:
@@ -138,5 +138,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
+                file_path: /home/ubuntu/saber/volumes/data/local
         out: [neuron_segmentation_out]

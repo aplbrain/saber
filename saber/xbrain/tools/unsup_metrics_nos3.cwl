@@ -21,7 +21,7 @@ hints:
         # dockerPull: xbrain:airflow-docker
         dockerPull: aplbrain/xbrain:latest
 baseCommand: python 
-arguments: ["/app/unsupervised_celldetect.py","metrics"]
+arguments: ["/app/unsupervised_celldetect.py","metrics3D"]
 inputs:
     input:
         type: File

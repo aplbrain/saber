@@ -369,6 +369,10 @@ def detect_cells(cell_probability, probability_threshold, stopping_criterion,
     import pdb
     import logging
 
+    if len(cell_probability.shape) == 4:
+        print('Assuming Z, Chan, Y, X input')
+        cell_probability = np.transpose(cell_probability[:,0,:,:], (2,1,0))
+
     # threshold probability map.
     newtest = (cell_probability * (cell_probability > probability_threshold)).astype('float32')
     #initial_template_size is an int now but could a vector later on - convert it to an array

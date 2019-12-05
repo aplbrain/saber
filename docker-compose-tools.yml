@@ -24,8 +24,8 @@ services:
         privileged: true
         build:
             context: ./saber/xbrain/unets
-            dockerfile: Dockerfile.train
-        image: aplbrain/xbrain:unets
+            dockerfile: Dockerfile
+        image: aplbrain/unets
     boss:
         privileged: true
         build:

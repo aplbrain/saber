@@ -15,6 +15,7 @@
 
 cwlVersion: v1.0
 class: Workflow
+doc: local
 inputs:
     # Inputs for BOSS
     host_name: string
@@ -64,28 +65,7 @@ steps:
             coord_name: coord_name
         hints:
             saber:
-                use_subdag: False
+                local: True
+                file_path: /home/ubuntu/saber/volumes/data/local
         out:
             [pull_output]
-# Inputs for BOSS
-host_name: api.bossdb.org
-token:  6edf6eacfe4b5a36b7184ad477db1fd7876e7982
-coll_name: Kasthuri
-exp_name: em
-dtype_name: uint8
-itype_name: image
-coord_name: KasthuriFrame
-xmin: 5990
-xmax: 6000
-ymin: 6060
-ymax: 6080
-zmin: 630
-zmax: 640
-padding: 0
-resolution: 0
-output_name: raw.npy
-## Boss pull
-in_chan_name: images
-# BACK-UP:
-#------------------------------------------------
-_saber_bucket: saber-batch

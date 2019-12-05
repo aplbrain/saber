@@ -24,7 +24,7 @@ services:
     webserver:
         privileged: true
         build:
-            context: ./conduit
+            context: .
             dockerfile: WebDockerfile
         restart: always
         depends_on:
@@ -52,7 +52,7 @@ services:
     cwl_parser:
         privileged: true
         build:
-            context: ./conduit
+            context: .
             dockerfile: CWLDockerfile
         depends_on: 
             - webserver

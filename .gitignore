@@ -10,3 +10,8 @@ saber/i2g/ffns/model/
 
 #ignore notebooks
 *.ipynb
+
+#ignore DAGs except template
+conduit/dags
+!conduit/dags/__init__.py
+!conduit/dags/template_dag

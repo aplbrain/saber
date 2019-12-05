@@ -21,7 +21,7 @@ import h5py
 def convert(file, path, name):
     data = np.load(file)
     dtype = data.dtype
-    if dtype == np.uint64:
+    if dtype != np.uint8:
         print("Converting to uint8 from " + str(dtype))
         dtype = np.uint8
     with h5py.File(path, 'w') as fh:
