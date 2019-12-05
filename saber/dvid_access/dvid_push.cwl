@@ -18,60 +18,35 @@ cwlVersion: v1.0
 class: CommandLineTool
 hints:
     DockerRequirement:
-        dockerPull: aplbrain/boss-access:latest
+        dockerPull: aplbrain/dvid-access
 baseCommand: python
-arguments: ['/app/boss_access.py', 'push']
+arguments: ['/app/dvid-access.py', 'push']
 inputs:
     input:
         type: File
         inputBinding:
             position: 2
             prefix: -i
-    # config:
-        # type: File
-        # inputBinding:
-        #     position: 3
-        #     prefix: -c
-    token:
-        type: string?
-        inputBinding:
-            position: 3
-            prefix: --token
     host_name:
         type: string
         inputBinding:
             position: 18
             prefix: --host
-    coll_name:
+    uuid:
         type: string
         inputBinding:
-            position: 4
-            prefix: --coll
-    exp_name:
-        type: string
-        inputBinding:
-            position: 5
-            prefix: --exp
-    chan_name:
-        type: string
-        inputBinding:
-            position: 6
-            prefix: --chan
-    coord_name:
-        type: string
-        inputBinding:
-            position: 7
-            prefix: --coord   
+            position: 19
+            prefix: --uuid
     dtype_name:
         type: string
         inputBinding:
             position: 8
-            prefix: --dtype
-    itype_name:
+            prefix: --data_type
+    resource_name:
         type: string
         inputBinding:
-            position: 9
-            prefix: --itype
+            position: 7
+            prefix: --data_instance
     resolution:
         type: int?
         inputBinding:
@@ -107,11 +82,6 @@ inputs:
         inputBinding:
             prefix: --zmax
             position: 16
-    padding:
-        type: int?
-        inputBinding:
-            prefix: --padding
-            position: 17
     source:
         type: string?
         inputBinding:
