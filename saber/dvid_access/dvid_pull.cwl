@@ -25,62 +25,62 @@ inputs:
     host_name:
         type: string
         inputBinding:
-            position: 19
+            position: 1
             prefix: --host
     uuid:
         type: string
         inputBinding:
-            position: 19
+            position: 2
             prefix: --uuid
     dtype_name:
         type: string
         inputBinding:
-            position: 7
+            position: 3
             prefix: --datatype
     resource_name:
         type: string
         inputBinding:
-            position: 7
+            position: 4
             prefix: --data_instance
     resolution:
         type: int?
         inputBinding:
             prefix: --res
-            position: 9
+            position: 5
     xmin:
         type: int?
         inputBinding:
             prefix: --xmin
-            position: 10
+            position: 6
     xmax:
         type: int?
         inputBinding:
             prefix: --xmax
-            position: 11
+            position: 7
     ymin:
         type: int?
         inputBinding:
             prefix: --ymin
-            position: 12
+            position: 8
     ymax:
         type: int?
         inputBinding:
             prefix: --ymax
-            position: 13
+            position: 9
     zmin:
         type: int?
         inputBinding:
             prefix: --zmin
-            position: 14
+            position: 10
     zmax:
         type: int?
         inputBinding:
             prefix: --zmax
-            position: 15
+            position: 11
     output_name:
         type: string
         inputBinding:
-            position: 18
+            position: 12
             prefix: --output
 outputs: 
     pull_output:

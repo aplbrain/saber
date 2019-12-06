@@ -25,67 +25,67 @@ inputs:
     input:
         type: File
         inputBinding:
-            position: 2
+            position: 1
             prefix: -i
     host_name:
         type: string
         inputBinding:
-            position: 18
+            position: 2
             prefix: --host
     uuid:
         type: string
         inputBinding:
-            position: 19
+            position: 3
             prefix: --uuid
     dtype_name:
         type: string
         inputBinding:
-            position: 8
+            position: 4
             prefix: --data_type
     resource_name:
         type: string
         inputBinding:
-            position: 7
+            position: 5
             prefix: --data_instance
     resolution:
         type: int?
         inputBinding:
             prefix: --res
-            position: 10
+            position: 6
     xmin:
         type: int?
         inputBinding:
             prefix: --xmin
-            position: 11
+            position: 7
     xmax:
         type: int?
         inputBinding:
             prefix: --xmax
-            position: 12
+            position: 8
     ymin:
         type: int?
         inputBinding:
             prefix: --ymin
-            position: 13
+            position: 9
     ymax:
         type: int?
         inputBinding:
             prefix: --ymax
-            position: 14
+            position: 10
     zmin:
         type: int?
         inputBinding:
             prefix: --zmin
-            position: 15
+            position: 11
     zmax:
         type: int?
         inputBinding:
             prefix: --zmax
-            position: 16
+            position: 12
     source:
         type: string?
         inputBinding:
             prefix: --source
-            position: 18
+            position: 13
 outputs: []
 

@@ -63,6 +63,7 @@ services:
             - ./conduit:/conduit
             - ~/.aws:/root/.aws
             - ./saber/:/saber
+            - ./demos:/demos
             - /var/run/docker.sock:/var/run/docker.sock
 
         command: tail -F root

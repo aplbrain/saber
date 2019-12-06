@@ -1,0 +1,31 @@
+# DVID:
+host_name: flyem.dvid.io
+uuid: 73581d2d46fc445d83cf98382b566b55
+resource_name: fib19-grayscale
+dtype_name: uint8
+resolution: 0
+xmin: 11000
+xmax: 11256
+ymin: 5200
+ymax: 5456
+zmin: 11000
+zmax: 11256
+pull_output_name: medulla7_raw.npy
+resource_name_out: ffn_segmentation
+dtype_name_out: uint64
+
+# FFN segmentation
+image_mean: 128
+image_stddev: 33
+depth: 12
+fov_size: 33,33,33
+deltas: 8,8,8
+init_activation: 0.95
+pad_value: 0.05
+move_threshold: 0.9
+min_boundary_dist: 1,1,1
+segment_threshold: 0.6
+min_segment_size: 1000
+bound_start: 0,0,0
+bound_stop: 256,256,256
+outfile: medulla7_ffn_out.npy
