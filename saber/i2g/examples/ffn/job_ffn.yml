@@ -1,28 +1,26 @@
 # BOSS:
 #------------------------------------------------
 # general:
-host_bossdb: api.theboss.io
-token_bossdb: token
-coll_name: kasthuri2015
-exp_name: ac4
-coord_name: ac4-coord
+host_bossdb: api.bossdb.io
+token_bossdb: public
+coll_name: neuroproof_examples
+exp_name: training_sample
+coord_name: neuroproof_training_sample_2
 resolution: 0
 xmin: 0
-xmax: 64
+xmax: 250
 ymin: 0
-ymax: 64
+ymax: 250
 zmin: 0
-zmax: 63
+zmax: 250
 padding: 0
 onesided: 0
 #inputs:
-in_chan_name_raw: em
-in_chan_name_ann: neuron
+in_chan_name_raw: images
 itype_name_in: image
 dtype_name_in: uint8
 #outputs
 pull_output_name_raw: pull_output_raw.npy
-pull_output_name_ann: pull_output_ann.npy
 
 # FFN segmentation
 image_mean: 128
@@ -37,5 +35,5 @@ min_boundary_dist: 1,1,1
 segment_threshold: 0.6
 min_segment_size: 100
 bound_start: 0,0,0
-bound_stop: 64,64,63
-outfile: seg_out.npy
+bound_stop: 250,250,250
+outfile: ffn_seg_out.npy
