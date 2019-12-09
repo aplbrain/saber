@@ -17,7 +17,7 @@ class TestCwlParser(unittest.TestCase):
                 'jobQueueName' : ""
             }
         }
-        cwlp1 = cwlparser.CwlParser(fns[1],config=fake_config)
+        cwlp1 = cwlparser.CwlParser(resolve_filename(fns[1]),config=fake_config)
         print(cwlp1.dj_hook)
     def test_resolve_tools(self):
         # Test cases:
