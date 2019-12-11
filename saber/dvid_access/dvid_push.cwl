@@ -20,7 +20,7 @@ hints:
     DockerRequirement:
         dockerPull: aplbrain/dvid-access
 baseCommand: python
-arguments: ['/app/dvid-access.py', 'push']
+arguments: ['/app/dvid_access.py', 'push']
 inputs:
     input:
         type: File
@@ -33,7 +33,7 @@ inputs:
             position: 2
             prefix: --host
     uuid:
-        type: string
+        type: string?
         inputBinding:
             position: 3
             prefix: --uuid
@@ -41,7 +41,7 @@ inputs:
         type: string
         inputBinding:
             position: 4
-            prefix: --data_type
+            prefix: --datatype
     resource_name:
         type: string
         inputBinding:
@@ -87,5 +87,10 @@ inputs:
         inputBinding:
             prefix: --source
             position: 13
+    type:
+        type: string?
+        inputBinding:
+            prefix: --type
+            position: 14
 outputs: []
 

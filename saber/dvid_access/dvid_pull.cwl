@@ -82,6 +82,11 @@ inputs:
         inputBinding:
             position: 12
             prefix: --output
+    type:
+        type: string?
+        inputBinding:
+            prefix: --type
+            position: 13
 outputs: 
     pull_output:
         type: File

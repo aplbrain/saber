@@ -19,12 +19,13 @@ import configparser
 import tempfile
 import boto3
 from intern.remote.dvid import DVIDRemote
+from intern.resource.dvid import DataInstanceResource
 import numpy as np
 from requests import HTTPError
 
 def DVID_pull_cutout(args):
     rmt = DVIDRemote({
-        "protocol": "https",
+        "protocol": "http",
         "host": args.host
     })
 
@@ -33,14 +34,14 @@ def DVID_pull_cutout(args):
     DATATYPE = args.datatype
 
     # Create or get a channel to write to
-    instance_setup = rmt.get_instance(
-        UUID, DATA_INSTANCE_NAME, datatype=DATATYPE)
+    instance_setup = DataInstanceResource(
+        UUID = UUID, name = DATA_INSTANCE_NAME,type=args.type, datatype=DATATYPE)
     print('Data Instance setup.')
 
     x_rng = [args.xmin,args.xmax] 
     y_rng = [args.ymin,args.ymax]
     z_rng = [args.zmin,args.zmax]
-    # Verify that the cutout uploaded correctly.
+    #Verify that the cutout uploaded correctly.
     attempts = 0
     while attempts < 3:
         try:
@@ -52,8 +53,8 @@ def DVID_pull_cutout(args):
                 print("Obtained HTTP error from server. Trial {}".format(attempts))
             else:
                 print("Failed 3 times: {}".format(e))
-    #Data will be in Z,Y,X format
-    #Change to X,Y,Z for pipeline
+    # Data will be in Z,Y,X format
+    # Change to X,Y,Z for pipeline
     cutout_data = np.transpose(cutout_data,(2,1,0))
 
     def _upload(f):
@@ -77,7 +78,7 @@ def DVID_pull_cutout(args):
 #here we push a subset of padded data back to DVID
 def DVID_push_cutout(args):
     rmt = DVIDRemote({
-        'protocol': 'https',
+        'protocol': 'http',
         'host': args.host
     })
 
@@ -103,15 +104,17 @@ def DVID_push_cutout(args):
     if  args.source:
         sources.append(args.source)
 
+    UUID = None
+    if args.uuid:
+        UUID = args.uuid 
     DATA_INSTANCE_NAME = args.data_instance
-    UUID = args.uuid
     DATATYPE = args.datatype
 
     # Create or get a channel to write to
-    instance_setup = rmt.get_instance(
-        UUID, DATA_INSTANCE_NAME, datatype=DATATYPE)
+    instance_setup = DataInstanceResource(
+        UUID = UUID, name =DATA_INSTANCE_NAME, type = args.type, datatype=DATATYPE)
     print('Data Instance setup.')
-
+    chan_actual_up = rmt.create_project(instance_setup)
     x_rng = [args.xmin,args.xmax] 
     y_rng = [args.ymin,args.ymax]
     z_rng = [args.zmin,args.zmax]
@@ -121,6 +124,7 @@ def DVID_push_cutout(args):
     #Pipeline Data will be in X,Y,Z format
     #Change to Z,Y,X for upload
     data = np.transpose(data,(2,1,0))
+    data = data.copy(order="C")
     # Verify that the cutout uploaded correctly.
     attempts = 0
     while attempts < 3:
@@ -153,9 +157,10 @@ def main():
 
     parent_parser.add_argument('-b', '--bucket', default=None, help='S3 bucket to save to or load from')
 
-    parent_parser.add_argument('--uuid', required=True, help='Root UUID of the repository')
+    parent_parser.add_argument('--uuid', required=False, help='Root UUID of the repository')
     parent_parser.add_argument('--data_instance', required=True, help='Name of data instance within repository ')
     parent_parser.add_argument('--datatype', required=False, help='data type of the instance (uint8, uint16, uint64) defaults to uint8')
+    parent_parser.add_argument('--type', required=False, help='type of the resource (uint8blk, labelblk) defaults to uint8blk')
     parent_parser.add_argument('--host', required=True, help='Name of DVID host')
 
     parent_parser.add_argument('--res', type=int, help='Resolution')

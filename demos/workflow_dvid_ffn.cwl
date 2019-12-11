@@ -25,6 +25,7 @@ inputs:
     uuid: string?
     resource_name: string
     dtype_name: string
+    type: string
     resolution: int?
     xmin: int?
     xmax: int?
@@ -35,6 +36,7 @@ inputs:
     pull_output_name: string
     resource_name_out: string
     dtype_name_out: string
+    type_out: string
     
     #Inputs for FFN
     image_mean: string
@@ -68,6 +70,7 @@ steps:
             uuid: uuid
             resource_name: resource_name
             dtype_name: dtype_name
+            type: type
             resolution: resolution
             xmin: xmin
             xmax: xmax
@@ -112,9 +115,9 @@ steps:
         in:
             input: ffn_segmentation/ffn_out
             host_name: host_name
-            uuid: uuid
             resource_name: resource_name_out
             dtype_name: dtype_name_out
+            type: type_out
             resolution: resolution
             xmin: xmin
             xmax: xmax
@@ -127,4 +130,4 @@ steps:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
         out:
-            [pull_output]
+            []
