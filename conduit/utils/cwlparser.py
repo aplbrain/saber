@@ -232,7 +232,8 @@ class CwlParser:
                     dag=subdag,
                     queue=step_job_queue,
                     workflow_id=parent_dag_id,
-                    score_format=score_format
+                    score_format=score_format,
+                    pool='Batch'
                     
                 )
             subdag_steps[stepname] = t
