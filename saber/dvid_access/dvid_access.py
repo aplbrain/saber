@@ -29,13 +29,9 @@ def DVID_pull_cutout(args):
         "host": args.host
     })
 
-    DATA_INSTANCE_NAME = args.data_instance
-    UUID = args.uuid
-    DATATYPE = args.datatype
-
     # Create or get a channel to write to
     instance_setup = DataInstanceResource(
-        UUID = UUID, name = DATA_INSTANCE_NAME,type=args.type, datatype=DATATYPE)
+        UUID=args.uuid, name=args.data_instance, type=args.type, alias=args.alias, datatype=args.datatype)
     print('Data Instance setup.')
 
     x_rng = [args.xmin,args.xmax] 
@@ -104,22 +100,16 @@ def DVID_push_cutout(args):
     if  args.source:
         sources.append(args.source)
 
-    UUID = None
-    if args.uuid:
-        UUID = args.uuid 
-    DATA_INSTANCE_NAME = args.data_instance
-    DATATYPE = args.datatype
-
     # Create or get a channel to write to
     instance_setup = DataInstanceResource(
-        UUID = UUID, name =DATA_INSTANCE_NAME, type = args.type, datatype=DATATYPE)
+        UUID=args.uuid, name=args.data_instance, type=args.type, alias=args.alias, datatype=args.datatype)
     print('Data Instance setup.')
     chan_actual_up = rmt.create_project(instance_setup)
     x_rng = [args.xmin,args.xmax] 
     y_rng = [args.ymin,args.ymax]
     z_rng = [args.zmin,args.zmax]
 
-    print('Data model setup.')
+    print('Data model setup. UUID: {}'.format(chan_actual_up))
 
     #Pipeline Data will be in X,Y,Z format
     #Change to Z,Y,X for upload
@@ -157,7 +147,8 @@ def main():
 
     parent_parser.add_argument('-b', '--bucket', default=None, help='S3 bucket to save to or load from')
 
-    parent_parser.add_argument('--uuid', required=False, help='Root UUID of the repository')
+    parent_parser.add_argument('--uuid', required=False, default=None, help='Root UUID of the repository')
+    parent_parser.add_argument('--alias', required=False, default='', help='Readable UUID Tag')
     parent_parser.add_argument('--data_instance', required=True, help='Name of data instance within repository ')
     parent_parser.add_argument('--datatype', required=False, help='data type of the instance (uint8, uint16, uint64) defaults to uint8')
     parent_parser.add_argument('--type', required=False, help='type of the resource (uint8blk, labelblk) defaults to uint8blk')

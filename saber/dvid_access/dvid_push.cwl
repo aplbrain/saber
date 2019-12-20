@@ -92,5 +92,10 @@ inputs:
         inputBinding:
             prefix: --type
             position: 14
+    alias:
+        type: string?
+        inputBinding:
+            prefix: --alias
+            position: 14
 outputs: []
 

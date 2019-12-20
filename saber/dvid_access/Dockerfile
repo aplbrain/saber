@@ -16,11 +16,7 @@
 FROM python:3.6
 
 RUN pip install boto3
-RUN git clone https://github.com/jhuapl-boss/intern.git 
-RUN cd intern && git checkout RemoteExtension && git pull
-COPY ./project.py /intern/intern/service/dvid/
-RUN cd intern && python3 setup.py install --user
-
+RUN git clone https://github.com/jhuapl-boss/intern.git && cd intern && git checkout RemoteExtension && git pull && python3 setup.py install --user
 RUN mkdir /app
 COPY ./dvid_access.py /app/
 RUN chown -R 1000:100 /app/
