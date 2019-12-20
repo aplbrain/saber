@@ -62,7 +62,7 @@ else:
                 if len(fs) > 1 and param_parse:
                     # The workflow has been parameterized
                     fs[0] = param_parse[0]
-                bwf = args.fr.split(':')
+                bwf = args.fr.split('/')
                 b=bwf[0]
                 wf=bwf[1]
                 # Path is of the form bucket/wf_hash/...dirs../filename
