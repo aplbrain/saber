@@ -81,9 +81,6 @@ if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
   wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
 fi
 
-airflow pool -s Local 4 "Local Execution Pool"
-airflow pool -s Batch 128 "AWS Batch Execution Pool"
-
 case "$1" in
   webserver)
     airflow initdb
@@ -109,3 +106,5 @@ case "$1" in
     exec "$@"
     ;;
 esac
+
+airflow pool -i /conduit/config/pool_config.json
