@@ -42,7 +42,7 @@ inputs:
     #Unet Classify 
     classify_output_name: string
 
-    detect_threshold: float
+    threshold: float
     stop: float
     initial_template_size: int
     detect_dilation: int
@@ -173,7 +173,7 @@ steps:
         in:
             input: classify/membrane_probability_map
             output_name: detect_output_name
-            threshold: detect_threshold
+            threshold: threshold
             stop: stop
             initial_template_size: initial_template_size
             dilation: detect_dilation
