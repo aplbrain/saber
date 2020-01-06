@@ -88,9 +88,9 @@ class RandomSampler(Sampler):
 class GridSampler(Sampler):
     def __init__(self, parameterization_dict, job, max_iterations):
         self.param_grid = parameterize(parameterization_dict)
-        self.update(None)
         self.max_iterations = max_iterations
         self.count = 0
+        self.update(None)
         super().__init__(parameterization_dict, job)
     
     def update(self, results):

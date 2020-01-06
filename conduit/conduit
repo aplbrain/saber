@@ -19,7 +19,7 @@ import argparse
 import yaml 
 import logging
 import csv
-from utils.parameterization import parameterize, RandomSampler, GridSearch
+from utils.parameterization import parameterize, RandomSampler, GridSampler
 import requests
 import cwltool.main as cwltool 
 import time
@@ -81,7 +81,7 @@ def optimize(args):
     if args.sampling_strategy == 'random':
         sampler = RandomSampler(pm, job, args.max_iterations)
     elif args.sampling_strategy == 'gridSearch':
-        sampler = GridSearch(pm, job, args.max_iterations)
+        sampler = GridSampler(pm, job, args.max_iterations)
     else:
         raise NotImplementedError('Other samplers are not supported yet!')
 
