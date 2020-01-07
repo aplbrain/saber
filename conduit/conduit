@@ -89,7 +89,7 @@ def optimize(args):
     for i,iteration in enumerate(sampler.sample()):
         print('Executing iteration {} of {} sampling'.format(i, args.sampling_strategy))
         print("Parameters: "+ str(iteration))
-        p.opti_iter = i #keeps track of job iterations for subDAG
+        p.optimization_iteration = i #keeps track of job iterations for subDAG
         if type(iteration) == list: 
             p.parameterization = iteration
         elif type(iteration) == dict: 
