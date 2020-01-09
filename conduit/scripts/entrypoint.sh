@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+set -m
 TRY_LOOP="20"
 
 : "${REDIS_HOST:="redis"}"
@@ -88,7 +88,11 @@ case "$1" in
       # With the "Local" executor it should all run in one container.
       airflow scheduler &
     fi
-    exec airflow webserver
+    # exec airflow webserver
+    airflow webserver &
+    sleep 10
+    airflow pool -i /conduit/config/pool_config.json
+    fg
     ;;
   worker|scheduler)
     # To give the webserver time to run initdb.
@@ -106,5 +110,3 @@ case "$1" in
     exec "$@"
     ;;
 esac
-
-airflow pool -i /conduit/config/pool_config.json
