@@ -1,7 +1,7 @@
 {
     "Local": {
         "description": "Local Execution Pool",
-        "slots": 100
+        "slots": 4
     },
     "Batch": {
         "description": "AWS Batch Execution Pool",

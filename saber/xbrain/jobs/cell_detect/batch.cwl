@@ -37,7 +37,6 @@ inputs:
     save_freq: int
     do_warp: boolean
     tile_size: int
-#    weights_file: File?
 
     #Unet Classify 
     classify_output_name: string
@@ -46,7 +45,7 @@ inputs:
     stop: float
     initial_template_size: int
     detect_dilation: int
-#    max_cells: int
+#   max_cells: int
     dense_output_name: string
 
     optimize_output: string
@@ -151,7 +150,6 @@ steps:
             save_freq: save_freq
             do_warp: do_warp
             tile_size: tile_size
-#            weights_file: weights_file
             output: optimize_output
             score_out: score_out
         out: [classifier_weights, scores]
@@ -177,7 +175,7 @@ steps:
             stop: stop
             initial_template_size: initial_template_size
             dilation: detect_dilation
-#            max_cells: max_cells
+#           max_cells: max_cells
             dense_output_name: dense_output_name
         out: [cell_detect_results, dense_output]
 
