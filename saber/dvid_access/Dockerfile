@@ -15,7 +15,7 @@
 #Use an official Python runtime as a parent image
 FROM python:3.6
 
-RUN pip install boto3
+RUN pip install boto3==1.11.8
 RUN git clone https://github.com/jhuapl-boss/intern.git && cd intern && git checkout RemoteExtension && git pull && python3 setup.py install --user
 RUN mkdir /app
 COPY ./dvid_access.py /app/

@@ -52,23 +52,10 @@ def DVID_pull_cutout(args):
     # Data will be in Z,Y,X format
     # Change to X,Y,Z for pipeline
     cutout_data = np.transpose(cutout_data,(2,1,0))
-
-    def _upload(f):
-        print('Uploading to s3:/{}/{}'.format(args.bucket, args.output))
-        s3 = boto3.resource('s3')
-        f.seek(0, 0)
-        s3.Object(args.bucket, args.output).put(Body=f)
     
     # Clean up.
-    if args.bucket and args.s3_only:
-        with tempfile.TemporaryFile() as f:
-            np.save(f, cutout_data)
-            _upload(f)
-    else:
-        with open(args.output, 'w+b') as f:
-            np.save(f, cutout_data)
-            if args.bucket:
-                _upload(f)
+    with open(args.output, 'w+b') as f:
+        np.save(f, cutout_data)
     
 
 #here we push a subset of padded data back to DVID
@@ -79,14 +66,8 @@ def DVID_push_cutout(args):
     })
 
     #data is desired range
-    if args.bucket:
-        s3 = boto3.resource('s3')
-        with tempfile.TemporaryFile() as f:
-            s3.Bucket(args.bucket).download_fileobj(args.input, f)
-            f.seek(0, 0)
-            data = np.load(f)
-    else:
-        data = np.load(args.input)
+
+    data = np.load(args.input)
 
     numpyType = np.uint8
     if args.datatype=="uint32":
@@ -145,8 +126,6 @@ def main():
 
     parser.set_defaults(func=lambda _: parser.print_help())
 
-    parent_parser.add_argument('-b', '--bucket', default=None, help='S3 bucket to save to or load from')
-
     parent_parser.add_argument('--uuid', required=False, default=None, help='Root UUID of the repository')
     parent_parser.add_argument('--alias', required=False, default='', help='Readable UUID Tag')
     parent_parser.add_argument('--data_instance', required=True, help='Name of data instance within repository ')
@@ -163,10 +142,10 @@ def main():
     parent_parser.add_argument('--zmax', type=int, default=1, help='Zmax')
 
     push_parser = subparsers.add_parser(
-        'push', help='Push images to dvid from input file or s3 bucket', parents=[parent_parser]
+        'push', help='Push images to dvid from input file', parents=[parent_parser]
     )
     pull_parser = subparsers.add_parser(
-        'pull', help='Pull images from dvid and optionally save to AWS S3',
+        'pull', help='Pull images from dvid',
         parents=[parent_parser]
     )
 
@@ -175,9 +154,6 @@ def main():
     push_parser.set_defaults(func=DVID_push_cutout)
 
     pull_parser.add_argument('-o', '--output', required=True, help='Output file')
-    pull_parser.add_argument(
-        '--s3-only', dest='s3_only', action='store_true', default=False, help='Only save output to AWS S3'
-    )
     pull_parser.set_defaults(func=DVID_pull_cutout)
 
     args = parser.parse_args()
