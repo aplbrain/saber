@@ -88,4 +88,3 @@ ENTRYPOINT ["/entrypoint.sh"]
 COPY ./conduit /conduit
 COPY ./setup.py /
 RUN pip install -e /
-CMD ["webserver"] # set default arg for entrypoint

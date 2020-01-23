@@ -84,4 +84,19 @@ class RandomSampler(Sampler):
             yield self.next_job
 
 # New sampling methods can be added below!
+
+class GridSampler(Sampler):
+    def __init__(self, parameterization_dict, job, max_iterations):
+        self.param_grid = parameterize(parameterization_dict)
+        self.max_iterations = max_iterations
+        self.count = 0
+        self.update(None)
+        super().__init__(parameterization_dict, job)
     
+    def update(self, results):
+        self.next_job = self.param_grid[self.count]
+        self.count += 1
+
+    def sample(self):
+        for i in range(self.max_iterations):
+            yield self.next_job

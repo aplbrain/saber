@@ -45,7 +45,7 @@ from conduit.utils.saber_docker_operator import SaberDockerOperator
 
 log = logging.getLogger(__name__)
 class CwlParser:
-    def __init__(self, cwl, config, constant=False):
+    def __init__(self, cwl, config, constant=False, optimization_iteration=None):
         '''
         Initializes the CWL parser
 
@@ -84,8 +84,8 @@ class CwlParser:
         self.dj_hook = DatajointHook(config=config['datajoint'])
 
         self.job_param_def = self.dj_hook.create_definition(self.cwl['inputs'], self.workflow_name)
-        self.parameterization = [{}] 
-        self.opti_iter = 0 
+        self.parameterization = [{}]
+        self.optimization_iteration = optimization_iteration
         try:
             if self.cwl['doc'] == 'local':
                 self.local = True
@@ -232,7 +232,8 @@ class CwlParser:
                     dag=subdag,
                     queue=step_job_queue,
                     workflow_id=parent_dag_id,
-                    score_format=score_format
+                    score_format=score_format,
+                    pool='Batch'
                     
                 )
             subdag_steps[stepname] = t
@@ -323,8 +324,8 @@ class CwlParser:
         except KeyError:
             use_subdag = True
         for i,iteration in enumerate(self.parameterization):
-            if 'optimize' in self.parameterization[0].keys():
-                    i = self.opti_iter
+            if self.optimization_iteration is not None:
+                i = self.optimization_iteration             
             if use_subdag:
                 subdag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
                 iteration_subdag_step = SubDagOperator(
@@ -334,9 +335,8 @@ class CwlParser:
                 )
             else:
                 dag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=dag)
-
-
         return dag
+
     def resolve_args(self,job):
         '''
         Creates job parameters from job file

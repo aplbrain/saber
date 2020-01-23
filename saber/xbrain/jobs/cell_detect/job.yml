@@ -2,7 +2,7 @@
 #Boss files
 host_name: api.bossdb.io
 coord: GT-VS0172
-token: d86d63d296011c973c6a683ceddb64f6c1c1700a
+token: 
 coll: GTXrayData
 exp: VS0172
 chan_labels: ilastik_dense_c_pixel_ahb

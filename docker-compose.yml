@@ -45,7 +45,7 @@ services:
             - "8080:8080"
         command: webserver
         healthcheck:
-            test: ["CMD-SHELL", "[ -f /home/root/airflow-webserver.pid ]"]
+            test: ["CMD-SHELL", "[ -f /root/airflow-webserver.pid ]"]
             interval: 30s
             timeout: 30s
             retries: 3

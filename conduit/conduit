@@ -19,7 +19,7 @@ import argparse
 import yaml 
 import logging
 import csv
-from utils.parameterization import parameterize, RandomSampler
+from utils.parameterization import parameterize, RandomSampler, GridSampler
 import requests
 import cwltool.main as cwltool 
 import time
@@ -80,6 +80,8 @@ def optimize(args):
     ### New samplers must be added here ###
     if args.sampling_strategy == 'random':
         sampler = RandomSampler(pm, job, args.max_iterations)
+    elif args.sampling_strategy == 'gridSearch':
+        sampler = GridSampler(pm, job, args.max_iterations)
     else:
         raise NotImplementedError('Other samplers are not supported yet!')
 
@@ -87,7 +89,7 @@ def optimize(args):
     for i,iteration in enumerate(sampler.sample()):
         print('Executing iteration {} of {} sampling'.format(i, args.sampling_strategy))
         print("Parameters: "+ str(iteration))
-        p.opti_iter = i #keeps track of job iterations for subDAG
+        p.optimization_iteration = i #keeps track of job iterations for subDAG
         if type(iteration) == list: 
             p.parameterization = iteration
         elif type(iteration) == dict: 

@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+set -m
 TRY_LOOP="20"
 
 : "${REDIS_HOST:="redis"}"
@@ -80,7 +80,7 @@ if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
   AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
   wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
 fi
-airflow pool -s Local 4 "local execution pool"
+
 case "$1" in
   webserver)
     airflow initdb
@@ -88,7 +88,11 @@ case "$1" in
       # With the "Local" executor it should all run in one container.
       airflow scheduler &
     fi
-    exec airflow webserver
+    # exec airflow webserver
+    airflow webserver &
+    sleep 10
+    airflow pool -i /conduit/config/pool_config.json
+    fg
     ;;
   worker|scheduler)
     # To give the webserver time to run initdb.

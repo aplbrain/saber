@@ -826,8 +826,12 @@ def centroid_f1(C0,C1,thres):
     C0 = np.transpose(C0)
     C1 = np.transpose(C1)
     Y = scipy.spatial.distance.cdist(C0, C1, 'euclidean')
-    vals = np.sort(np.amin(Y,axis=1)) 
-    valinds = np.argsort(np.min(Y,axis=1)) 
+    try:
+        vals = np.sort(np.amin(Y,axis=1)) 
+        valinds = np.argsort(np.min(Y,axis=1)) 
+    except ValueError:
+        print("No Detected Objects")
+        return 0
 
     L = len(vals[np.where(vals<=thres)])
 
