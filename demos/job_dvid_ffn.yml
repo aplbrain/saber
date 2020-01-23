@@ -1,0 +1,33 @@
+# DVID:
+host_name: 3.209.156.251:8001
+uuid: 56e2e4251774426abdde8cdee4be747e
+resource_name: validation
+dtype_name: uint8
+type: uint8blk
+resolution: 0
+xmin: 0
+xmax: 64
+ymin: 0
+ymax: 64
+zmin: 0
+zmax: 64
+pull_output_name: medulla7_raw.npy
+resource_name_out: ffn_segmentation
+dtype_name_out: uint64
+type_out: labelblk
+
+# FFN segmentation
+image_mean: 128
+image_stddev: 33
+depth: 12
+fov_size: 33,33,33
+deltas: 8,8,8
+init_activation: 0.95
+pad_value: 0.05
+move_threshold: 0.9
+min_boundary_dist: 1,1,1
+segment_threshold: 0.6
+min_segment_size: 1000
+bound_start: 0,0,0
+bound_stop: 64,64,64
+outfile: medulla7_ffn_out.npy

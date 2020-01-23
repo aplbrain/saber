@@ -20,15 +20,12 @@ class: Workflow
 doc: local
 
 inputs:
-    # Inputs for BOSS
-    host_bossdb: string
-    token_bossdb: string?
-    coll_name: string
-    exp_name: string
-    in_chan_name_raw: string
-    dtype_name_in: string
-    itype_name_in: string
-    coord_name: string
+    # Inputs for DVID
+    host_name: string
+    uuid: string?
+    resource_name: string
+    dtype_name: string
+    type: string
     resolution: int?
     xmin: int?
     xmax: int?
@@ -36,8 +33,10 @@ inputs:
     ymax: int?
     zmin: int?
     zmax: int?
-    padding: int?
-    pull_output_name_raw: string
+    pull_output_name: string
+    resource_name_out: string
+    dtype_name_out: string
+    type_out: string
     
     #Inputs for FFN
     image_mean: string
@@ -58,22 +57,20 @@ inputs:
 outputs:
     pull_output_raw:
         type: File
-        outputSource: boss_pull_raw/pull_output
+        outputSource: dvid_pull_raw/pull_output
     ffn_segmentation:
         type: File
         outputSource: ffn_segmentation/ffn_out
 
 steps:
-    boss_pull_raw:
-        run: ../../../../saber/boss_access/boss_pull_nos3.cwl
+    dvid_pull_raw:
+        run: ../saber/dvid_access/dvid_pull.cwl
         in:
-            token: token_bossdb
-            host_name: host_bossdb
-            coll_name: coll_name
-            exp_name: exp_name
-            chan_name: in_chan_name_raw
-            dtype_name: dtype_name_in
-            itype_name: itype_name_in
+            host_name: host_name
+            uuid: uuid
+            resource_name: resource_name
+            dtype_name: dtype_name
+            type: type
             resolution: resolution
             xmin: xmin
             xmax: xmax
@@ -81,9 +78,7 @@ steps:
             ymax: ymax
             zmin: zmin
             zmax: zmax
-            padding: padding
-            output_name: pull_output_name_raw
-            coord_name: coord_name
+            output_name: pull_output_name
         hints:
             saber:
                 local: True
@@ -92,9 +87,9 @@ steps:
             [pull_output]
 
     ffn_segmentation:
-        run: ../../../../saber/i2g/ffns/ffn_segmentation.cwl
+        run: ../saber/i2g/ffns/ffn_segmentation.cwl
         in:
-            input: boss_pull_raw/pull_output
+            input: dvid_pull_raw/pull_output
             image_mean: image_mean
             image_stddev: image_stddev
             depth: depth
@@ -114,3 +109,25 @@ steps:
                 local: True
                 file_path: /home/ubuntu/saber/volumes/data/local
         out: [ffn_out]
+    
+    dvid_push_seg:
+        run: ../saber/dvid_access/dvid_push.cwl
+        in:
+            input: ffn_segmentation/ffn_out
+            host_name: host_name
+            resource_name: resource_name_out
+            dtype_name: dtype_name_out
+            type: type_out
+            resolution: resolution
+            xmin: xmin
+            xmax: xmax
+            ymin: ymin
+            ymax: ymax
+            zmin: zmin
+            zmax: zmax
+        hints:
+            saber:
+                local: True
+                file_path: /home/ubuntu/saber/volumes/data/local
+        out:
+            []
