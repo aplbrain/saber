@@ -19,7 +19,7 @@ import argparse
 import yaml 
 import logging
 import csv
-from utils.parameterization import parameterize, RandomSampler, GridSampler
+from utils.parameterization import parameterize, RandomSampler, GridSampler, BatchGridSampler
 import requests
 import cwltool.main as cwltool 
 import time
@@ -80,8 +80,10 @@ def optimize(args):
     ### New samplers must be added here ###
     if args.sampling_strategy == 'random':
         sampler = RandomSampler(pm, job, args.max_iterations)
-    elif args.sampling_strategy == 'gridSearch':
-        sampler = GridSampler(pm, job, args.max_iterations)
+    elif args.sampling_strategy == 'grid':
+        sampler = GridSampler(pm, job)
+    elif args.sampling_strategy == 'batch-grid':
+        sampler = BatchGridSampler(pm, job, args.batch_size)
     else:
         raise NotImplementedError('Other samplers are not supported yet!')
 
@@ -186,6 +188,7 @@ if __name__ == '__main__':
     optimize_parser.add_argument('--output', help='CSV file to write to', default='optiout.csv')
     optimize_parser.add_argument('--sampling-strategy', help='Sampling strategy to use', default='random')
     optimize_parser.add_argument('--max-iterations', help='Max iterations', type=int)
+    optimize_parser.add_argument('--batch-size', help='Number of jobs to run per batch', type=int, default=5)
     optimize_parser.set_defaults(func=optimize)
 
     args = parent_parser.parse_args()
