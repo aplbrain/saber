@@ -49,25 +49,27 @@ if args.use_cache == 'True':
 else:
     if args.input:
         input_path = os.path.join(VOLUME_PATH, os.path.split(args.wf)[0])
-        infiles = args.input.split(',') #list of input files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
+        infiles = args.input.split(',')
         for f in infiles:
-            fs = os.path.split(f) #splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
-            fn = fs[1] #gets the file name e.g. 'pull_output.npy'
-            if fs[0]: 
-                target = fs[0] # gets the parent directories e.g. 'boss_pull_raw.0'
-                target = target[:-2] #gets rid of the parameterization counter 
-                
+            fs = os.path.split(f) # splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
+            fn = fs[-1] # gets the file name e.g. 'pull_output.npy'
+            if len(fs)>1: 
+                target = os.path.join(*fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
+                target = target.split('.')[0] # removes parameterization suffix 
                 if not os.path.exists(target):
                     os.makedirs(target) # creates the parent directories in the volume if it doesn't exist already
             else:
-                #fs is just the filename
+                # fs is just the filename 
                 target = fn
             
             source = os.path.join(input_path,f)
             if not os.path.exists(source):
-                source = os.path.join(VOLUME_PATH, fs[0][:-2], fn) #file is not located under workflow name (outside directory)
+                source = os.path.join(VOLUME_PATH, fs[:-1], fn) #file is not located under workflow name (outside directory)
             
             try:
+                print("Filename: " + fn)
+                print("Source: " + source)
+                print("Target: " + target)
                 shutil.copy(source, target)
             except OSError as e:
                 if os.path.exists(fn):
@@ -86,7 +88,7 @@ else:
             os.makedirs(output_path) # creates the output volume path if it doesn't exist already
         outfiles = args.output.split(',') #list of output files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
         for f in outfiles:
-            fn = os.path.split(f)[1]
+            fn = os.path.split(f)[-1]
             try: 
                 shutil.copy(fn, output_path)
             except OSError as e:
