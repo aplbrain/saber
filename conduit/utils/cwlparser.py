@@ -72,7 +72,7 @@ class CwlParser:
         self.cwl_fp = os.path.abspath(os.path.dirname(cwl))
         # Load cwl
         with open(cwl) as fp:
-            self.cwl = yaml.load(fp)
+            self.cwl = yaml.full_load(fp)
         
         self.constant = constant
         self.steps = self.resolve_tools()
@@ -135,7 +135,7 @@ class CwlParser:
         for tool_name, tool in toollist:
             tool_yamls[tool_name] = {}
             with open(tool) as fp:
-                tool_yaml = yaml.load(fp)
+                tool_yaml = yaml.full_load(fp)
             tool_yamls[tool_name] = tool_yaml
         return tool_yamls
 
@@ -280,7 +280,7 @@ class CwlParser:
         # Create the unique name of the workflow based on the dir containing the job file
         wf_id = os.path.basename(os.path.dirname(os.path.abspath(job)))
         with open(job) as fp:
-            job = yaml.load(fp)
+            job = yaml.full_load(fp)
 
         dag_id = '{}_{}'.format(self.workflow_name, wf_id)
         self.dag_id = dag_id 

@@ -19,7 +19,7 @@ import argparse
 import yaml 
 import logging
 import csv
-from utils.parameterization import parameterize, RandomSampler, GridSampler, BatchGridSampler
+from utils.parameterization import *
 import requests
 import cwltool.main as cwltool 
 import time
@@ -32,7 +32,7 @@ def construct_parser(args):
         raise RuntimeError('CWL failed to validate')
     
     with open(args.config) as fp:
-        config = yaml.load(fp)
+        config = yaml.full_load(fp)
     from utils.cwlparser import CwlParser
     return CwlParser(args.cwl, config)
 
@@ -48,48 +48,41 @@ def parse(args):
         p.build_docker_images()
     if args.parameterize:
         with open(args.parameterize) as fp:
-            pm = yaml.load(fp)
+            pm = yaml.full_load(fp)
         p.set_parameterization(pm)
     dag = p.generate_dag(args.job)
     log.info('Generating Airflow DAG from workflow CWL')
     log.info('Pickling and writing DAG {} to dag folder'.format(dag.dag_id))
     p.dag_write(dag)
-    
-def collect(args):
-    p = construct_parser(args)
-    results = p.collect_results()
-    write_results(results,args)
-
-def write_results(results, args):
-    with open(args.output,'w') as fp:
-        w = csv.DictWriter(fp, fieldnames=results[0].keys())
-        w.writeheader()
-        for row in results:
-            w.writerow(row)
-    log.info('Wrote results to {}'.format(args.output))
+    r = requests.get("http://webserver:8080/dagbag/fill")
+    if r.status_code != 200:
+        print('Warning: Dag bag was unable to be filled manually, waiting 60s for the scheduler to do it automatically')
+        time.sleep(60)
 
 def optimize(args):
+    # TODO: Create optimize samping mappings to load classes from
+    sample_mapping = {
+        "random": RandomSampler,
+        "grid": GridSampler,
+        "batch-grid": BatchGridSampler
+    }
     p = construct_parser(args)
     p.create_job_definitions()
     with open(args.job) as fp:
-        job = yaml.load(fp)
+        job = yaml.full_load(fp)
     with open(args.parameterize) as fp:
-        pm = yaml.load(fp)
-
-
-    ### New samplers must be added here ###
-    if args.sampling_strategy == 'random':
-        sampler = RandomSampler(pm, job, args.max_iterations)
-    elif args.sampling_strategy == 'grid':
-        sampler = GridSampler(pm, job)
-    elif args.sampling_strategy == 'batch-grid':
-        sampler = BatchGridSampler(pm, job, args.batch_size)
-    else:
-        raise NotImplementedError('Other samplers are not supported yet!')
-
+        pm = yaml.full_load(fp)
     
+    try:
+        sampler_params = pm.pop("sampler")
+        method_key = sampler_params.pop("method")
+        method = sample_mapping[method_key]
+    except KeyError:
+        raise KeyError("Method not found. Available methods: {}".format(list(sample_mapping.keys())))
+    
+    sampler = method(pm, job, **sampler_params)
     for i,iteration in enumerate(sampler.sample()):
-        print('Executing iteration {} of {} sampling'.format(i, args.sampling_strategy))
+        print('Executing iteration {} of {} sampling'.format(i, method_key))
         print("Parameters: "+ str(iteration))
         p.optimization_iteration = i #keeps track of job iterations for subDAG
         if type(iteration) == list: 
@@ -113,8 +106,12 @@ def optimize(args):
     write_results(results, args)
     print('Done')
 
-def wait_for_success(parser):
-    dag_id = parser.dag_id
+def collect(args):
+    p = construct_parser(args)
+    results = p.collect_results()
+    write_results(results,args)
+
+def run_dag(dag_id):
     r = requests.post('http://webserver:8080/dags/{}/run'.format(dag_id), json={})
     if r.status_code != 200:
         raise ValueError('Dag did not launch successfully! Error {}'.format(r.status_code))
@@ -134,8 +131,13 @@ def wait_for_success(parser):
             raise ValueError('This dag was not found in the latest runs!')
     except KeyError:
         raise ValueError('Something went wrong...')
+    return execution_date
+
+def wait_for_success(parser, retry=True):
+    dag_id = parser.dag_id
+    execution_date = run_dag(dag_id)
     done = False
-    while done == False:
+    while not done:
         r = requests.get('http://webserver:8080/dags/{}/dag_runs/{}'.format(dag_id, execution_date))
         if r.status_code != 200:
             raise ValueError('Unable to get latest run of dag... error {}'.format(r.status_code))
@@ -143,10 +145,22 @@ def wait_for_success(parser):
         if state == 'success':
             done = True
         elif state == 'failed':
-            raise ValueError('Iteration failed! Check logs...')
+            if retry is True:
+                print("DAG {} failed. Retrying....".format(dag_id))
+                execution_date = run_dag(dag_id)
+                retry = False
+            else:
+                raise ValueError('Iteration failed! Check logs...')
         else:
-            done = False
             time.sleep(5)
+
+def write_results(results, args):
+    with open(args.output,'w') as fp:
+        w = csv.DictWriter(fp, fieldnames=results[0].keys())
+        w.writeheader()
+        for row in results:
+            w.writerow(row)
+    log.info('Wrote results to {}'.format(args.output))
         
 if __name__ == '__main__':
     
@@ -186,9 +200,7 @@ if __name__ == '__main__':
     optimize_parser.add_argument('job', help='CWL job file')
     optimize_parser.add_argument('parameterize', help='Parameterization file')
     optimize_parser.add_argument('--output', help='CSV file to write to', default='optiout.csv')
-    optimize_parser.add_argument('--sampling-strategy', help='Sampling strategy to use', default='random')
-    optimize_parser.add_argument('--max-iterations', help='Max iterations', type=int)
-    optimize_parser.add_argument('--batch-size', help='Number of jobs to run per batch', type=int, default=5)
+
     optimize_parser.set_defaults(func=optimize)
 
     args = parent_parser.parse_args()

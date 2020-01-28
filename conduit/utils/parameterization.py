@@ -56,7 +56,7 @@ class Sampler(ABC):
     '''
     Abstract class for a sampler
     '''
-    def __init__(self, parameterization_dict, job):
+    def __init__(self, parameterization_dict, job, **kwargs):
         self.job = job
         self.parameters = parameterization_dict
         
@@ -70,7 +70,7 @@ class Sampler(ABC):
         pass
 
 class RandomSampler(Sampler):
-    def __init__(self, parameterization_dict, job, max_iterations):
+    def __init__(self, parameterization_dict, job, max_iterations, **kwargs):
         super().__init__(parameterization_dict, job)
         self.param_grid = parameterize(parameterization_dict)
         self.max_iterations = max_iterations
@@ -86,7 +86,7 @@ class RandomSampler(Sampler):
 # New sampling methods can be added below!
 
 class GridSampler(Sampler):
-    def __init__(self, parameterization_dict, job):
+    def __init__(self, parameterization_dict, job, **kwargs):
         super().__init__(parameterization_dict, job)
         self.param_grid = parameterize(parameterization_dict)
         self.count = 0
@@ -101,7 +101,7 @@ class GridSampler(Sampler):
             yield self.next_job
 
 class BatchGridSampler(Sampler):
-    def __init__(self, parameterization_dict, job, batch_size):
+    def __init__(self, parameterization_dict, job, batch_size, **kwargs):
         super().__init__(parameterization_dict, job)
         self.batch_size = batch_size
         self.param_grid = parameterize(parameterization_dict)

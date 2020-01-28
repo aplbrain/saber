@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+sampler:
+  method: batch-grid
+  batch_size: 2
 x:
   range:
       start: 5000
