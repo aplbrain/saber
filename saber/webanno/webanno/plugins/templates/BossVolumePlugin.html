@@ -1,0 +1,98 @@
+<html>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
+    <script>
+
+        const MAX_COUNT = [[MAX_COUNT]];
+        const imageSize = [[IMG_SIZE]];
+        const DOT_COLOR = [[DOT_COLOR]];
+
+        const SCROLL_WIDTH = 20;
+
+        let img;
+
+        let ready = false;
+        let clicks = [];
+        let currentZ = 0;
+
+        function setup() {
+            canvas = createCanvas(imageSize[0], imageSize[1]);
+            canvas.parent('canvas-container');
+            canvas.mouseClicked(clickHandler);
+            background(123, 234, 123);
+
+            img = createImg('/plugin/volume', '', () => ready = true);
+            img.hide();
+        }
+
+        function draw() {
+            if (ready) {
+                image(img, 0, -1 * currentZ * imageSize[1], imageSize[0]);
+            }
+            noStroke();
+
+            clicks.filter(c => c[2] === currentZ).forEach((c) => {
+                fill(...DOT_COLOR);
+                circle(c[0], c[1], 20, 20)
+                fill(0);
+                circle(c[0], c[1], 10, 10)
+            });
+
+            strokeWeight(5);
+            stroke(255);
+            line(
+                imageSize[0] - SCROLL_WIDTH,
+                imageSize[1] * (currentZ / imageSize[2]),
+                imageSize[0],
+                imageSize[1] * (currentZ / imageSize[2])
+            )
+
+        }
+
+        function clickHandler() {
+            if (!MAX_COUNT || clicks.length < MAX_COUNT) {
+                clicks.push([mouseX, mouseY, currentZ]);
+            }
+        }
+
+        function incrementZ() {
+            currentZ++;
+            currentZ = constrain(currentZ, 0, imageSize[2] - 1);
+        }
+
+        function decrementZ() {
+            currentZ--;
+            currentZ = constrain(currentZ, 0, imageSize[2] - 1);
+        }
+
+        function mouseWheel() {
+            if (event.delta > 0) {
+                incrementZ();
+            } else {
+                decrementZ();
+            }
+        }
+
+
+        function handleClick() {
+            fetch("[[SUBMIT_URL]]", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    clicks,
+                })
+            }).then(() => {
+                alert("Thank you! You may close this page.")
+            })
+        }
+    </script>
+
+    <body>
+        <h1>[[PROMPT]]</h1>
+        <div id="canvas-container"></div>
+        <button class="button" onclick="handleClick()">SUBMIT!</button>
+    </body>
+
+</html>

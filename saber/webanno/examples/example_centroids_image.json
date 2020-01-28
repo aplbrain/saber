@@ -1,0 +1,8 @@
+{
+    "plugin": "webanno.plugins.CentroidsPlugin",
+    "config": {
+        "max_count": 5,
+        "prompt": "<b>Click on the eyes.</b>",
+        "image_url": "http://www.fillmurray.com/600/600/"
+    }
+}

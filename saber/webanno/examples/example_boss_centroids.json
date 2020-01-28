@@ -1,0 +1,22 @@
+{
+    "plugin": "webanno.plugins.BossVolumePlugin",
+    "config": {
+        "boss_uri": "bossdb://https://api.bossdb.io/wilson2019/P7/em",
+        "start": [
+            32820,
+            26731,
+            32
+        ],
+        "stop": [
+            33616,
+            27500,
+            46
+        ],
+        "res": 0,
+        "dot_color": [
+            255,
+            0,
+            255
+        ]
+    }
+}
