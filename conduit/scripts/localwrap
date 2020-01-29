@@ -64,7 +64,7 @@ else:
             
             source = os.path.join(input_path,f)
             if not os.path.exists(source):
-                source = os.path.join(VOLUME_PATH, fs[:-1], fn) #file is not located under workflow name (outside directory)
+                source = os.path.join(VOLUME_PATH, f) #file is not located under workflow name (outside directory)
             
             try:
                 print("Filename: " + fn)
