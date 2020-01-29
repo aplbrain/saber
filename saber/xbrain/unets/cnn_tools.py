@@ -27,8 +27,12 @@ from keras import backend as K
 from data_tools import *
 
 import time
+from datetime import datetime
 import numpy as np
+import tensorboard
+import tensorflow as tf
 
+from keras.callbacks import TensorBoard
 
 def timed_collection(c, rate=60*2):
     """ Provides status on progress as one iterates through a collection.
@@ -156,15 +160,20 @@ def train_model(X_train, Y_train, X_valid, Y_valid, model, output,
     Note: these are not epochs in the usual sense, since we randomly sample
     the data set (vs methodically marching through it)                
     """
+    logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     sz = model.input_shape[-2:]
     score_all = []
     best_score = 0
+    callback = TensorBoard(logdir)
+    callback.set_model(model)
+    train_names = ['train_loss', 'train_f1']
     for ii in range(n_epochs):
         print('starting "epoch" %d (of %d)' % (ii, n_epochs))
 
         for jj in timed_collection(range(n_mb_per_epoch)):
             Xi, Yi = random_minibatch(X_train, Y_train, mb_size, sz=sz)
             loss, f1 = model.train_on_batch(Xi, Yi)
+            write_log(callback, train_names, (loss,f1), jj)
             score_all.append(f1)
 
 
@@ -229,3 +238,12 @@ def deploy_model(X, model, do_augment=False):
                     )
 
     return Y_hat
+
+def write_log(callback, names, logs, batch_no):
+    for name, value in zip(names, logs):
+        summary = tf.Summary()
+        summary_value = summary.value.add()
+        summary_value.simple_value = value
+        summary_value.tag = name
+        callback.writer.add_summary(summary, batch_no)
+        callback.writer.flush()

@@ -12,39 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ```{'x_bounds': [11980, 15648], 'y_bounds': [12118, 15784], 'z_bounds': [631, 998]}```
-#res 1:
-#{'x_bounds': [5990, 7824], 'y_bounds': [6059, 7892], 'z_bounds': [631, 998]}
+sampler:
+  method: batch-grid
+  batch_size: 2
 x:
   range:
-      start: 5990
-      stop: 7824
-      step: 917
+      start: 5000
+      stop: 6000
+      step: 500
   parameters:
       min: xmin
       max: xmax
   steps:
       - boss_pull
-#   - boss_push_synapses_boss
-#   - boss_push_synapses_bossdb
-#   - boss_push_membranes_boss
-#   - boss_push_membranes_bossdb  
-#   - boss_push_neurons_boss
 y:
   range:
-      start: 6059
-      stop: 7892
-      step: 917
+      start: 5000
+      stop: 6000
+      step: 500
   parameters:
       min: ymin
       max: ymax
   steps:
       - boss_pull
-#   - boss_push_synapses_boss
-#   - boss_push_synapses_bossdb
-#   - boss_push_membranes_boss
-#   - boss_push_membranes_bossdb
-#   - boss_push_neurons_boss     
 # z:
 #   range:
 #       start: 631

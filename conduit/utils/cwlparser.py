@@ -72,7 +72,7 @@ class CwlParser:
         self.cwl_fp = os.path.abspath(os.path.dirname(cwl))
         # Load cwl
         with open(cwl) as fp:
-            self.cwl = yaml.load(fp)
+            self.cwl = yaml.full_load(fp)
         
         self.constant = constant
         self.steps = self.resolve_tools()
@@ -135,7 +135,7 @@ class CwlParser:
         for tool_name, tool in toollist:
             tool_yamls[tool_name] = {}
             with open(tool) as fp:
-                tool_yaml = yaml.load(fp)
+                tool_yaml = yaml.full_load(fp)
             tool_yamls[tool_name] = tool_yaml
         return tool_yamls
 
@@ -277,22 +277,18 @@ class CwlParser:
         -------
         DAG
         '''
-        # Create the unique name of the workflow based on the dir containing 
-        # the job file
+        # Create the unique name of the workflow based on the dir containing the job file
         wf_id = os.path.basename(os.path.dirname(os.path.abspath(job)))
         with open(job) as fp:
-            job = yaml.load(fp)
-
+            job = yaml.full_load(fp)
 
         dag_id = '{}_{}'.format(self.workflow_name, wf_id)
         self.dag_id = dag_id 
         default_args = {
             "depends_on_past": False,
             "start_date": datetime(2018, 2, 23),
-            "max_retries": 300,
-            
+            "max_retries": 300,   
         }
-
         try:
             self.dj_hook.init_workflow(id=dag_id, name=self.workflow_name)
         except( DuplicateError,DataJointError):
@@ -317,24 +313,24 @@ class CwlParser:
                 param_db_update_dict[param] = job[param]['path']
             else:
                 raise ValueError('Unable to insert parameter {} into job parameter database'.format(param))
-
-        
         try:
             use_subdag = self.cwl['hints']['saber']['use_subdag']
         except KeyError:
             use_subdag = True
         for i,iteration in enumerate(self.parameterization):
-            if self.optimization_iteration is not None:
-                i = self.optimization_iteration             
+            if self.optimization_iteration is None:
+                task_id = str(i)
+            else:
+                task_id = "{}_{}".format(self.optimization_iteration, i)         
             if use_subdag:
-                subdag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
-                iteration_subdag_step = SubDagOperator(
+                subdag = self.create_subdag(iteration, task_id, param_db_update_dict, job_params, job, wf_id, deps, dag=None)
+                SubDagOperator(
                     subdag = subdag,
-                    task_id = str(i),
+                    task_id = task_id,
                     dag = dag
                 )
             else:
-                dag = self.create_subdag(iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=dag)
+                dag = self.create_subdag(iteration, task_id, param_db_update_dict, job_params, job, wf_id, deps, dag=dag)      
         return dag
 
     def resolve_args(self,job):
