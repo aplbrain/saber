@@ -113,7 +113,7 @@ class CwlParser:
             tag = make_tag(stepname, tool, self.local)
             self.tags[stepname] = tag
             if self.local:
-                print("WORKING LOCALLY- no job definitions generated")
+                log.info("WORKING LOCALLY- no job definitions generated")
             else:
                 job_def = generate_job_definition(stepname, tool, tag)
                 self.job_def_arns[stepname] = create_job_definition(job_def)['jobDefinitionArn']

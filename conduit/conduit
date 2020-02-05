@@ -75,8 +75,8 @@ def optimize(args):
     
     sampler = method(pm, job, **sampler_params)
     for i,iteration in enumerate(sampler.sample()):
-        print('Executing iteration {} of {} sampling'.format(i, method_key))
-        print("Parameters: "+ str(iteration))
+        log.info('Executing iteration {} of {} sampling'.format(i, method_key))
+        log.info("Parameters: "+ str(iteration))
         p.optimization_iteration = i #keeps track of job iterations for subDAG
         if type(iteration) == list: 
             p.parameterization = iteration
@@ -85,7 +85,7 @@ def optimize(args):
         
         # Runs job with parameters from iteration
         write_dag(p, args.job)
-        wait_for_success(p, args.retry)
+        wait_for_success(p, args.retry, args.continue_on_failure)
 
         # Obtains results (iterable of ordered dictionary of all completed iterations) and updates sampler
         results = p.collect_results()
@@ -93,6 +93,7 @@ def optimize(args):
     
     write_results(results, args)
     print('Done')
+
 
 def collect(args):
     p = construct_parser(args)
@@ -106,7 +107,7 @@ def write_dag(parser, job):
     parser.dag_write(dag)
     r = requests.get("http://webserver:8080/dagbag/fill")
     if r.status_code != 200:
-        print('Warning: Dag bag was unable to be filled manually, waiting 60s for the scheduler to do it automatically')
+        log.warning('Warning: Dag bag was unable to be filled manually, waiting 60s for the scheduler to do it automatically')
         time.sleep(60)
 
 def run_dag(dag_id):
@@ -114,7 +115,7 @@ def run_dag(dag_id):
     if r.status_code != 200:
         raise ValueError('Dag did not launch successfully! Error {}'.format(r.status_code))
     else:
-        print('Dag launched sucessfully')
+        log.warning('Dag launched sucessfully')
     r = requests.get('http://webserver:8080/latest_runs')
     if r.status_code != 200:
         raise ValueError('Failed to get latest runs... Error {}'.format(r.status_code))
@@ -131,7 +132,12 @@ def run_dag(dag_id):
         raise ValueError('Something went wrong...')
     return execution_date
 
-def wait_for_success(parser, retry=False):
+def retry_failed_tasks(dag_id):
+    r = requests.get('http://webserver:8080/admin/rest_api/api?api=clear&dag_id={}&only_failed=on'.format(dag_id))
+    if r.status_code != 200:
+        raise ValueError('Failed to clear failed tasks... Error {}'.format(r.status_code))
+
+def wait_for_success(parser, retry=False, continue_on_failure=False):
     dag_id = parser.dag_id
     execution_date = run_dag(dag_id)
     done = False
@@ -143,12 +149,16 @@ def wait_for_success(parser, retry=False):
         if state == 'success':
             done = True
         elif state == 'failed':
-            if retry is True:
-                print("DAG {} failed. Retrying....".format(dag_id))
-                execution_date = run_dag(dag_id)
-                retry = False
+            if continue_on_failure:
+                log.warning("Failed tasks in DAG {}. Continuing run...".format(dag_id))
+                done = True
             else:
-                raise ValueError('Iteration failed! Check logs...')
+                if retry is True:
+                    log.warning("DAG {} failed. Retrying...".format(dag_id))
+                    retry_failed_tasks(dag_id)
+                    retry = False
+                else:
+                    raise ValueError('Iteration failed! Check logs...')
         else:
             time.sleep(5)
 
@@ -199,7 +209,7 @@ if __name__ == '__main__':
     optimize_parser.add_argument('parameterize', help='Parameterization file')
     optimize_parser.add_argument('--output', help='CSV file to write to', default='optiout.csv')
     optimize_parser.add_argument('--retry', help='Retry failed runs once', action='store_true')
-
+    optimize_parser.add_argument('--continue_on_failure', help='Continue running iterations regardless of failed states', action='store_true')
     optimize_parser.set_defaults(func=optimize)
 
     args = parent_parser.parse_args()
