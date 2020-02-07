@@ -133,9 +133,10 @@ def run_dag(dag_id):
     return execution_date
 
 def retry_failed_tasks(dag_id):
-    r = requests.get('http://webserver:8080/admin/rest_api/api?api=clear&dag_id={}&only_failed=on'.format(dag_id))
-    if r.status_code != 200:
-        raise ValueError('Failed to clear failed tasks... Error {}'.format(r.status_code))
+    # r = requests.get('http://webserver:8080/admin/rest_api/api?api=clear&dag_id={}&only_failed=on'.format(dag_id))
+    # if r.status_code != 200:
+    #     raise ValueError('Failed to clear failed tasks... Error {}'.format(r.status_code))
+    raise NotImplementedError
 
 def wait_for_success(parser, retry=False, continue_on_failure=False):
     dag_id = parser.dag_id
@@ -155,7 +156,8 @@ def wait_for_success(parser, retry=False, continue_on_failure=False):
             else:
                 if retry is True:
                     log.warning("DAG {} failed. Retrying...".format(dag_id))
-                    retry_failed_tasks(dag_id)
+                    #retry_failed_tasks(dag_id)
+                    execution_date = run_dag(dag_id)
                     retry = False
                 else:
                     raise ValueError('Iteration failed! Check logs...')
