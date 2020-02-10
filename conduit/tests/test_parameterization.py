@@ -27,7 +27,7 @@ class TestParameterization(unittest.TestCase):
             }
         }
         for i,step in enumerate(p):
-            self.assertDictLike(expected_dict_format, step, a=0.1*i)
+            self.assertDictEqual(expected_dict_format, step, a=0.1*i)
     def test_parameterize_multiple(self):
         data = {
             "metaparam1" : self._test_data['metaparam1'],
@@ -52,19 +52,10 @@ class TestParameterization(unittest.TestCase):
         self.assertEqual(len(p), len(vals))
         for step,(a,b) in zip(p,vals):
 
-            self.assertDictLike(expected_dict_format,step, a=a, b=b)
+            self.assertDictEqual(expected_dict_format,step, a=a, b=b)
 
 
-    def assertDictLike(self, d1, d2, *args, **kwargs):
-        yaml.Dumper.ignore_aliases = lambda *args : True
-        d1str = yaml.dump(d1, default_flow_style=False)
-        d2str = yaml.dump(d2, default_flow_style=False)
-
-        d1str = d1str.format(*args, **kwargs)
-        # print(d1str, d2str)
-        d1l = yaml.load(d1str)
-        d2l = yaml.load(d2str)
-        self.assertEqual(d1l,d2l) 
+    
         
 if __name__ == "__main__":
     unittest.main()

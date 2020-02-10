@@ -25,76 +25,42 @@ inputs:
     input_double: double
     input_string: string
     input_file: File
-    # Optional arguments
-    input_optint: int?
-    input_optbool: boolean?
-    input_optfloat: float?
-    input_optdouble: double?
-    input_optstring: string?
-    input_optfile: File?
+
     
 
-outputs:
-    output_int:
-        type: int
-        outputSource: step1/output
-    output_bool:
-        type: boolean
-        outputSource: step2/output
-    output_float:
-        type: float
+outputs: 
+    output1:
+        type: File
         outputSource: step3/output
-    output_double:
-        type: double
-        outputSource: step4/output
-    output_string:
-        type: string
-        outputSource: step5/output
-    output_file:
-        type: file
-        outputSource: step6/output
 
 steps:
     step1:
-        run: ./multitool.cwl
+        run: ../tools/echotool.cwl
         in:
-            input_int: inputint
-            input_opt_int: input_opt_int
+            input_int: input_int
             input_bool: input_bool
-            input_optbool: input_opt_bool
+            input_float: input_float
         hints: 
             saber:
                 local: True
         out: [output]
     step2:
-        run: ./multitool.cwl
+        run: ../tools/echotool.cwl
         in:
+            input_bool: input_bool
+            input_float: input_float
             input_file: step1/output
-
+        hints: 
+            saber:
+                local: True
+        out: [output]
+    step3:
+        run: ../tools/cattool.cwl
+        in:
+            file1: step1/output
+            file2: step2/output
+        hints: 
+            saber:
+                local: True
+        out: [output]
     
-        hints: 
-            saber:
-                local: True
-        out: [output]
-    step3:
-        run: ./tool_mid.cwl
-        in:
-            input_file: step2/output
-
-        hints: 
-            saber:
-                local: True
-        out: [output]
-    step3:
-        run: ../tools/unsup_metrics_nos3.cwl
-        in:
-            input: cell_detect/cell_detect_results
-            output_name: 
-                default: 'optiout.npy'
-            initial_template_size: initial_template_size
-            ground_truth: cell_gt
-        hints: 
-            saber:
-                local: True
-                score_format: "F1: {score}"
-        out: [metrics]
