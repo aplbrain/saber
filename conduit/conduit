@@ -211,7 +211,7 @@ if __name__ == '__main__':
     optimize_parser.add_argument('parameterize', help='Parameterization file')
     optimize_parser.add_argument('--output', help='CSV file to write to', default='optiout.csv')
     optimize_parser.add_argument('--retry','-r', help='Retry failed runs once', action='store_true')
-    optimize_parser.add_argument('--continue_on_failure','-c' help='Continue running iterations regardless of failed states', action='store_true')
+    optimize_parser.add_argument('--continue_on_failure','-c', help='Continue running iterations regardless of failed states', action='store_true')
     optimize_parser.set_defaults(func=optimize)
 
     args = parent_parser.parse_args()
