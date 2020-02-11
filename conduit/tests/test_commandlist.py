@@ -53,10 +53,10 @@ class TestCommandlist(unittest.TestCase):
         key = "siso"
         tool_yml = self.tool_dict[key]['step1']
         parsers = (self.local_wfs[key], self.cloud_wfs[key])
-        for i, parser in enumerate(parsers):
+        for parser in parsers:
             iteration_parameters, _ = parser.resolve_args(self.si_job)
             step = parser.cwl['steps']['step1']
-            if i == 0:
+            if parser.local:
                 command_list = generate_command_list(tool_yml, iteration_parameters, step, local=True, file_path="./test_path")
                 expected_command_list = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', 'False', 'echo', '--int', 'Ref::input_int']
                 assert(command_list==expected_command_list)
@@ -66,7 +66,16 @@ class TestCommandlist(unittest.TestCase):
                 assert(command_list==expected_command_list)
 
     def test_generate_command_list_MIMO(self):
-        pass
+        key = "mimo"
+        tool_yml = self.tool_dict[key]
+        parsers = (self.local_wfs[key], self.cloud_wfs[key])
+        for parser in parsers:
+            iteration_parameters, _ = parser.resolve_args(self.mi_job)
+            for i in tool_yml:
+                step = parser.cwl['steps'][i]
+                command_list = generate_command_list(tool_yml[i], iteration_parameters, step, local=True, file_path="./test_path")
+                expected_command_list = []
+
 
     def test_sub_params(self):
         # Test cases:

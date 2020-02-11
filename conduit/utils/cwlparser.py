@@ -421,13 +421,15 @@ class CwlParser:
             log.debug('Resolving outputs for {}'.format(tool_name))
             if not len(tool_info['outputs']) == 0:
                 for output_name, output in tool_info['outputs'].items():
-                    if output.get('type') == 'stdout':
-                        continue
                     log.debug('...for output {}'.format(output_name))
-                    resolved_outputs['{}/{}'.format(tool_name, output_name)] = self.resolve_glob(
-                        tool_name=tool_name, 
-                        glob=output['outputBinding']['glob']
-                        )
+                    if output['type'] == 'file':
+                        resolved_outputs['{}/{}'.format(tool_name, output_name)] = self.resolve_glob(
+                            tool_name=tool_name, 
+                            glob=output['outputBinding']['glob']
+                            )
+                    else:
+                        continue
+                        # TODO: Do something with stdout???
         return resolved_outputs
 
     def resolve_glob(self, tool_name, glob):
