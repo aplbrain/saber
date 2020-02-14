@@ -1,0 +1,27 @@
+#Boss files
+host_name: api.bossdb.io
+coord: GT-VS0172
+token: 
+coll: GTXrayData
+exp: VS0172
+chan_labels: ilastik_dense_c_pixel_ahb
+chan_img: full_vol
+dtype_img: uint8
+dtype_lbl: uint64
+itype_name: image
+res: 0
+xmin: 4400
+xmax: 4656
+ymin: 343
+ymax: 599
+zmin: 211
+zmax: 300
+padding: 0
+
+#threshold input
+threshold: 0.5
+
+#Output File Names
+raw_pull_output_name: pull_output.npy
+anno_pull_output_name: anno_output.npy
+threshold_output_name: threshold_output.npy
