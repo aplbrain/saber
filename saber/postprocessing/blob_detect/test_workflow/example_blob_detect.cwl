@@ -13,35 +13,32 @@
 # limitations under the License.
 
 cwlVersion: v1.0
-class: CommandLineTool
-hints:
-    DockerRequirement:
-        dockerPull: aplbrain/blob_detect
-baseCommand: python
-arguments: ["blob_detect.py"]
+class: Workflow
+doc: local
+
+cwlVersion: v1.0
+class: Workflow
 inputs:
-  input:
-    type: File
-    inputBinding:
-      position: 1
-      prefix: --input
-  min:
-    type: string
-    inputBinding:
-      position: 2
-      prefix: --min
-  max:
-    type: string
-    inputBinding:
-      position: 3
-      prefix: --max
-  outfile:
-    type: string
-    inputBinding:
-      position: 4
-      prefix: --outfile
+    input: File
+    min: string
+    max: string
+    outfile: string 
+
 outputs:
-  blob_detect_out:
-    type: File
-    outputBinding:
-      glob: $(inputs.outfile)
+    blob_detect_output:
+        type: File
+        outputSource: blob_detect/blob_detect_out
+steps:
+    blob_detect:
+        run: ../blob_detect.cwl
+        in:
+            input: input
+            min: min
+            max: max
+            outfile: outfile
+        out:
+            [blob_detect_out]
+        hints: 
+            saber:
+                local: True
+                file_path: /Users/xenesd1/Projects/aplbrain/saber/output
