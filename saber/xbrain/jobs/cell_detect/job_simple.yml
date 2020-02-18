@@ -1,0 +1,53 @@
+#Boss files
+host_name: api.bossdb.io
+coord: GT-VS0172
+token: 
+coll: GTXrayData
+exp: VS0172
+chan_labels: ilastik_dense_c_pixel_ahb
+chan_img: full_vol
+dtype_img: uint8
+dtype_lbl: uint64
+itype_name: image
+res: 0
+xmin: 4400
+xmax: 4656
+ymin: 343
+ymax: 599
+zmin: 211
+zmax: 300
+padding: 0
+
+# Unet Train
+use_boss: 1
+train_pct: 0.7
+n_epochs: 5
+mb_size: 4
+n_mb_per_epoch: 3
+learning_rate: 0.01
+use_adam: False
+beta1: 0.9
+beta2: 0.999
+momentum: 0.99
+decay: 0.000001
+save_freq: 50
+do_warp: False
+tile_size: 256
+_saber_bucket: saber-batch
+
+threshold: 0.2
+min: 10
+max: 100
+initial_template_size: 18
+
+
+
+#Output File Names
+raw_pull_output_name: pull_output.npy
+anno_pull_output_name: anno_output.npy
+optimize_output: new_weights.h5
+score_out: f1_score.npy
+classify_output_name: probability_map.npy
+threshold_output_name: threshold_output.npy
+blob_detect_output_name: centroid.npy
+metrics_out: metrics.npy
