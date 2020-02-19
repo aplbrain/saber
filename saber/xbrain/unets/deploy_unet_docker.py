@@ -60,7 +60,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     y_data = np.load(args.img_file) # X, Y, Z
-    y_data = np.transpose(y_data, (2, 0, 1))
+    y_data = np.transpose(y_data) # Z, Y, X
     print('Input data has shape: {}'.format(y_data.shape))
     y_data = y_data[:, np.newaxis, :, :].astype(np.float32) #Z, chan, Y, X
     y_data /= 255.

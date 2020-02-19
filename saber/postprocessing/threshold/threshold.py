@@ -54,6 +54,9 @@ def apply_threshold(probability_map, threshold):
     threshold = float(threshold)
     if threshold < 0 or threshold > 1:
         raise ValueError("Invalid threshold. Threshold must be between 0 and 1.")
+    if probability_map.ndim == 4:
+        # Input data is in Z, Chan, Y, X (Xbrain defacto)
+        probability_map = np.squeeze(probability_map).T
     normal = (probability_map - np.min(probability_map))/(np.max(probability_map)-np.min(probability_map))
     normal[normal<threshold] = 0
     normal[normal>=threshold] = 1

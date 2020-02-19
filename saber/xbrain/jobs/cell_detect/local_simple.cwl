@@ -106,6 +106,7 @@ steps:
             saber:
                 local: True
                 file_path: /home/xenesd1-a/saber/output
+                use_cache: True
     anno_boss_pull:
         run: ../../../boss_access/boss_pull_nos3.cwl
         in:
@@ -132,7 +133,7 @@ steps:
             saber:
                 local: True
                 file_path: /home/xenesd1-a/saber/output
-    
+                use_cache: True
     optimize:
         run: ../../tools/membrane_unets_train.cwl
         in:
@@ -173,7 +174,7 @@ steps:
                 local: True
                 file_path: /home/xenesd1-a/saber/output 
                 score_format: "F1: {score}"
-    
+#                use_cache: True
     classify:
         run: ../../unets/deploy_unets.cwl
         in: 
