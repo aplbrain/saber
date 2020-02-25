@@ -17,12 +17,20 @@ inputs:
     itype_name: string
     padding: int
     res: int
-    xmin: int
-    xmax: int
-    ymin: int
-    ymax: int
-    zmin: int
-    zmax: int
+    
+    test_xmin: int
+    test_xmax: int
+    test_ymin: int
+    test_ymax: int
+    test_zmin: int
+    test_zmax: int
+
+    train_xmin: int
+    train_xmax: int
+    train_ymin: int
+    train_ymax: int
+    train_zmin: int
+    train_zmax: int
 
     # Unet training
     train_pct: float
@@ -90,12 +98,12 @@ steps:
             chan_name: chan_img
             dtype_name: dtype_img
             resolution: res
-            xmin: xmin
-            xmax: xmax
-            ymin: ymin
-            ymax: ymax
-            zmin: zmin
-            zmax: zmax
+            xmin: test_xmin
+            xmax: test_xmax
+            ymin: test_ymin
+            ymax: test_ymax
+            zmin: test_zmin
+            zmax: test_zmax
             itype_name: itype_name
             padding: padding
             output_name: raw_pull_output_name
@@ -105,7 +113,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output
+                file_path: /home/ubuntu/saber/outputs
                 use_cache: True
     anno_boss_pull:
         run: ../../../boss_access/boss_pull_nos3.cwl
@@ -117,12 +125,12 @@ steps:
             chan_name: chan_labels
             dtype_name: dtype_lbl
             resolution: res
-            xmin: xmin
-            xmax: xmax
-            ymin: ymin
-            ymax: ymax
-            zmin: zmin
-            zmax: zmax
+            xmin: test_xmin
+            xmax: test_xmax
+            ymin: test_ymin
+            ymax: test_ymax
+            zmin: test_zmin
+            zmax: test_zmax
             itype_name: itype_name
             padding: padding
             output_name: anno_pull_output_name
@@ -132,7 +140,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output
+                file_path: /home/ubuntu/saber/outputs
                 use_cache: True
     optimize:
         run: ../../tools/membrane_unets_train.cwl
@@ -147,12 +155,12 @@ steps:
             dtype_img: dtype_img
             dtype_lbl: dtype_lbl
             res: res
-            xmin: xmin
-            xmax: xmax
-            ymin: ymin
-            ymax: ymax
-            zmin: zmin
-            zmax: zmax
+            xmin: train_xmin
+            xmax: train_xmax
+            ymin: train_ymin
+            ymax: train_ymax
+            zmin: train_zmin
+            zmax: train_zmax
             train_pct: train_pct
             n_epochs: n_epochs
             mb_size: mb_size
@@ -172,9 +180,9 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output 
+                file_path: /home/ubuntu/saber/outputs
                 score_format: "F1: {score}"
-#                use_cache: True
+                use_cache: True
     classify:
         run: ../../unets/deploy_unets.cwl
         in: 
@@ -186,7 +194,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output 
+                file_path: /home/ubuntu/saber/outputs
                 score_format: "F1: {score}"
     threshold:
         run: ../../../postprocessing/threshold/threshold.cwl
@@ -200,7 +208,7 @@ steps:
         hints: 
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output
+                file_path: /home/ubuntu/saber/outputs
                 score_format: "F1: {score}"
 
     blob_detect:
@@ -215,7 +223,7 @@ steps:
         hints: 
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output
+                file_path: /home/ubuntu/saber/outputs
 
     metrics:
         run: ../../tools/unsup_metrics_nos3.cwl
@@ -228,5 +236,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/xenesd1-a/saber/output 
+                file_path: /home/ubuntu/saber/outputs 
                 score_format: "F1: {score}"
