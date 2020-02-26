@@ -10,21 +10,31 @@ dtype_img: uint8
 dtype_lbl: uint64
 itype_name: image
 res: 0
-xmin: 4400
-xmax: 4656
-ymin: 343
-ymax: 599
-zmin: 211
-zmax: 300
 padding: 0
+
+# Coordinates
+test_xmin: 4400
+test_xmax: 4656
+test_ymin: 343
+test_ymax: 599
+test_zmin: 211
+test_zmax: 300
+
+train_xmin: 4400
+train_xmax: 5168
+train_ymin: 472
+train_ymax: 1240
+train_zmin: 211
+train_zmax: 300
+
 
 # Unet Train
 use_boss: 1
-train_pct: 0.7
-n_epochs: 5
-mb_size: 4
+train_pct: 0.9
+n_epochs: 150
+mb_size: 6
 n_mb_per_epoch: 3
-learning_rate: 0.01
+learning_rate: 0.0001
 use_adam: False
 beta1: 0.9
 beta2: 0.999
@@ -35,9 +45,9 @@ do_warp: False
 tile_size: 256
 _saber_bucket: saber-batch
 
-threshold: 0.2
+threshold: 0.5
 min: 10
-max: 100
+max: 10000
 initial_template_size: 18
 
 
