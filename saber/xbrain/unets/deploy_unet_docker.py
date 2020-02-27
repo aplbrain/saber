@@ -60,7 +60,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     y_data = np.load(args.img_file) # X, Y, Z
-    y_data = np.transpose(y_data, (2, 0, 1))
+    y_data = np.transpose(y_data) # Z, Y, X
     print('Input data has shape: {}'.format(y_data.shape))
     y_data = y_data[:, np.newaxis, :, :].astype(np.float32) #Z, chan, Y, X
     y_data /= 255.
@@ -72,9 +72,9 @@ if __name__ == '__main__':
     np.save(args.output, y_hat)
 
     if args.lbl_file:
-        y_true = np.load(args.lbl_file) # X, Y, Z
-        y_true = np.transpose(y_true, (2, 0, 1))
+        y_hat = np.transpose(np.squeeze(y_hat)) # X,Y,Z
+        y_true = np.load(args.lbl_file) # X,Y,Z
+        print("Output data has shape: {}".format(y_hat.shape))
         print('Groundtruth data has shape: {}'.format(y_true.shape))
-        y_true = y_true[:, np.newaxis, :, :].astype(np.float32) #Z, chan, Y, X
         f1 = f1_score(y_true, y_hat)
         print("F1: {}".format(f1))

@@ -53,7 +53,7 @@ else:
         for f in infiles:
             fs = os.path.split(f) # splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
             fn = fs[-1] # gets the file name e.g. 'pull_output.npy'
-            if len(fs)>1: 
+            if fs[0] != "": 
                 target = os.path.join(*fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
                 target = target.split('.')[0] # removes parameterization suffix 
                 if not os.path.exists(target):
