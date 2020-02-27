@@ -56,7 +56,7 @@ class Sampler(ABC):
     '''
     Abstract class for a sampler
     '''
-    def __init__(self, parameterization_dict, job):
+    def __init__(self, parameterization_dict, job, **kwargs):
         self.job = job
         self.parameters = parameterization_dict
         
@@ -70,33 +70,54 @@ class Sampler(ABC):
         pass
 
 class RandomSampler(Sampler):
-    def __init__(self, parameterization_dict, job, max_iterations):
+    def __init__(self, parameterization_dict, job, max_iterations, **kwargs):
+        super().__init__(parameterization_dict, job)
         self.param_grid = parameterize(parameterization_dict)
         self.max_iterations = max_iterations
         self.update(None)
-        super().__init__(parameterization_dict, job)
 
     def update(self, results):
         self.next_job = random.choice(self.param_grid)
     
     def sample(self):
-        for i in range(self.max_iterations):
+        for _ in range(self.max_iterations):
             yield self.next_job
 
 # New sampling methods can be added below!
 
 class GridSampler(Sampler):
-    def __init__(self, parameterization_dict, job, max_iterations):
+    def __init__(self, parameterization_dict, job, **kwargs):
+        super().__init__(parameterization_dict, job)
         self.param_grid = parameterize(parameterization_dict)
-        self.max_iterations = max_iterations
         self.count = 0
         self.update(None)
-        super().__init__(parameterization_dict, job)
     
     def update(self, results):
         self.next_job = self.param_grid[self.count]
         self.count += 1
 
     def sample(self):
-        for i in range(self.max_iterations):
+        for _ in range(len(self.param_grid)):
+            yield self.next_job
+
+class BatchGridSampler(Sampler):
+    def __init__(self, parameterization_dict, job, batch_size, **kwargs):
+        super().__init__(parameterization_dict, job)
+        self.batch_size = batch_size
+        self.param_grid = parameterize(parameterization_dict)
+        self.num_of_batches = int(np.ceil(len(self.param_grid)/self.batch_size))
+        self.batch_index = 0
+        self.update(None)
+    
+    def update(self, results):
+        start = self.batch_index
+        end = self.batch_index+self.batch_size
+        if end > len(self.param_grid):
+            self.next_job = self.param_grid[start:]
+        else:
+            self.next_job = self.param_grid[start:end]
+        self.batch_index = end
+
+    def sample(self):
+        for _ in range(self.num_of_batches):
             yield self.next_job

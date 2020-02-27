@@ -25,7 +25,7 @@ xmax: 6000
 ymin: 5000
 ymax: 6000
 zmin: 600
-zmax: 700
+zmax: 610
 padding: 0
 resolution: 0
 in_chan_name: images

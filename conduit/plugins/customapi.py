@@ -162,7 +162,9 @@ def latest_dag_runs():
             })
     return jsonify(items=payload)  # old flask versions dont support jsonifying arrays
 
-
+@api_custom.route('/cli_api/clear/<string:dag_id>', methods=['GET'])
+def clear_():
+    raise NotImplementedError
 
 class AirflowCustomApiPlugin(AirflowPlugin):
     name = "custom_api"

@@ -32,7 +32,6 @@ inputs:
     padding: int?
     resolution: int?
     output_name: string
-    coord_name: string
     dtype_name: string
     itype_name: string
     ## Boss pull
@@ -66,6 +65,6 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /home/ubuntu/saber/volumes/data/local
+                file_path: /Users/xenesd1/Projects/aplbrain/saber/volumes/data/local
         out:
             [pull_output]
