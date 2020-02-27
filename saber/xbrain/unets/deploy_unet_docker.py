@@ -72,9 +72,9 @@ if __name__ == '__main__':
     np.save(args.output, y_hat)
 
     if args.lbl_file:
-        y_true = np.load(args.lbl_file) # X, Y, Z
-        y_true = np.transpose(y_true)
+        y_hat = np.transpose(np.squeeze(y_hat)) # X,Y,Z
+        y_true = np.load(args.lbl_file) # X,Y,Z
+        print("Output data has shape: {}".format(y_hat.shape))
         print('Groundtruth data has shape: {}'.format(y_true.shape))
-        y_true = y_true[:, np.newaxis, :, :].astype(np.float32) #Z, chan, Y, X
         f1 = f1_score(y_true, y_hat)
         print("F1: {}".format(f1))
