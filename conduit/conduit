@@ -132,10 +132,30 @@ def run_dag(dag_id):
         raise ValueError('Something went wrong...')
     return execution_date
 
-def retry_failed_tasks(dag_id):
-    r = requests.get('http://webserver:8080/admin/rest_api/api?api=clear&dag_id={}&only_failed=on'.format(dag_id))
+def retry_failed_tasks(dag_id, execution_date):
+    # get all task IDs
+    r = requests.get('http://webserver:8080/admin/rest_api/api?api=list_tasks&dag_id={}'.format(dag_id))
     if r.status_code != 200:
-        raise ValueError('Failed to clear failed tasks... Error {}'.format(r.status_code))
+        raise ValueError('Failed to list tasks... Error {}'.format(r.status_code))
+    task_ids = r.json()['output']['stdout'].split('\n')[3:-1]
+    print(task_ids)
+    # iterate through taskIDs to find fails
+    for task in task_ids:
+        execution_date = execution_date.split('+')[0]
+        print(execution_date)
+        r = requests.get("http://webserver:8080/admin/rest_api/api?api=task_state&dag_id={}&task_id={}&execution_date={}".format(
+            dag_id,
+            task,
+            execution_date
+        ))
+        if r.status_code != 200:
+            raise ValueError('Failed to get task state... Error {}'.format(r.status_code))
+        print(r.json())
+        if "failed" in r.json()['output']['stdout']:
+            print("Clearing {}".format(task))
+            r = requests.get('http://webserver:8080/admin/rest_api/api?api=clear&dag_id={}&task_regex={}&exclude_subdags'.format(dag_id, task))
+            if r.status_code != 200:
+                raise ValueError('Failed to clear failed tasks... Error {}'.format(r.status_code))
 
 def wait_for_success(parser, retry=False, continue_on_failure=False):
     dag_id = parser.dag_id
@@ -155,7 +175,7 @@ def wait_for_success(parser, retry=False, continue_on_failure=False):
             else:
                 if retry is True:
                     log.warning("DAG {} failed. Retrying...".format(dag_id))
-                    retry_failed_tasks(dag_id)
+                    retry_failed_tasks(dag_id, execution_date)
                     retry = False
                 else:
                     raise ValueError('Iteration failed! Check logs...')
