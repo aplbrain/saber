@@ -2,7 +2,7 @@ import unittest
 import unittest.mock as mock
 import conduit.utils.cwlparser as cwlparser
 from airflow import DAG
-from conduit.tests.testing_utils import load_data, resolve_filename, cd
+from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator
 import nose
 import os
 
@@ -86,10 +86,7 @@ class TestCwlParser(unittest.TestCase):
             for steps in wf.steps:
                 self.assertEqual(wf.generate_volume_list(wf.steps['step1'],'./test_path'),['./test_path:/volumes/data/local'])
                 # 4. Empty local path
-                self.assertEqual(wf.generate_volume_list(wf.steps['step1'],''),[])
-
-
-        
+                self.assertEqual(wf.generate_volume_list(wf.steps['step1'],''),[])   
 
     def test_create_job_definitions(self):
         # Test cases:
@@ -189,7 +186,7 @@ class TestCwlParser(unittest.TestCase):
         # 5. Empty update dict
         
         for wf_name, wf in self.local_wfs.items():
-            patch1 = mock.patch.object(wf, 'resolve_dependencies', return_value=self.dependency_generator(wf_name))
+            patch1 = mock.patch.object(wf, 'resolve_dependencies', return_value=dependency_generator(wf_name))
             if "mi" in wf_name:
                 job = self.mi_job
                 job_fn = self.mi_job_fn
@@ -204,15 +201,6 @@ class TestCwlParser(unittest.TestCase):
                 step_params, deps = wf.resolve_args(job)
             print(step_params, deps)
         pass
-    def dependency_generator(self, wf_name):
-            if 'mi' in wf_name or 'mo' in wf_name:
-                return {
-                    'step1/output' : 'output.txt',
-                    'step2/output' : 'output.txt',
-                    'step3/output' : 'output.txt'
-                }
-            else:
-                return {}    
     def test_resolve_glob(self):
         # Test cases:
         # 1. Undefined tool
@@ -220,7 +208,7 @@ class TestCwlParser(unittest.TestCase):
         # 3. Parseable but non-input glob
         # Just test resolve dependencies
         for wf_name, wf in self.local_wfs.items():
-            self.assertDictEqual(wf.resolve_dependencies(), self.dependency_generator(wf_name))
+            self.assertDictEqual(wf.resolve_dependencies(), dependency_generator(wf_name))
 
         pass
 

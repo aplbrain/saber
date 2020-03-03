@@ -31,3 +31,13 @@ def cd(newdir):
         yield
     finally:
         os.chdir(prevdir)
+
+def dependency_generator(wf_name):
+        if 'mi' in wf_name or 'mo' in wf_name:
+            return {
+                'step1/output' : 'output.txt',
+                'step2/output' : 'output.txt',
+                'step3/output' : 'output.txt'
+            }
+        else:
+            return {}    

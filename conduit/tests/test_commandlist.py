@@ -2,7 +2,7 @@ import unittest
 import unittest.mock as mock
 from conduit.utils.command_list import generate_command_list, generate_io_strings, sub_params
 from conduit.utils.cwlparser import CwlParser
-from conduit.tests.testing_utils import load_data, resolve_filename, cd
+from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator 
 import yaml
 import nose
 
@@ -70,11 +70,24 @@ class TestCommandlist(unittest.TestCase):
         tool_yml = self.tool_dict[key]
         parsers = (self.local_wfs[key], self.cloud_wfs[key])
         for parser in parsers:
-            iteration_parameters, _ = parser.resolve_args(self.mi_job)
+            dep_patch = mock.patch.object(parser, 'resolve_args', return_value=dependency_generator(key))
+            with dep_patch:
+                iteration_parameters = parser.resolve_args(self.mi_job)
             for i in tool_yml:
                 step = parser.cwl['steps'][i]
-                command_list = generate_command_list(tool_yml[i], iteration_parameters, step, local=True, file_path="./test_path")
-                expected_command_list = []
+                if parser.local:
+                    command_list = generate_command_list(tool_yml[i], iteration_parameters, step, local=True, file_path="./test_path")
+                    assert(command_list[0:6]==['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', 'False'])
+                else:
+                    command_list = generate_command_list(tool_yml[i], iteration_parameters, step, local=False, file_path=None)
+                    assert(command_list[0:6]==['python3', '/app/s3wrap', '--to', 'Ref::_saber_stepname', '--fr', 'Ref::_saber_home'])
+                if i == "step1":
+                    assert(command_list[-7:]==['echo', '--int', 'Ref::input_int', '--boolean', 'Ref::input_bool', '--float', 'Ref::input_float'])
+                elif i == "step2":
+                    assert(command_list[-7:]==['echo', '--boolean', 'Ref::input_bool', '--float', 'Ref::input_float', '--File', 'Ref::input_file'])
+                else:
+                    assert(command_list[-5:]==['cat', '--f1', 'Ref::file1', '--f2', 'Ref::file2'])
+                
 
 
     def test_sub_params(self):
