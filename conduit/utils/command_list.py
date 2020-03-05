@@ -107,45 +107,45 @@ def sub_params(command_list,params):
     return command_list
 
 def generate_io_strings(tool_yml, wf_hash, step_params,j):
-        '''
-        Generates IO strings for the S3 wrapper
+    '''
+    Generates IO strings for the S3 wrapper
 
-        Params:
-        ------
-        tool_yml : dict
-            Tool CWL from file
-        wf_hash: str
-            The unique ID of the workflow, based on job name
-        step_params: dict
-            The parameters of the step
-        j: int
-            The iteration (for parameterization)
-        '''
+    Params:
+    ------
+    tool_yml : dict
+        Tool CWL from file
+    wf_hash: str
+        The unique ID of the workflow, based on job name
+    step_params: dict
+        The parameters of the step
+    j: int
+        The iteration (for parameterization)
+    '''
 
-        inp_string = []
+    inp_string = []
+    out_string = []
+    if len(tool_yml['inputs']) > 0:
+        input_files = dict([(tn,t) for tn,t in tool_yml['inputs'].items() if t['type'] == 'File' or t['type'] == 'File?'])
+        for i in input_files:
+            if i in step_params.keys():
+                s = step_params[i].split('/')
+                if len(s) > 1:
+                    # Form input/file
+                    # TODO make naming more consistent
+                    s[0] = s[0] #dumb fix
+                    s[0] += '.{}'.format(j)
+                inp_string.append('/'.join(s))
+    if len(tool_yml['outputs']) > 0:
+        output_files = dict([(tn,t) for tn,t in tool_yml['outputs'].items() if t['type'] == 'File'])
         out_string = []
-        if len(tool_yml['inputs']) > 0:
-            input_files = dict([(tn,t) for tn,t in tool_yml['inputs'].items() if t['type'] == 'File' or t['type'] == 'File?'])
-            for i in input_files:
-                if i in step_params.keys():
-                    s = step_params[i].split('/')
-                    if len(s) > 1:
-                        # Form input/file
-                        # TODO make naming more consistent
-                        s[0] = s[0] #dumb fix
-                        s[0] += '.{}'.format(j)
-                    inp_string.append('/'.join(s))
-        if len(tool_yml['outputs']) > 0:
-            output_files = dict([(tn,t) for tn,t in tool_yml['outputs'].items() if t['type'] == 'File'])
-            out_string = []
-            for t in output_files.values():
-                glob = t['outputBinding']['glob']
-                # Ad hoc glob resolution
-                glob_parse = parse.parse('$({}.{})',glob)
-                if not glob_parse:
-                    # Just a filename, not a reference
-                    out_string.append(glob)
-                else:
-                    out_string.append(step_params[glob_parse[1]])
-            
-        return (','.join(inp_string), ','.join(out_string))
+        for t in output_files.values():
+            glob = t['outputBinding']['glob']
+            # Ad hoc glob resolution
+            glob_parse = parse.parse('$({}.{})',glob)
+            if not glob_parse:
+                # Just a filename, not a reference
+                out_string.append(glob)
+            else:
+                out_string.append(step_params[glob_parse[1]])
+        
+    return (','.join(inp_string), ','.join(out_string))

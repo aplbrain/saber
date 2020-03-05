@@ -95,12 +95,31 @@ class TestCommandlist(unittest.TestCase):
         # 1. Single input
         # 2. Multi input
         # 3. Edge case
-        pass
+        si_cl = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', 'False', 'echo', '--int', 'Ref::input_int']
+        self.si_job["_saber_stepname"] = "si_workflow/step1"
+        si_sub_params = sub_params(si_cl, self.si_job)
+        assert(si_sub_params == ['python3', '/app/localwrap', '--wf', 'si_workflow/step1', '--use_cache', 'False', 'echo', '--int', 0])
+
+        mi_cl = ['python3', '/app/localwrap', '--wf', 'Ref::_saber_stepname', '--use_cache', 'False', 
+        'echo', '--boolean', 'Ref::input_bool', '--float', 'Ref::input_float', '--File', 'Ref::input_file']
+        self.mi_job["_saber_stepname"] = "mi_workflow/step2"
+        mi_sub_params = sub_params(mi_cl, self.mi_job)
+        expected_mi_sub_parmas = ['python3', '/app/localwrap', '--wf', 'mi_workflow/step2', '--use_cache', 'False', 
+        'echo', '--boolean', True, '--float', False, '--File', {'path': 'tools/mi_workflow.cwl', 'class': 'File'}]
+        assert(mi_sub_params==expected_mi_sub_parmas)
+
     def test_generate_io_strings(self):
         # Test cases:
         # 1. Empty input
         # 2. Single input
         # 3. Multi input
         # 4. Edge case
-        pass
+        key = 'mimo'
+        tool_yml = self.tool_dict[key]['step3']
+        parser = self.local_wfs[key]
+        step = parser.cwl['steps']['step3']
+        wf_hash = "test_workflow/"+key
+        print(tool_yml) 
+        print(step)
+        print(generate_io_strings(tool_yml, wf_hash, step, 0))
     

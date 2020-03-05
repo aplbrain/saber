@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 input_int: 0
 input_bool: True
 input_float: False
@@ -22,7 +20,3 @@ input_string: string
 input_file: 
     path: tools/mi_workflow.cwl
     class: File
-    
-
-
-    
