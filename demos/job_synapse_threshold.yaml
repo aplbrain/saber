@@ -1,0 +1,33 @@
+#Boss files
+host_name: api.bossdb.io
+coord: ac4-cf
+token: public
+coll: Kasthuri
+exp: ac4
+chan_labels: synapse
+chan_img: em
+dtype_img: uint8
+dtype_lbl: uint64
+itype_name: image
+res: 0
+xmin: 0
+xmax: 256
+ymin: 0
+ymax: 256
+zmin: 0
+zmax: 50
+padding: 0
+
+#threshold input
+threshold: 0.5
+
+# synapse detection
+width: 256
+height: 256
+mode: synapse
+
+#Output File Names
+raw_pull_output_name: pull_output.npy
+anno_pull_output_name: anno_output.npy
+synapse_output_name: synapse_output.npy
+threshold_output_name: threshold_output.npy
