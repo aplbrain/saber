@@ -151,7 +151,7 @@ if __name__ == '__main__':
             required=False,
             help='Blob size threshold')
     parser.add_argument(
-            '--lbl_file',
+            '--syn_file',
             required=False,
             help='Local synapse file'
             )
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     if args.dilation:
         dilation = args.dilation
 
-    neu_syn_list,syn_list = edge_list_cv(seg, syn, dilation=dilation, syn_thres=threshold, blob_thres=blob)
+    neu_syn_list,syn_list = edge_list_cv(seg, syn, dilation=dilation, syn_thres=threshold, blob_thres=blob_thres)
     neu_syn_list = pd.DataFrame.from_dict(neu_syn_list)
     syn_list = pd.DataFrame.from_dict(syn_list)
     

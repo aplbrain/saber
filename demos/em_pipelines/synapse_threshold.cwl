@@ -64,7 +64,7 @@ outputs:
 
 steps:
     raw_boss_pull:
-        run: ../saber/boss_access/boss_pull_nos3.cwl
+        run: ../../saber/boss_access/boss_pull_nos3.cwl
         in:
             host_name: host_name
             token: token
@@ -91,7 +91,7 @@ steps:
                 file_path: /home/xenesd1-a/saber/output
     
     anno_boss_pull:
-        run: ../saber/boss_access/boss_pull_nos3.cwl
+        run: ../../saber/boss_access/boss_pull_nos3.cwl
         in:
             host_name: host_name
             token: token
@@ -118,7 +118,7 @@ steps:
                 file_path: /home/xenesd1-a/saber/output
     
     synapse_detection:
-        run: ../saber/i2g/detection/synapse_detection.cwl
+        run: ../../saber/i2g/detection/synapse_detection.cwl
         in:
             input: raw_boss_pull/pull_output
             width: width
@@ -132,7 +132,7 @@ steps:
         out: [synapse_detection_out]
     
     threshold:
-        run: ../saber/postprocessing/threshold/threshold.cwl
+        run: ../../saber/postprocessing/threshold/threshold.cwl
         in:
             input: synapse_detection/synapse_detection_out
             groundtruth: anno_boss_pull/pull_output
