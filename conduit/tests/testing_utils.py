@@ -1,6 +1,7 @@
 import yaml
 import os
 from contextlib import contextmanager
+import base64
 def load_data(path):
     with open(path) as fp:
         test_data = yaml.load(fp)
@@ -41,3 +42,17 @@ def dependency_generator(wf_name):
             }
         else:
             return {}    
+
+test_auth_data = {
+    'proxyEndpoint': 'test_proxy_endpoint',
+    'authorizationToken' : base64.b64encode(b'test_username:test_password')
+    
+}
+config = {
+    'return_value.get_authorization_token.return_value' : {
+        'authorizationData' : [
+            test_auth_data,
+            {}
+            ]
+        }
+}

@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+import argparse
+import shutil
+import os
+import subprocess
+import parse
+import resource 
+
+"""
+Local Execution Wrapper for SABER 
+
+Input files are mounted from CWL file_path hint to saber/volumes/data/local. Output files are placed in the same volume under the corresponding
+workflow and step name. Using the cache hint causes the tool to be skipped entirely and assumes output files already exists under file_path/workflow_name/step_name/.
+
+TODO: Cache option should assert if output files exist. 
+"""
+
+
+parser = argparse.ArgumentParser(
+)
+
+parser.add_argument('--input', help='Comma delimited list of files to download in the form /directory/file')
+parser.add_argument('--output', help='Comma delimited list of files to upload in the form /directory/file')
+parser.add_argument('--wf', help = 'Workflow stepname in the form of workflow_name/step_name')
+parser.add_argument('--use_cache', help = 'True/False: Uses existing outputs')
+parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
+
+args = parser.parse_args()
+# define paths relative to where mounted volume to local system exists 
+VOLUME_PATH = '/volumes/data/local/'
+
+if args.use_cache == 'True':
+    print('Using files in {}'.format(args.wf))
+else:
+    if args.input:
+        input_path = os.path.join(VOLUME_PATH, os.path.split(args.wf)[0])
+        infiles = args.input.split(',') #list of input files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
+        for f in infiles:
+            fs = os.path.split(f) #splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
+            fn = fs[1] #gets the file name e.g. 'pull_output.npy'
+            if fs[0]: 
+                target = fs[0] # gets the parent directories e.g. 'boss_pull_raw.0'
+                target = target[:-2] #gets rid of the parameterization counter 
+                
+                if not os.path.exists(target):
+                    os.makedirs(target) # creates the parent directories in the volume if it doesn't exist already
+            else:
+                #fs is just the filename
+                target = fn
+            
+            source = os.path.join(input_path,f)
+            if not os.path.exists(source):
+                source = os.path.join(VOLUME_PATH, fs[0][:-2], fn) #file is not located under workflow name (outside directory)
+            
+            try:
+                shutil.copy(source, target)
+            except OSError as e:
+                if os.path.exists(fn):
+                    pass
+                else:
+                    print('Got error {} while copying file {}'.format(e, fn))
+                    raise e
+
+    proc = subprocess.call(args.command, shell=False)
+    if proc != 0:
+        raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+
+    if args.output:
+        output_path = os.path.join(VOLUME_PATH, args.wf)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path) # creates the output volume path if it doesn't exist already
+        outfiles = args.output.split(',') #list of output files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
+        for f in outfiles:
+            fn = os.path.split(f)[1]
+            try: 
+                shutil.copy(fn, output_path)
+            except OSError as e:
+                print('Got error {} while copying file {}'.format(e, fn))
+                raise e
+            print('Deleting file to free space...')
+            os.remove(fn)
+    print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))

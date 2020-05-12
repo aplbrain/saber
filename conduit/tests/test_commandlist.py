@@ -4,7 +4,6 @@ from conduit.utils.command_list import generate_command_list, generate_io_string
 from conduit.utils.cwlparser import CwlParser
 from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator 
 import yaml
-import nose
 
 class TestCommandlist(unittest.TestCase):
     # TODO needs to be class

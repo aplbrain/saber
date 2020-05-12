@@ -3,7 +3,6 @@ import unittest.mock as mock
 import conduit.utils.cwlparser as cwlparser
 from airflow import DAG
 from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator
-import nose
 import os
 
 class TestCwlParser(unittest.TestCase):
@@ -212,5 +211,4 @@ class TestCwlParser(unittest.TestCase):
 
         pass
 
-if __name__ == "__main__":
-    nose.main()
+
