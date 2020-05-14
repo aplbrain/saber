@@ -1,0 +1,19 @@
+{mi: "\n        # Parameter table for workflow mi\n        -> Workflow\n        iteration\
+    \ : varchar(6)\n        ---\n\n            input_int = null : int\n    input_bool\
+    \ = null : char(4)\n    input_float = null : float\n    input_double = null :\
+    \ double\n    input_string = null : varchar(64)\n    input_file = null : varchar(64)\n",
+  mimo: "\n        # Parameter table for workflow mimo\n        -> Workflow\n    \
+    \    iteration : varchar(6)\n        ---\n\n            input_int = null : int\n\
+    \    input_bool = null : char(4)\n    input_float = null : float\n    input_double\
+    \ = null : double\n    input_string = null : varchar(64)\n    input_file = null\
+    \ : varchar(64)\n", miso: "\n        # Parameter table for workflow miso\n   \
+    \     -> Workflow\n        iteration : varchar(6)\n        ---\n\n           \
+    \ input_int = null : int\n    input_bool = null : char(4)\n    input_float = null\
+    \ : float\n    input_double = null : double\n    input_string = null : varchar(64)\n\
+    \    input_file = null : varchar(64)\n", mo: null, si: "\n        # Parameter\
+    \ table for workflow si\n        -> Workflow\n        iteration : varchar(6)\n\
+    \        ---\n\n            input_int = null : int\n", simo: "\n        # Parameter\
+    \ table for workflow simo\n        -> Workflow\n        iteration : varchar(6)\n\
+    \        ---\n\n            input_int = null : int\n", siso: "\n        # Parameter\
+    \ table for workflow siso\n        -> Workflow\n        iteration : varchar(6)\n\
+    \        ---\n\n            input_int = null : int\n", so: null}

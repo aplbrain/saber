@@ -2,23 +2,13 @@ import unittest
 import unittest.mock as mock
 import conduit.utils.cwlparser as cwlparser
 from airflow import DAG
-from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator
+from conduit.tests.testing_utils import load_data, resolve_filename, cd, dependency_generator, WF_PREFIXES
 import os
 
 class TestCwlParser(unittest.TestCase):
     
     def setUp(self):
-        wf_prefixes = [
-            'si',
-            'siso',
-            'simo',
-            'so',
-            'mi',
-            'miso',
-            'mimo',
-            'mo'
-
-        ]
+        
 
         fake_config = {
             'job-queue':{
@@ -30,7 +20,7 @@ class TestCwlParser(unittest.TestCase):
         self.cloud_wfs = {}
         self.dj_patcher = mock.patch("conduit.utils.cwlparser.DatajointHook")
         self.dj_patcher.start()
-        for pre in wf_prefixes:
+        for pre in WF_PREFIXES:
             self.local_wfs[pre] = cwlparser.CwlParser(resolve_filename('local_workflows', f'{pre}_workflow.cwl'),config=fake_config)
             self.cloud_wfs[pre] = cwlparser.CwlParser(resolve_filename('cloud_workflows', f'{pre}_workflow.cwl'),config=fake_config)
         

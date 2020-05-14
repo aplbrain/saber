@@ -43,16 +43,16 @@ def dependency_generator(wf_name):
         else:
             return {}    
 
-test_auth_data = {
-    'proxyEndpoint': 'test_proxy_endpoint',
-    'authorizationToken' : base64.b64encode(b'test_username:test_password')
-    
-}
-config = {
-    'return_value.get_authorization_token.return_value' : {
-        'authorizationData' : [
-            test_auth_data,
-            {}
-            ]
-        }
-}
+
+
+WF_PREFIXES = [
+            'si',
+            'siso',
+            'simo',
+            'so',
+            'mi',
+            'miso',
+            'mimo',
+            'mo'
+
+        ]

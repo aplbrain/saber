@@ -6,8 +6,20 @@ from tarfile import TarFile
 import tempfile
 import contextlib
 import docker
-from conduit.tests.testing_utils import config, test_auth_data, resolve_filename
-
+from conduit.tests.testing_utils import resolve_filename
+test_auth_data = {
+    'proxyEndpoint': 'test_proxy_endpoint',
+    'authorizationToken' : base64.b64encode(b'test_username:test_password')
+    
+}
+config = {
+    'return_value.get_authorization_token.return_value' : {
+        'authorizationData' : [
+            test_auth_data,
+            {}
+            ]
+        }
+}
 @patch('conduit.utils.job_definitions.boto3.client',**config)
 class TestJobDefinitions(unittest.TestCase):
     # TODO need to make job definitions into a class in order to test properly
