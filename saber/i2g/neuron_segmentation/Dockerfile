@@ -32,5 +32,4 @@ COPY ./driver.py /gala/driver.py
 COPY ./trained_classifier.pkl /gala/trained_classifier.pkl
 WORKDIR /gala
 RUN  apt-get install -y python python-pip
-#ENTRYPOINT ["python3", "gala-train  -I --seed-cc-threshold 5 -o ./train-sample --experiment-name agglom ./example/prediction.h5 ./example/groundtruth"]
 ENTRYPOINT ["python3", "driver.py" ]

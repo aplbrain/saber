@@ -30,28 +30,28 @@ inputs:
     inputBinding:
       position: 2
       prefix: --prob_file
-#  gt_file:
-#    type: File?
-#    inputBinding:
-#      position: 3
-#      prefix: --gt_file
-#  ws_file:
-#    type: File?
-#    inputBinding:
-#      position: 4
-#      prefix: --ws_file
+  gt_file:
+    type: File?
+    inputBinding:
+      position: 3
+      prefix: --gt_file
+  ws_file:
+    type: File?
+    inputBinding:
+      position: 4
+      prefix: --ws_file
   train_file:
     type: File?
     inputBinding:
       position: 5
       prefix: --train_file
   seeds_cc_threshold:
-    type: string
+    type: string?
     inputBinding:
       position: 6
       prefix: --seeds_cc_threshold
   agg_threshold:
-    type: string
+    type: string?
     inputBinding:
       position: 7
       prefix: --agg_threshold
