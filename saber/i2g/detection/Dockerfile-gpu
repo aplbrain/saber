@@ -86,4 +86,3 @@ ENV THEANO_FLAGS="device=cuda0,blas.ldflags='-lf77blas -latlas -lgfortran',dnn.i
 
 # RUN apt-get install -y python3-pip
 
-ENTRYPOINT ["python2", "deploy_pipeline.py"]
