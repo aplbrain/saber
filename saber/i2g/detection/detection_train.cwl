@@ -161,12 +161,13 @@ inputs:
     inputBinding:
       prefix: --do_warp
       position: 26
-  
+
   tile_size:
     type: int?
     inputBinding:
       prefix: --tile_size
       position: 27
+
   weights_file:
     type: File?
     inputBinding:
@@ -174,7 +175,7 @@ inputs:
       position: 28
 
 outputs:
-  membrane_detection_out:
+  detection_train_out:
     type: File
     outputBinding:
       glob: $(inputs.output)
