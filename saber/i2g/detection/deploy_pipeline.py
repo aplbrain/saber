@@ -58,8 +58,9 @@ def get_parser():
     parser.add_argument('--z_step', dest='z_step', type=int, default=1,
                         help='Amount to step in Z when performing inference')
     parser.add_argument('--mode', dest='mode', type=str,
-                        default='membrane',
                         help='Flag to toggle between mem/syn prediction')
+    parser.add_argument('--weights', type=str, required=False,
+                        help='weights to use.')
     return parser
 
 if __name__ == '__main__':
@@ -90,7 +91,10 @@ if __name__ == '__main__':
     elif args.mode == 'membrane':
         model.load_weights('/src/weights/membrane_weights.hdf5')
     else:
-        print('invalid mode; please choose "synapse" or "membrane"')
+        if args.weights:
+            model.load_weights(args.weights)
+        else:
+            print('invalid mode; please choose "synapse" or "membrane"')
     tic0 = time.time()
     tic = time.time()
     y_hat = np.zeros(x_test.shape)
