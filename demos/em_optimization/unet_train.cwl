@@ -25,7 +25,8 @@ inputs:
     coll_name: string
     exp_name: string
     chan_name_img: string
-    chan_name_lbl:
+    chan_name_lbl_synapse: string
+    chan_name_lbl_membrane: string
     dtype_img: string
     dtype_lbl: string
     itype_name_in: string
@@ -39,7 +40,7 @@ inputs:
     zmax: int
     padding: int?
 
-    Inputs for U-Net Train Steps:
+    #Inputs for U-Net Train Steps:
     use_boss: int?
     train_pct: float?
     n_epochs: int?
@@ -54,7 +55,6 @@ inputs:
     save_freq: int?
     do_warp: boolean?
     tile_size: int?
-    output: string
 
     #Inputs for processing
     width: int?
@@ -88,10 +88,10 @@ outputs:
         outputSource: boss_pull_raw/pull_output
     synapse_detection:
         type: File
-        outputSource: synapse_detection/synapse_detection_out
+        outputSource: synapse_detection/detection_deploy_out
     membrane_detection:
         type: File
-        outputSource: membrane_detection/membrane_detection_out
+        outputSource: membrane_detection/detection_deploy_out
     neuron_segmentation:
         type: File
         outputSource: neuron_segmentation/neuron_segmentation_out
@@ -107,15 +107,15 @@ steps:
         run: ../../../../saber/i2g/detection/detection_train.cwl
         in:
             use_boss: use_boss
-            coord: coord
+            coord_name: coord_name
             token: token_bossdb
-            coll: coll_name
-            exp: exp_name
-            chan_labels: chan_labels
-            chan_img: chan_name
+            coll_name: coll_name
+            exp_name: exp_name
+            chan_labels: chan_name_lbl_synapse
+            chan_img: chan_name_img
             dtype_img: dtype_img
             dtype_lbl: dtype_lbl
-            res: res
+            res: resolution
             xmin: xmin
             xmax: xmax
             ymin: ymin
@@ -147,15 +147,15 @@ steps:
         run: ../../../../saber/i2g/detection/detection_train.cwl
         in:
             use_boss: use_boss
-            coord: coord
-            token: token
-            coll: coll
-            exp: exp
-            chan_labels: chan_labels
-            chan_img: chan_img
+            coord_name: coord_name
+            token: token_bossdb
+            coll_name: coll_name
+            exp_name: exp_name
+            chan_labels: chan_name_lbl_membrane
+            chan_img: chan_name_img
             dtype_img: dtype_img
             dtype_lbl: dtype_lbl
-            res: res
+            res: resolution
             xmin: xmin
             xmax: xmax
             ymin: ymin
@@ -190,7 +190,7 @@ steps:
             host_name: host_bossdb
             coll_name: coll_name
             exp_name: exp_name
-            chan_name: in_chan_name_raw
+            chan_name: chan_name_img
             dtype_name: dtype_img
             itype_name: itype_name_in
             resolution: resolution
@@ -222,7 +222,7 @@ steps:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/outputs
-        out: [synapse_detection_out]
+        out: [detection_deploy_out]
 
     membrane_detection:
         run: ../../../../saber/i2g/detection/detection_deploy.cwl
@@ -236,12 +236,12 @@ steps:
             saber:
                 local: True
                 file_path: /home/ubuntu/saber/outputs
-        out: [membrane_detection_out]
+        out: [detection_deploy_out]
 
     neuron_segmentation:
         run: ../../../../saber/i2g/neuron_segmentation/neuron_segmentation.cwl
         in:
-            prob_file: membrane_detection/membrane_detection_out
+            prob_file: membrane_detection/detection_deploy_out
             mode: neuron_mode
             train_file: train_file
             agg_threshold: agg_threshold
@@ -257,7 +257,7 @@ steps:
         run: ../../saber/i2g/seg_syn_association/assoc_local.cwl
         in:
             seg_file: neuron_segmentation/neuron_segmentation_out
-            syn_file: synapse_detection/synapse_detection_out
+            syn_file: synapse_detection/detection_deploy_out
             output_name: assoc_output_name
             output_name_noneu: assoc_output_name_noneu
         out:

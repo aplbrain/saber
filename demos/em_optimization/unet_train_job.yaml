@@ -1,0 +1,50 @@
+# Inputs for BOSS
+host_bossdb: api.bossdb.io  
+token_bossdb: public
+coll_name: Kasthuri 
+exp_name: ac4
+chan_name_img: em
+chan_name_lbl_synapse: synapse
+chan_name_lbl_membrane: membrane
+dtype_img: uint8
+dtype_lbl: uint64
+itype_name_in: image
+coord_name: ac4-cf
+resolution: 0
+xmin: 0
+xmax: 512
+ymin: 0
+ymax: 512
+zmin: 0
+zmax: 50
+
+#Inputs for U-Net Train Steps:
+use_boss: 1 
+train_pct: 0.75
+n_epochs: 100
+mb_size: 4
+n_mb_per_epoch: 3
+learning_rate: 0.0001
+tile_size: 512
+
+#Inputs for processing
+width: 512
+height: 512
+
+#Inputs for neuron_segmentation
+train_file: ./trained_classifier.pkl
+neuron_mode: 1
+seeds_cc_threshold: "0.5"
+agg_threshold: "5"
+
+#Inputs for output file names:
+synapse_weights_output: synapse_weights.h5
+membrane_weights_output: membrane_weights.h5
+pull_output_name_raw: pull_output.npy
+synapse_output: syanpse_output.npy
+membrane_output: membrane_output.npy
+neuron_output: neuron_output.npy
+assoc_output_name: assoc_output.pkl
+assoc_output_name_noneu: assoc_noneu_output.pkl
+
+_saber_bucket: saber-batch

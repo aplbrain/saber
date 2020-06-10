@@ -6,7 +6,7 @@ hints:
 baseCommand: python
 arguments: ["train_pipeline.py"]
 inputs:
-  useboss:
+  use_boss:
     type: int
     inputBinding:
       position: 1
@@ -48,11 +48,17 @@ inputs:
       position: 7
       prefix: --exp
 
-  chan_name:
+  chan_img:
     type: string?
     inputBinding:
       position: 8
-      prefix: --chan
+      prefix: --chan_img
+  
+  chan_labels:
+    type: string?
+    inputBinding:
+      position: 9
+      prefix: --chan_lbl
   
   dtype_img:
     type: string?
