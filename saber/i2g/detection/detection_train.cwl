@@ -3,7 +3,7 @@ class: CommandLineTool
 hints:
     DockerRequirement:
         dockerPull: aplbrain/i2gdetect_gpu
-baseCommand: python
+baseCommand: python2
 arguments: ["train_pipeline.py"]
 inputs:
   use_boss:
@@ -58,127 +58,133 @@ inputs:
     type: string?
     inputBinding:
       position: 9
-      prefix: --chan_lbl
+      prefix: --chan_labels
   
   dtype_img:
     type: string?
     inputBinding:
-      position: 9
+      position: 10
       prefix: --dtype_img
 
   dtype_lbl:
     type: string?
     inputBinding:
-      position: 9
+      position: 11
       prefix: --dtype_lbl
   
   resolution:
     type: int?
     inputBinding:
       prefix: --res
-      position: 10
+      position: 12
 
   xmin:
     type: int?
     inputBinding:
       prefix: --xmin
-      position: 11
+      position: 13
 
   xmax:
     type: int?
     inputBinding:
       prefix: --xmax
-      position: 13
+      position: 14
 
   ymin:
     type: int?
     inputBinding:
       prefix: --ymin
-      position: 14
+      position: 15
   
   ymax:
     type: int?
     inputBinding:
       prefix: --ymax
-      position: 15
+      position: 16
   
   zmin:
     type: int?
     inputBinding:
       prefix: --zmin
-      position: 16
+      position: 17
     
   zmax:
     type: int?
     inputBinding:
       prefix: --zmax
-      position: 17
+      position: 18
 
   train_pct:
     type: float?
     inputBinding:
       prefix: --train_pct
-      position: 18
+      position: 19
 
   n_epochs:
     type: int?
     inputBinding:
       prefix: --n_epochs
-      position: 19
+      position: 20
   
   mb_size:
     type: int?
     inputBinding:
       prefix: --mb_size
-      position: 20
+      position: 21
   
   n_mb_per_epoch:
     type: int?
     inputBinding:
       prefix: --n_mb_per_epoch
-      position: 21
+      position: 22
   
   learning_rate:
     type: float?
     inputBinding:
       prefix: --learning_rate
-      position: 22
+      position: 23
 
   beta1:
     type: float?
     inputBinding:
       prefix: --beta1
-      position: 23
+      position: 24
 
   beta2:
     type: float?
     inputBinding:
       prefix: --beta2
-      position: 24
+      position: 25
 
   save_freq:
     type: int?
     inputBinding:
       prefix: --save_freq
-      position: 25
+      position: 26
 
   do_warp:
     type: boolean?
     inputBinding:
       prefix: --do_warp
-      position: 26
+      position: 27
 
   tile_size:
     type: int?
     inputBinding:
       prefix: --tile_size
-      position: 27
+      position: 28
 
   weights_file:
     type: File?
     inputBinding:
       prefix: --weights_file
-      position: 28
+      position: 29
+  
+  output:
+    type: string
+    inputBinding:
+      prefix: --output
+      position: 30
 
 outputs:
   detection_train_out:

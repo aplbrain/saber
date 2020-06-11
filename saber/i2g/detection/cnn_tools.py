@@ -1,16 +1,15 @@
-# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""
+Copyright 2018 The Johns Hopkins University Applied Physics Laboratory.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 
 """
 Implements semantic segmentation for convnets using Keras.
@@ -22,7 +21,7 @@ import os
 from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Dropout
 from keras.layers.merge import concatenate
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras import backend as K
 
 from data_tools import *
@@ -92,7 +91,6 @@ def create_unet(sz):
     """
       sz : a tuple specifying the input image size in the form:
            (# channels, # rows, # columns)
-
       References:
         1. Ronneberger et al. "U-Net: Convolutional Networks for Biomedical
            Image Segmentation." 2015. 
@@ -151,16 +149,16 @@ def create_unet(sz):
     return model
 
 
-def train_model(X_train, Y_train, X_valid, Y_valid, model, output_dir,
+def train_model(X_train, Y_train, X_valid, Y_valid, model, output,
                 n_epochs=30, n_mb_per_epoch=25, mb_size=30, save_freq=100,
-                do_augment=False):
+                do_augment=False,args=None):
     """
     Note: these are not epochs in the usual sense, since we randomly sample
     the data set (vs methodically marching through it)                
     """
     sz = model.input_shape[-2:]
     score_all = []
-
+    best_score = 0
     for ii in range(n_epochs):
         print('starting "epoch" %d (of %d)' % (ii, n_epochs))
 
@@ -169,30 +167,36 @@ def train_model(X_train, Y_train, X_valid, Y_valid, model, output_dir,
             loss, f1 = model.train_on_batch(Xi, Yi)
             score_all.append(f1)
 
-        # save state
-        fn_out = os.path.join(output_dir, 'weights_epoch%04d.hdf5' % ii)
-        if ii % save_freq == 0:
-            model.save_weights(fn_out)
 
         # evaluate performance on validation data
         Yi_hat = deploy_model(X_valid, model, do_augment)
-        if ii % save_freq == 0:
-            np.savez(os.path.join(output_dir, 'valid_epoch%04d' % ii),
-                     X=X_valid, Y=Y_valid, Y_hat=Yi_hat, s=score_all)
-
-        print('f1 on validation data:    %0.3f' % f1_score(Y_valid, Yi_hat))
+#        if ii % save_freq == 0:
+#            np.savez(os.path.join(output[:-4], 'valid_epoch%04d' % ii),
+#                     X=X_valid, Y=Y_valid, Y_hat=Yi_hat, s=score_all)
+        
+        f1_curr = f1_score(Y_valid,Yi_hat)
+        print('f1 on validation data:    %0.3f' % f1_curr)
         print('recent train performance: %0.3f' % np.mean(score_all[-20:]))
         print('y_hat min, max, mean:     %0.2f / %0.2f / %0.2f' % (np.min(Yi_hat),
                                                                    np.max(Yi_hat),
                                                                    np.mean(Yi_hat)))
+        if f1_curr > best_score:
+            # save state
+            fn_out = os.path.join(output)
+            print('saving to : ' + fn_out)
+            if ii % save_freq == 0:
+                model.save_weights(fn_out)
+            best_score = f1_curr
+            if args:
+                np.save(args.score_out,best_score)
+
         
-    return score_all
+    return best_score
 
 
 def deploy_model(X, model, do_augment=False):
     """
     X : a tensor of dimensions (n_examples, n_channels, n_rows, n_cols)
-
     Note that n_examples will be used as the minibatch size.
     """
     # the only slight complication is that the spatial dimensions of X might

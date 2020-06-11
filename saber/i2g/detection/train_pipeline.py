@@ -20,10 +20,7 @@ import argparse
 
 np.random.seed(9999)
 
-import image_handler as ih
-
 from intern.remote.boss import BossRemote
-from intern.resource.boss.resource import *
 
 from cnn_tools import *
 from data_tools import *
@@ -49,17 +46,12 @@ def parse_args(json_file=None):
 
 
 def get_boss_data(args):
-
     config = {"protocol": "https",
               "host": "api.bossdb.io",
               "token": args.token}
     rmt = BossRemote(config)
     print('[info] Downloading data from BOSS')
-    chan = ChannelResource(args.chan_img,
-                           args.coll,
-                           args.exp,
-                           'image',
-                           datatype=args.dtype_img)
+    chan = rmt.get_channel(args.chan_img, args.coll, args.exp)
 
     # Get the image data from the BOSS
     x_train = rmt.get_cutout(chan, args.res,
@@ -67,16 +59,13 @@ def get_boss_data(args):
                              [args.ymin,args.ymax],
                              [args.zmin,args.zmax])
 
-    lchan = ChannelResource(args.chan_labels,
-                            args.coll,
-                            args.exp,
-                            'annotation',
-                            datatype=args.dtype_lbl)
+    lchan = rmt.get_channel(args.chan_labels, args.coll, args.exp)
 
     y_train = rmt.get_cutout(lchan, args.res,
                              [args.xmin,args.xmax],
                              [args.ymin,args.ymax],
                              [args.zmin,args.zmax])
+
     print('[info] Downloaded BOSS data')
     # Data must be [slices, chan, row, col] (i.e., [Z, chan, Y, X])
     x_train = x_train[:, np.newaxis, :, :].astype(np.float32)
@@ -92,9 +81,9 @@ def get_boss_data(args):
 def get_file_data(args):
 
     file_type = args.img_file.split('.')[-1]
-    if file_type == 'gz' or file_type == 'nii':
-        x_train = ih.load_nii(args.img_file, data_type='uint8')
-        y_train = ih.load_nii(args.lbl_file, data_type='uint8')
+    if file_type == 'gz' or file_type == 'npy':
+        x_train = np.load(args.img_file)
+        y_train = np.load(args.lbl_file)
 
     elif file_type == 'npy' or file_type == 'npz':
         # Data input is X,Y,Z
@@ -312,7 +301,7 @@ if __name__ == '__main__':
             )
     parser.add_argument(
             '--score_out',
-            required=True,
+            required=False,
             help='File for output of final score'
     )
     parser.add_argument(
@@ -374,7 +363,7 @@ if __name__ == '__main__':
                 args.output, do_augment=args.do_warp,
                 n_epochs=args.n_epochs, mb_size=args.mb_size,
                 n_mb_per_epoch=args.n_mb_per_epoch,
-                save_freq=args.save_freq,args=args)
+                save_freq=args.save_freq)
 
     print('[info]: total time to train model: %0.2f min' %
           ((time.time() - tic) / 60.))

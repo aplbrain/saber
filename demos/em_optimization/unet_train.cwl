@@ -38,7 +38,6 @@ inputs:
     ymax: int
     zmin: int
     zmax: int
-    padding: int?
 
     #Inputs for U-Net Train Steps:
     use_boss: int?
@@ -47,13 +46,6 @@ inputs:
     mb_size: int?
     n_mb_per_epoch: int?
     learning_rate: float?
-    use_adam: boolean?
-    beta1: float?
-    beta2: float?
-    decay: float?
-    momentum: float?
-    save_freq: int?
-    do_warp: boolean?
     tile_size: int?
 
     #Inputs for processing
@@ -115,7 +107,7 @@ steps:
             chan_img: chan_name_img
             dtype_img: dtype_img
             dtype_lbl: dtype_lbl
-            res: resolution
+            resolution: resolution
             xmin: xmin
             xmax: xmax
             ymin: ymin
@@ -127,13 +119,6 @@ steps:
             mb_size: mb_size
             n_mb_per_epoch: n_mb_per_epoch
             learning_rate: learning_rate
-            use_adam: use_adam
-            beta1: beta1
-            beta2: beta2
-            decay: decay
-            momentum: momentum
-            save_freq: save_freq
-            do_warp: do_warp
             tile_size: tile_size
             output: synapse_weights_output
         out: [detection_train_out]
@@ -155,7 +140,7 @@ steps:
             chan_img: chan_name_img
             dtype_img: dtype_img
             dtype_lbl: dtype_lbl
-            res: resolution
+            resolution: resolution
             xmin: xmin
             xmax: xmax
             ymin: ymin
@@ -167,13 +152,6 @@ steps:
             mb_size: mb_size
             n_mb_per_epoch: n_mb_per_epoch
             learning_rate: learning_rate
-            use_adam: use_adam
-            beta1: beta1
-            beta2: beta2
-            decay: decay
-            momentum: momentum
-            save_freq: save_freq
-            do_warp: do_warp
             tile_size: tile_size
             output: membrane_weights_output
         out: [detection_train_out]
@@ -200,7 +178,6 @@ steps:
             ymax: ymax
             zmin: zmin
             zmax: zmax
-            padding: padding
             output_name: pull_output_name_raw
             coord_name: coord_name
         hints:

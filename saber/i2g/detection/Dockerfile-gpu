@@ -52,18 +52,12 @@ RUN pip install --ignore-installed enum
 # Upgrade six
 RUN pip3 install --upgrade six
 RUN pip install --upgrade six
-
-# Clone Keras repo and move into it
-#RUN cd /root && git clone https://github.com/fchollet/keras.git && cd keras && \
-#  # Install
-#  python setup.py install
 RUN pip install --ignore-installed keras
-#==1.2.2
-#RUN pip install --ignore-installed pygpu
-#added 
+
 
 # Install intern
-RUN pip install --ignore-installed intern
+RUN pip install blosc==1.4.4
+RUN pip install intern==0.9.11
 RUN mkdir -p /src/weights
 RUN wget --directory-prefix /src/weights https://raw.githubusercontent.com/aplbrain/emcv/master/unets/weights/kasthuri/synapse_weights.hdf5
 RUN wget --directory-prefix /src/weights https://raw.githubusercontent.com/aplbrain/emcv/master/unets/weights/kasthuri/membrane_weights.hdf5
@@ -84,5 +78,4 @@ ENV GPUARRAY_CUDA_VERSION=75
 ENV THEANO_FLAGS="device=cuda0,blas.ldflags='-lf77blas -latlas -lgfortran',dnn.include_path=/usr/local/cuda/include"
 #ENV THEANO_FLAGS='device=cuda,lib.cnmem=1'
 
-# RUN apt-get install -y python3-pip
 
