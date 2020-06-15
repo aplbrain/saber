@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu
+FROM ubuntu:18.04
 
 RUN apt-get update
 RUN apt-get install -y \
     git \
-    python3-dev \
+    python3.6 \
     python3-pip
 RUN git clone https://github.com/janelia-flyem/gala.git
 COPY ./requirements.txt /gala/requirements.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install Cython numpy h5py
+RUN pip3 install Cython numpy h5py scipy==0.19.1
 RUN cd gala && \
     pip3 install -r requirements.txt && \
     python3 setup.py install && \

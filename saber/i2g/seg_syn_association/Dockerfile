@@ -22,7 +22,7 @@ RUN pip install scipy boto3
 RUN pip install pandas
 
 # RUN git clone https://github.com/jhuapl-boss/intern.git && cd intern && git checkout RemoteExtension && git pull && python3 setup.py install --user
-RUN pip install intern
+RUN pip install intern==0.9.12
 RUN pip install boto3
 RUN pip install botocore
 

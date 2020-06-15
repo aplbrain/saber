@@ -16,7 +16,6 @@
 
 cwlVersion: v1.0
 class: Workflow
-doc: local
 
 inputs:
     # Inputs for BOSS
@@ -125,8 +124,6 @@ steps:
         hints:
             saber: 
                 score_format: "F1: {score}\n" 
-                file_path: /home/ubuntu/saber/outputs
-                local: True
 
     membrane_detection_train:
         run: ../../../../saber/i2g/detection/detection_train.cwl
@@ -158,8 +155,6 @@ steps:
         hints:
             saber: 
                 score_format: "F1: {score}\n" 
-                file_path: /home/ubuntu/saber/outputs
-                local: True
 
     boss_pull_raw:
         run: ../../../../saber/boss_access/boss_pull_nos3.cwl
@@ -180,10 +175,7 @@ steps:
             zmax: zmax
             output_name: pull_output_name_raw
             coord_name: coord_name
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/outputs
+
         out:
             [pull_output]
 
@@ -209,10 +201,7 @@ steps:
             height: height
             output: membrane_output
             weights: membrane_detection_train/detection_train_out
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/outputs
+
         out: [detection_deploy_out]
 
     neuron_segmentation:
@@ -224,10 +213,7 @@ steps:
             agg_threshold: agg_threshold
             seeds_cc_threshold: seeds_cc_threshold
             outfile: neuron_output
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/outputs
+
         out: [neuron_segmentation_out]
     
     assoc:
@@ -239,7 +225,3 @@ steps:
             output_name_noneu: assoc_output_name_noneu
         out:
             [assoc_output,assoc_output_noneu]
-        hints:
-            saber:
-                local: True
-                file_path: /home/ubuntu/saber/outputs
