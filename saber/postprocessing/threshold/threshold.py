@@ -16,30 +16,18 @@ import numpy as np
 import math
 import argparse
 
+
 def get_parser():
-    parser = argparse.ArgumentParser(description='Thresholding Tool')
+    parser = argparse.ArgumentParser(description="Thresholding Tool")
     parser.set_defaults(func=lambda _: parser.print_help())
+    parser.add_argument("-i", "--input", required=True, help="Input numpy array file")
     parser.add_argument(
-            '-i',
-            '--input',
-            required=True,
-            help='Input numpy array file')
-    parser.add_argument(
-            '-gt',
-            '--groundtruth',
-            required=False,
-            help='Groundtruth numpy array file')
-    parser.add_argument(
-            '-t',
-            '--threshold',
-            required=True,
-            help='Threshold, [0,1]')
-    parser.add_argument(
-            '-o',
-            '--outfile',
-            required=True,
-            help='Output file')
+        "-gt", "--groundtruth", required=False, help="Groundtruth numpy array file"
+    )
+    parser.add_argument("-t", "--threshold", required=True, help="Threshold, [0,1]")
+    parser.add_argument("-o", "--outfile", required=True, help="Output file")
     return parser
+
 
 def apply_threshold(probability_map, threshold):
     """
@@ -57,33 +45,41 @@ def apply_threshold(probability_map, threshold):
     if probability_map.ndim == 4:
         # Input data is in Z, Chan, Y, X (Xbrain defacto)
         probability_map = np.squeeze(probability_map).T
-    normal = (probability_map - np.min(probability_map))/(np.max(probability_map)-np.min(probability_map))
-    normal[normal<threshold] = 0
-    normal[normal>=threshold] = 1
+    normal = (probability_map - np.min(probability_map)) / (
+        np.max(probability_map) - np.min(probability_map)
+    )
+    normal[normal < threshold] = 0
+    normal[normal >= threshold] = 1
     return normal
+
 
 def f1_score(binary_map, binary_gt=None):
     """
     Calculates f1 score on thresholded array. 
     """
     beta = 2
-    true_detect = np.sum(np.logical_and(binary_map,binary_gt).astype(int).ravel())
+    true_detect = np.sum(np.logical_and(binary_map, binary_gt).astype(int).ravel())
     detections = np.sum(binary_map.ravel())
     true_positives = np.sum(binary_gt.ravel())
-    if detections>0:                
-        precision = true_detect/detections
+    if detections > 0:
+        precision = true_detect / detections
     else:
         precision = 0
-    if true_positives>0:    
-        recall = true_detect/true_positives
+    if true_positives > 0:
+        recall = true_detect / true_positives
     else:
         recall = 0
-                    
-    if precision + recall >0:
-        f1 = (1+math.pow(beta,2)) * (precision*recall)/(math.pow(beta,2)*precision + recall)
+
+    if precision + recall > 0:
+        f1 = (
+            (1 + math.pow(beta, 2))
+            * (precision * recall)
+            / (math.pow(beta, 2) * precision + recall)
+        )
     else:
         f1 = 0
     return f1
+
 
 def main():
     parser = get_parser()
@@ -91,12 +87,12 @@ def main():
     input_array = np.load(args.input)
     output_array = apply_threshold(input_array, args.threshold)
     np.save(args.outfile, output_array)
-    
-    if args.groundtruth: 
+
+    if args.groundtruth:
         groundtruth_array = np.load(args.groundtruth)
         f1 = f1_score(output_array, groundtruth_array)
         print("F1: {}".format(f1))
 
+
 if __name__ == "__main__":
     main()
-    

@@ -16,37 +16,30 @@ import numpy as np
 from skimage.measure import label, regionprops
 import argparse
 
+
 def get_parser():
-    parser = argparse.ArgumentParser(description='Blob Detect Tool')
+    parser = argparse.ArgumentParser(description="Blob Detect Tool")
     parser.set_defaults(func=lambda _: parser.print_help())
+    parser.add_argument("-i", "--input", required=True, help="Input numpy array file")
     parser.add_argument(
-            '-i',
-            '--input',
-            required=True,
-            help='Input numpy array file')
+        "--min", required=True, help="minimum area for region to be counted"
+    )
     parser.add_argument(
-            '--min',
-            required=True,
-            help='minimum area for region to be counted')
-    parser.add_argument(
-            '--max',
-            required=True,
-            help='maximum area for region to be counted')
-    parser.add_argument(
-            '-o',
-            '--outfile',
-            required=True,
-            help='Output file')
+        "--max", required=True, help="maximum area for region to be counted"
+    )
+    parser.add_argument("-o", "--outfile", required=True, help="Output file")
     return parser
+
 
 def blob_detect(dense_map, min, max):
     labels = label(dense_map)
     regions = regionprops(labels)
-    output = np.empty((0,dense_map.ndim))
+    output = np.empty((0, dense_map.ndim))
     for props in regions:
         if props.area >= float(min) and props.area <= float(max):
             output = np.concatenate((output, [props.centroid]), axis=0)
     return output
+
 
 def main():
     parser = get_parser()
@@ -54,6 +47,7 @@ def main():
     input_array = np.load(args.input)
     output_array = blob_detect(input_array, min=args.min, max=args.max)
     np.save(args.outfile, output_array)
+
 
 if __name__ == "__main__":
     main()
