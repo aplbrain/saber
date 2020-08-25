@@ -19,7 +19,7 @@ import shutil
 import os
 import subprocess
 import parse
-import resource 
+import resource
 
 """
 Local Execution Wrapper for SABER 
@@ -31,41 +31,52 @@ TODO: Cache option should assert if output files exist.
 """
 
 
-parser = argparse.ArgumentParser(
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    "--input",
+    help="Comma delimited list of files to download in the form /directory/file",
+)
+parser.add_argument(
+    "--output",
+    help="Comma delimited list of files to upload in the form /directory/file",
+)
+parser.add_argument(
+    "--wf", help="Workflow stepname in the form of workflow_name/step_name"
+)
+parser.add_argument("--use_cache", help="True/False: Uses existing outputs")
+parser.add_argument(
+    "command",
+    nargs=argparse.REMAINDER,
+    help="The actual command being run form of command args ...",
 )
 
-parser.add_argument('--input', help='Comma delimited list of files to download in the form /directory/file')
-parser.add_argument('--output', help='Comma delimited list of files to upload in the form /directory/file')
-parser.add_argument('--wf', help = 'Workflow stepname in the form of workflow_name/step_name')
-parser.add_argument('--use_cache', help = 'True/False: Uses existing outputs')
-parser.add_argument('command', nargs=argparse.REMAINDER, help='The actual command being run form of command args ...')
-
 args = parser.parse_args()
-# define paths relative to where mounted volume to local system exists 
-VOLUME_PATH = '/volumes/data/local/'
+VOLUME_PATH = "/volumes/data/local/"
 
-if args.use_cache == 'True':
-    print('Using files in {}'.format(args.wf))
+if args.use_cache == "True":
+    print("Using files in {}".format(args.wf))
 else:
     if args.input:
         input_path = os.path.join(VOLUME_PATH, os.path.split(args.wf)[0])
-        infiles = args.input.split(',')
+        infiles = args.input.split(",")
         for f in infiles:
-            fs = os.path.split(f) # splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
-            fn = fs[-1] # gets the file name e.g. 'pull_output.npy'
-            if fs[0] != "": 
-                target = os.path.join(*fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
-                target = target.split('.')[0] # removes parameterization suffix 
+            # Split directory from file name.
+            fs = os.path.split(f)
+            fn = fs[-1]
+            if fs[0] != "":
+                target = os.path.join(*fs[:-1])
+                target = target.split(".")[0]
                 if not os.path.exists(target) and target != "":
-                    os.makedirs(target) # creates the parent directories in the volume if it doesn't exist already
+                    os.makedirs(target)
             else:
-                # fs is just the filename 
                 target = fn
-            
-            source = os.path.join(input_path,f)
+
+            source = os.path.join(input_path, f)
             if not os.path.exists(source):
-                source = os.path.join(VOLUME_PATH, f) #file is not located under workflow name (outside directory)
-            
+                # File is not located under workflow name (outside directory)
+                source = os.path.join(VOLUME_PATH, f)
+
             try:
                 print("Filename: " + fn)
                 print("Source: " + source)
@@ -75,25 +86,29 @@ else:
                 if os.path.exists(fn):
                     pass
                 else:
-                    print('Got error {} while copying file {}'.format(e, fn))
+                    print("Error {} while copying file {}".format(e, fn))
                     raise e
 
     proc = subprocess.call(args.command, shell=False)
     if proc != 0:
-        raise SystemError('Child process failed with exit code {}... exiting...'.format(proc)) 
+        raise SystemError(
+            "Child process failed with exit code {}... exiting...".format(proc)
+        )
 
     if args.output:
         output_path = os.path.join(VOLUME_PATH, args.wf)
         if not os.path.exists(output_path):
-            os.makedirs(output_path) # creates the output volume path if it doesn't exist already
-        outfiles = args.output.split(',') #list of output files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
+            # Creates the output volume path if it doesn't exist already
+            os.makedirs(output_path)
+        # List output files with parent directorys e.g. ['boss_pull_raw.0/pull_output.npy']
+        outfiles = args.output.split(",")
         for f in outfiles:
             fn = os.path.split(f)[-1]
-            try: 
+            try:
                 shutil.copy(fn, output_path)
             except OSError as e:
-                print('Got error {} while copying file {}'.format(e, fn))
+                print("Got error {} while copying file {}".format(e, fn))
                 raise e
-            print('Deleting file to free space...')
+            print("Deleting file to free space...")
             os.remove(fn)
-    print('TOTAL MEMORY USED: {}'.format(resource.getrusage(0).ru_maxrss))
+    print("TOTAL MEMORY USED: {}".format(resource.getrusage(0).ru_maxrss))

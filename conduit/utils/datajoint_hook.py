@@ -24,6 +24,15 @@ import contextlib
 from contextlib import closing
 import sys
 
+db_types = {
+    "int": "int",
+    "boolean": "char(4)",
+    "float": "float",
+    "double": "double",
+    "string": "varchar(64)",
+    "File": "varchar(64)",
+}
+
 
 class Workflow(dj.Manual):
     definition = """
@@ -32,6 +41,7 @@ class Workflow(dj.Manual):
     ---
     workflow_name : varchar(40)
     """
+
 
 class JobMetadata(dj.Manual):
     definition = """
@@ -46,8 +56,6 @@ class JobMetadata(dj.Manual):
     """
 
 
-
-
 def handle_key(key):
     """
     Handles keys to fit into DataJoint tables
@@ -57,40 +65,24 @@ def handle_key(key):
     """
     assert isinstance(key, str)
     key = key.lower()
-    if re.match('_saber_.*',key):
+    if re.match("_saber_.*", key):
         return False
     if re.match("^[a-z][a-z0-9_]*$", key):
         return key
     else:
-        raise ValueError('Key must start with a letter and only contain alphanumeric characters and underscores')
-    
-    
-
-
-    
-    
-
-db_types = {
-    'int' : 'int',
-    'boolean' : 'char(4)',
-    'float' : 'float',
-    'double' : 'double',
-    'string' : 'varchar(64)',
-    'File' : 'varchar(64)'
-}
-
-
+        raise ValueError(
+            "Key must start with a letter and only contain alphanumeric characters and underscores"
+        )
 
 
 class DatajointHook(BaseHook):
-    
     def __init__(self, classdef=None, safe=True, config=None):
         self.safe = safe
         if config is None:
             self.config = {}
-            self.config['host'] = 'datajoint:3306'
-            self.config['user'] = 'root'
-            self.config['password'] = 'airflow'
+            self.config["host"] = "datajoint:3306"
+            self.config["user"] = "root"
+            self.config["password"] = "airflow"
         else:
             self.config = config
         self.classdef = classdef
@@ -98,7 +90,7 @@ class DatajointHook(BaseHook):
         with closing(self.get_conn()) as conn:
             self.create_table(conn, Workflow)
             self.create_table(conn, JobMetadata)
-        
+
     def create_definition(self, d, wf_name, is_cwl=True):
         definition = """
         # Parameter table for workflow {}
@@ -106,10 +98,12 @@ class DatajointHook(BaseHook):
         iteration : varchar(6)
         ---
 
-        """.format(wf_name)
-        for k,t in d.items():
+        """.format(
+            wf_name
+        )
+        for k, t in d.items():
             # Ignore saber keys
-            tp = t.replace('?','')
+            tp = t.replace("?", "")
             k = handle_key(k)
             if k:
                 try:
@@ -117,20 +111,27 @@ class DatajointHook(BaseHook):
                 except KeyError:
                     # Unsupport type, try string lmao
                     djt = "varchar(64)"
-                definition += "    {} = null : {}\n".format(k,djt)
-        return type("{}Params".format(wf_name.title()), (dj.Manual,), dict(definition=definition))
+                definition += "    {} = null : {}\n".format(k, djt)
+        return type(
+            "{}Params".format(wf_name.title()),
+            (dj.Manual,),
+            dict(definition=definition),
+        )
+
     def create_table(self, conn, classdef=None):
         if self.classdef is None and classdef is None:
-            raise AttributeError("Schema needs to be set. Create in constructor or by using create_definition")
+            raise AttributeError(
+                "Schema needs to be set. Create in constructor or by using create_definition"
+            )
         if classdef is None:
             classdef = self.classdef
-                
-        schema = dj.schema(schema_name='airflow', connection=conn, context=self.context)
 
-        
+        schema = dj.schema(schema_name="airflow", connection=conn, context=self.context)
+
         table = schema(classdef)()
         self.context[classdef.__name__] = table
         return table
+
     def insert1(self, row, classdef=None, skip_duplicates=True, **kwargs):
         if classdef is None:
             classdef = self.classdef
@@ -139,41 +140,35 @@ class DatajointHook(BaseHook):
 
             ret = table.insert1(row, skip_duplicates=skip_duplicates, **kwargs)
         return ret
-    
+
     def get_conn(self):
-        with open(os.devnull,'w') as devnull:
+        with open(os.devnull, "w") as devnull:
             with contextlib.redirect_stdout(devnull):
                 conn = dj.conn(**self.config, reset=True)
         return conn
-    def update(self, row, primary_keys={}, classdef=None,  **kwargs):
-        
+
+    def update(self, row, primary_keys={}, classdef=None, **kwargs):
         if classdef is None:
             classdef = self.classdef
         with closing(self.get_conn()) as conn:
             table = self.create_table(conn, classdef=classdef)
-            try: 
+            try:
                 ret = table.insert1(row, skip_duplicates=False, **kwargs)
             except DuplicateError:
                 with dj.config(safemode=False):
                     (table & primary_keys).delete()
                 ret = table.insert1(row, skip_duplicates=False, **kwargs)
         return ret
+
     def query(self, classdef=None):
         if classdef is None:
             classdef = self.classdef
         with closing(self.get_conn()) as conn:
             table = self.create_table(conn, classdef=classdef)
-            
+
             jmdb = self.create_table(conn, JobMetadata)
-            query = table*jmdb
+            query = table * jmdb
         return query.fetch(as_dict=True)
-            
+
     def init_workflow(self, id, name):
-
-        self.insert1(dict(
-            workflow_id=id,
-            workflow_name=name
-        ), classdef=Workflow)
-    
-    
-
+        self.insert1(dict(workflow_id=id, workflow_name=name), classdef=Workflow)

@@ -19,11 +19,11 @@ import os
 import logging
 import yaml
 import docker
-import base64 
+import base64
 from urllib.parse import urlparse
 import tarfile
-
 import tempfile
+
 try:
     from BytesIO import BytesIO
     from StringIO import StringIO
@@ -31,64 +31,68 @@ except ImportError:
     from io import BytesIO
     from io import StringIO
 
+
 def docker_auth():
-    '''
+    """
     Autheticates the AWS ECR registry
     
     Returns:
     --------
     dict: 
         JSON response from the server
-    '''
-    ecr_client = boto3.client('ecr')
-    auth_response = ecr_client.get_authorization_token()['authorizationData']
+    """
+    ecr_client = boto3.client("ecr")
+    auth_response = ecr_client.get_authorization_token()["authorizationData"]
     if len(auth_response) > 1:
-        log.warning('Multiple authorizations for AWS ECR detected, using first one')
+        log.warning("Multiple authorizations for AWS ECR detected, using first one")
     auth_response = auth_response[0]
     return auth_response
 
+
 def docker_registry_login():
-    '''
+    """
     Gets the docker registry name from the auth response
 
     Returns:
     --------
     str : 
         docker registry
-    '''
+    """
     auth_response = docker_auth()
-    docker_registry = urlparse(auth_response['proxyEndpoint']).netloc
+    docker_registry = urlparse(auth_response["proxyEndpoint"]).netloc
     return docker_registry
 
+
 def docker_login():
-    '''
+    """
     Logs into the docker registry to push images
 
     Returns:
     --------
     docker.client
-    '''
+    """
     auth_response = docker_auth()
-    auth_token = base64.b64decode(auth_response['authorizationToken'])
-    auth_token = auth_token.decode('ascii').split(':')
+    auth_token = base64.b64decode(auth_response["authorizationToken"])
+    auth_token = auth_token.decode("ascii").split(":")
 
     docker_client = docker.from_env()
     login_response = docker_client.login(
         username=auth_token[0],
         password=auth_token[1],
-        registry=auth_response['proxyEndpoint'],
-        reauth=True
+        registry=auth_response["proxyEndpoint"],
+        reauth=True,
     )
-    if 'Status' in login_response:
-        log.info(login_response['Status'])
+    if "Status" in login_response:
+        log.info(login_response["Status"])
         return docker_client
     else:
         log.error("ERROR")
         log.error(login_response)
-        raise RuntimeError('Docker login failed')
+        raise RuntimeError("Docker login failed")
 
-def extract(d, keys,exclude=False):
-    '''
+
+def extract(d, keys, exclude=False):
+    """
     Helper function to extract keys and values from dictionary
     
     Parameters
@@ -102,13 +106,15 @@ def extract(d, keys,exclude=False):
     Returns
     -------
     dict : Dict with extracted keys and values
-    '''
+    """
     if exclude:
         return dict((k, d[k]) for k in d if k not in keys)
     else:
         return dict((k, d[k]) for k in keys if k in d)
-def make_build_context(docker_image_name,local=False):
-    '''
+
+
+def make_build_context(docker_image_name, local=False):
+    """
     Makes a build context for the wrapped docker image
 
     Parameters:
@@ -120,37 +126,48 @@ def make_build_context(docker_image_name,local=False):
     --------
     tempfile.NamedTemporaryFile : 
         Temporary dockerfile for build
-    '''
+    """
     if local:
-        s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/localwrap'), os.O_RDONLY)
-        s3fp_info = tarfile.TarInfo('localwrap')
+        s3fd = os.open(
+            os.path.join(os.path.dirname(__file__), "../scripts/localwrap"), os.O_RDONLY
+        )
+        s3fp_info = tarfile.TarInfo("localwrap")
         s3fp_info.size = os.fstat(s3fd).st_size
         dockerfile = BytesIO()
-        log.debug('Docker image name: {}'.format(docker_image_name))
-        dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
-        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_local_template'), 'r') as template_file:
+        log.debug("Docker image name: {}".format(docker_image_name))
+        dockerfile.write("FROM {}\n".format(docker_image_name).encode())
+        with open(
+            os.path.join(
+                os.path.dirname(__file__), "../config/dockerfile_local_template"
+            ),
+            "r",
+        ) as template_file:
             for line in template_file.readlines():
                 dockerfile.write(line.encode())
         dockerfile.seek(0)
 
     else:
-        s3fd = os.open(os.path.join(os.path.dirname(__file__),'../scripts/s3wrap'), os.O_RDONLY)
-        s3fp_info = tarfile.TarInfo('s3wrap')
+        s3fd = os.open(
+            os.path.join(os.path.dirname(__file__), "../scripts/s3wrap"), os.O_RDONLY
+        )
+        s3fp_info = tarfile.TarInfo("s3wrap")
         s3fp_info.size = os.fstat(s3fd).st_size
         dockerfile = BytesIO()
-        log.debug('Docker image name: {}'.format(docker_image_name))
-        dockerfile.write('FROM {}\n'.format(docker_image_name).encode())
-        with open(os.path.join(os.path.dirname(__file__),'../config/dockerfile_s3_template'), 'r') as template_file:
+        log.debug("Docker image name: {}".format(docker_image_name))
+        dockerfile.write("FROM {}\n".format(docker_image_name).encode())
+        with open(
+            os.path.join(os.path.dirname(__file__), "../config/dockerfile_s3_template"),
+            "r",
+        ) as template_file:
             for line in template_file.readlines():
                 dockerfile.write(line.encode())
         dockerfile.seek(0)
 
-
     # Make build context
     f = tempfile.NamedTemporaryFile()
-    t = tarfile.open(mode='w', fileobj=f)
-    s3fp = os.fdopen(s3fd, mode='rb')
-    dfinfo = tarfile.TarInfo('Dockerfile')
+    t = tarfile.open(mode="w", fileobj=f)
+    s3fp = os.fdopen(s3fd, mode="rb")
+    dfinfo = tarfile.TarInfo("Dockerfile")
     dfinfo.size = len(dockerfile.getvalue())
     t.addfile(dfinfo, dockerfile)
     t.addfile(s3fp_info, s3fp)
@@ -159,8 +176,9 @@ def make_build_context(docker_image_name,local=False):
     f.seek(0)
     return f
 
+
 def get_original_docker_name(tool_yml):
-    '''
+    """
     Gets the original docker name from a tool CWL
 
     Parameters:
@@ -172,15 +190,17 @@ def get_original_docker_name(tool_yml):
     --------
     str:
         Original docker name
-    '''
-    try:   
-        orig_docker_image_name = tool_yml['hints']['DockerRequirement']['dockerPull']
+    """
+    try:
+        orig_docker_image_name = tool_yml["hints"]["DockerRequirement"]["dockerPull"]
     except KeyError:
-        raise NotImplementedError('Non-docker based tools are not supported')
+        raise NotImplementedError("Non-docker based tools are not supported")
 
     return orig_docker_image_name
+
+
 def make_tag(tool_name, tool_yml, local):
-    '''
+    """
     Makes a tag form the tool name and tool CWL
     Parameters:
     -----------
@@ -193,33 +213,33 @@ def make_tag(tool_name, tool_yml, local):
     --------
     str:
         Docker image tag of the form "registry/original_name:s3"
-    '''
+    """
     orig_docker_image_name = get_original_docker_name(tool_yml)
-    docker_image_name_s = orig_docker_image_name.split('/')
+    docker_image_name_s = orig_docker_image_name.split("/")
     if not local:
         auth_response = docker_auth()
     # Seperate out docker repo name
     if len(docker_image_name_s) == 3:
         # Includes repository name
         docker_repo_name = docker_image_name_s[0]
-        docker_image_name = '/'.join(docker_image_name_s[1:])
+        docker_image_name = "/".join(docker_image_name_s[1:])
     else:
         docker_image_name = orig_docker_image_name
-        docker_repo_name = ''
-    docker_tag_s = docker_image_name.split(':')
+        docker_repo_name = ""
+    docker_tag_s = docker_image_name.split(":")
     short_docker_image_name = docker_tag_s[0]
     # if auth_response['proxyEndpoint'] != docker_repo_name:
     #     log.warning('Docker repo does not match AWS docker repo')
     if not local:
         docker_registry = docker_registry_login()
-        tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
+        tag = "{}/{}:s3".format(docker_registry, short_docker_image_name)
     if local:
-        tag = '{}:local'.format(short_docker_image_name)
+        tag = "{}:local".format(short_docker_image_name)
     return tag
 
 
 def create_and_push_docker_image(tool_yml, tag, local):
-    '''
+    """
     Creates and pushes a docker image from the created context
 
     Parameters:
@@ -234,44 +254,40 @@ def create_and_push_docker_image(tool_yml, tag, local):
     str:
         Tag from input
     
-    '''
+    """
     orig_docker_image_name = get_original_docker_name(tool_yml)
-    dockerfile_tar = make_build_context(orig_docker_image_name,local=local)
+    dockerfile_tar = make_build_context(orig_docker_image_name, local=local)
     if local:
         docker_client = docker.from_env()
     else:
         docker_client = docker_login()
     try:
         im, bgen = docker_client.images.build(
-            fileobj=dockerfile_tar, 
-            rm=True, 
-            pull=True, 
-            tag=tag,
-            custom_context=True)
+            fileobj=dockerfile_tar, rm=True, pull=True, tag=tag, custom_context=True
+        )
     except docker.errors.BuildError as e:
         log.warn('Error building image "{}", trying with local image...'.format(e))
-        dockerfile_tar = make_build_context(orig_docker_image_name,local)
+        dockerfile_tar = make_build_context(orig_docker_image_name, local)
 
         im, bgen = docker_client.images.build(
-            fileobj=dockerfile_tar, 
-            rm=True, 
-            pull=False, 
-            tag=tag,
-            custom_context=True)
-    prev_line = ''
+            fileobj=dockerfile_tar, rm=True, pull=False, tag=tag, custom_context=True
+        )
+    prev_line = ""
     for line in bgen:
-        if 'stream' in line and line['stream'] != prev_line:
-            log.info(line['stream'])
-            prev_line = line['stream']
-    prev_line = ''
+        if "stream" in line and line["stream"] != prev_line:
+            log.info(line["stream"])
+            prev_line = line["stream"]
+    prev_line = ""
     if not local:
         for line in docker_client.images.push(tag, stream=True, decode=True):
-            if 'status' in line and line['status'] != prev_line:
-                log.info(line['status'])
-                prev_line = line['status']
+            if "status" in line and line["status"] != prev_line:
+                log.info(line["status"])
+                prev_line = line["status"]
     return tag
+
+
 def generate_job_definition(tool_name, tool_yml, tag):
-    '''
+    """
     Generates an AWS batch job definition containing the running requirements
     and image. Does NOT include a command, as this is added as an override.
     This was done because AWS will throw an error if the job submitted does not
@@ -292,30 +308,45 @@ def generate_job_definition(tool_name, tool_yml, tag):
         Job definition in the format described by AWS
         See: https://docs.aws.amazon.com/batch/latest/userguide/job-definition-template.html
 
-    '''
+    """
 
     # Load template from configs
-    with open(os.path.join(os.path.dirname(__file__),'../config/aws_config.yml' )) as fp:
-        job_definition = yaml.load(fp)['job-definitions']
+    with open(
+        os.path.join(os.path.dirname(__file__), "../config/aws_config.yml")
+    ) as fp:
+        job_definition = yaml.load(fp)["job-definitions"]
 
-    job_definition['containerProperties']['image'] = tag
-    
-    
-    job_definition['containerProperties']['command'] = []
-    job_definition['jobDefinitionName'] = tool_name.replace('_','-')
+    job_definition["containerProperties"]["image"] = tag
+
+    job_definition["containerProperties"]["command"] = []
+    job_definition["jobDefinitionName"] = tool_name.replace("_", "-")
     try:
-        job_definition['containerProperties']['memory'] = tool_yml['requirements']['ResourceRequirement']['ramMin']
+        job_definition["containerProperties"]["memory"] = tool_yml["requirements"][
+            "ResourceRequirement"
+        ]["ramMin"]
     except KeyError:
-        log.warning('No memory resource requirements specified, using default of {}'.format(job_definition['containerProperties']['memory']))
-        
+        log.warning(
+            "No memory resource requirements specified, using default of {}".format(
+                job_definition["containerProperties"]["memory"]
+            )
+        )
+
     try:
-        job_definition['containerProperties']['vcpus'] = tool_yml['requirements']['ResourceRequirement']['coresMin']
+        job_definition["containerProperties"]["vcpus"] = tool_yml["requirements"][
+            "ResourceRequirement"
+        ]["coresMin"]
     except KeyError:
-        log.warning('No vCPU resource requirements specified, using default of {}'.format(job_definition['containerProperties']['vcpus']))
+        log.warning(
+            "No vCPU resource requirements specified, using default of {}".format(
+                job_definition["containerProperties"]["vcpus"]
+            )
+        )
 
     return job_definition
+
+
 def create_job_definitions():
-    '''
+    """
     Creates job definitions from json files in ./job-definitions/
 
     Returns
@@ -328,22 +359,22 @@ def create_job_definitions():
             'revision': 123
         }
             
-    '''
+    """
 
-    
     ret = []
 
     job_definition_files = glob.glob(
-        os.path.join(os.path.dirname(__file__),'../config/job-definitions/*.json')
-        )
+        os.path.join(os.path.dirname(__file__), "../config/job-definitions/*.json")
+    )
     for job_definition_file in job_definition_files:
         with open(job_definition_file) as fp:
             job_definition = json.load(fp)
         ret.append(create_job_definition(job_definition))
     return ret
 
+
 def create_job_definition(job_definition):
-    ''' 
+    """ 
     Registers a job definition with AWS, checking if it was already defined.
 
     Parameters
@@ -361,45 +392,59 @@ def create_job_definition(job_definition):
             jobDefinitionArn: str,
             revision: int
         }
-    '''
-    log.debug('Describing job definition from job {}'.format(job_definition['jobDefinitionName']))
+    """
+    log.debug(
+        "Describing job definition from job {}".format(
+            job_definition["jobDefinitionName"]
+        )
+    )
     check_response = client.describe_job_definitions(
-            jobDefinitionName=job_definition['jobDefinitionName'],
-            status='ACTIVE'
+        jobDefinitionName=job_definition["jobDefinitionName"], status="ACTIVE"
+    )
+
+    if check_response["jobDefinitions"] == []:
+        log.info(
+            "Creating job definition for job {}...".format(
+                job_definition["jobDefinitionName"]
+            )
         )
-    
-    if check_response['jobDefinitions'] == []:
-        log.info('Creating job definition for job {}...'.format(job_definition['jobDefinitionName']))
-        ret = client.register_job_definition(
-            **job_definition
-        )
+        ret = client.register_job_definition(**job_definition)
     else:
-        for i,c_check_reponse in enumerate(check_response['jobDefinitions']):
+        for i, c_check_reponse in enumerate(check_response["jobDefinitions"]):
             c_check_response = extract(
-                d=c_check_reponse, 
-                keys=['jobDefinitionArn','status','revision'], 
-                exclude=True
+                d=c_check_reponse,
+                keys=["jobDefinitionArn", "status", "revision"],
+                exclude=True,
             )
             if c_check_response == job_definition:
-                log.warning('Job definition exists for job {} and matches revision {}. Continuing...'.format(job_definition['jobDefinitionName'],check_response['jobDefinitions'][i]['revision'] ))
+                log.warning(
+                    "Job definition exists for job {} and matches revision {}. Continuing...".format(
+                        job_definition["jobDefinitionName"],
+                        check_response["jobDefinitions"][i]["revision"],
+                    )
+                )
                 ret = extract(
-                    d=check_response['jobDefinitions'][i],
-                    keys=['jobDefinitionName','jobDefinitionArn','revision']
+                    d=check_response["jobDefinitions"][i],
+                    keys=["jobDefinitionName", "jobDefinitionArn", "revision"],
                 )
                 return ret
 
-        log.warning('Job definition exists for job {}, but does not match file. Creating new revision...'.format(job_definition['jobDefinitionName']))
+        log.warning(
+            "Job definition exists for job {}, but does not match file. Creating new revision...".format(
+                job_definition["jobDefinitionName"]
+            )
+        )
         ret = extract(
-            d=client.register_job_definition(
-                **job_definition
-                ),
-            keys=['jobDefinitionName','jobDefinitionArn','revision']
-            )        
+            d=client.register_job_definition(**job_definition),
+            keys=["jobDefinitionName", "jobDefinitionArn", "revision"],
+        )
     return ret
+
+
 try:
-    client = boto3.client('batch')
+    client = boto3.client("batch")
 except:
-    print('Local Execution only (no S3)')
+    print("Local Execution only (no S3)")
 if __name__ == "__main__":
     logging.basicConfig()
     log = logging.getLogger(__name__)
@@ -407,5 +452,3 @@ if __name__ == "__main__":
 else:
     log = logging.getLogger(__name__)
     log.setLevel(logging.DEBUG)
-    
-

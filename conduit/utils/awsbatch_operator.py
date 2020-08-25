@@ -15,17 +15,16 @@
 import sys
 import parse
 
-
 from math import log1p
 from time import sleep, time
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils import apply_defaults
-
 from conduit.utils.datajoint_hook import DatajointHook, JobMetadata
-
 from airflow.contrib.hooks.aws_hook import AwsHook
 from datajoint.errors import DuplicateError
+
+
 class AWSBatchOperator(BaseOperator):
     """
     Execute a job on AWS Batch Service
@@ -47,14 +46,26 @@ class AWSBatchOperator(BaseOperator):
     :param region_name: region name to use in AWS Hook. Override the region_name in connection (if provided)
     """
 
-    ui_color = '#c3dae0'
+    ui_color = "#c3dae0"
     client = None
     arn = None
-    template_fields = ('overrides',)
+    template_fields = ("overrides",)
 
     @apply_defaults
-    def __init__(self, job_name, job_definition, queue, overrides, workflow_id, max_retries=288,
-                 aws_conn_id=None, region_name=None, job_parameters={}, score_format='', **kwargs):
+    def __init__(
+        self,
+        job_name,
+        job_definition,
+        queue,
+        overrides,
+        workflow_id,
+        max_retries=288,
+        aws_conn_id=None,
+        region_name=None,
+        job_parameters={},
+        score_format="",
+        **kwargs
+    ):
         super(AWSBatchOperator, self).__init__(**kwargs)
 
         self.job_name = job_name
@@ -73,49 +84,49 @@ class AWSBatchOperator(BaseOperator):
         self.jobmetadata_db = JobMetadata()
         self.hook = self.get_hook()
         self.score_format = score_format
+
     def execute(self, context):
         self.log.info(
-            'Running AWS Batch Job - Job definition: %s - on queue %s',
-            self.job_definition, self.queue
+            "Running AWS Batch Job - Job definition: %s - on queue %s",
+            self.job_definition,
+            self.queue,
         )
-        self.log.info('AWSBatchOperator overrides: %s', self.overrides)
-
-        self.client = self.hook.get_client_type(
-            'batch',
-            region_name=self.region_name
-        )
+        self.log.info("AWSBatchOperator overrides: %s", self.overrides)
+        self.client = self.hook.get_client_type("batch", region_name=self.region_name)
         try:
             response = self.client.submit_job(
                 jobName=self.job_name,
                 jobQueue=self.queue,
                 jobDefinition=self.job_definition,
                 containerOverrides=self.overrides,
-                parameters=self.jobParameters)
-
-            self.log.info('AWS Batch Job started: %s', response)
-
-            self.jobId = response['jobId']
-            self.jobName = response['jobName']
+                parameters=self.jobParameters,
+            )
+            self.log.info("AWS Batch Job started: %s", response)
+            self.jobId = response["jobId"]
+            self.jobName = response["jobName"]
             self._wait_for_task_ended()
-
             self._check_success_task()
-            
             task_time, score = self._get_score()
-            iteration = self.task_id.split('.')[1]
-            real_task_id = self.task_id.split('.')[0]
-            self.log.info('Inserting {} {} {} {} {} into job metadata database'.format(self.workflow_id, iteration, real_task_id, task_time, score))
-            self.dj_hook.insert1({
-                'iteration' : iteration,
-                'workflow_id' : self.workflow_id,
-                'job_id' : real_task_id,
-                'cost' : task_time,
-                'score' : score
-                },JobMetadata)
-       
-
-            self.log.info('AWS Batch Job has been successfully executed: %s', response)
+            iteration = self.task_id.split(".")[1]
+            real_task_id = self.task_id.split(".")[0]
+            self.log.info(
+                "Inserting {} {} {} {} {} into job metadata database".format(
+                    self.workflow_id, iteration, real_task_id, task_time, score
+                )
+            )
+            self.dj_hook.insert1(
+                {
+                    "iteration": iteration,
+                    "workflow_id": self.workflow_id,
+                    "job_id": real_task_id,
+                    "cost": task_time,
+                    "score": score,
+                },
+                JobMetadata,
+            )
+            self.log.info("AWS Batch Job has been successfully executed: %s", response)
         except Exception as e:
-            self.log.info('AWS Batch Job has failed executed')
+            self.log.info("AWS Batch Job has failed executed")
             raise AirflowException(e)
 
     def _wait_for_task_ended(self):
@@ -130,7 +141,7 @@ class AWSBatchOperator(BaseOperator):
         """
         # TODO improve this? Checking every 5s doesn't seem like too often...
         try:
-            waiter = self.client.get_waiter('job_execution_complete')
+            waiter = self.client.get_waiter("job_execution_complete")
             waiter.config.max_attempts = sys.maxsize  # timeout is managed by airflow
             waiter.wait(jobs=[self.jobId])
         except ValueError:
@@ -139,67 +150,65 @@ class AWSBatchOperator(BaseOperator):
             retries = 0
 
             while (retries < self.max_retries or self.max_retries <= 0) and retry:
-                response = self.client.describe_jobs(
-                    jobs=[self.jobId]
-                )
-                if response['jobs'][-1]['status'] in ['SUCCEEDED', 'FAILED']:
+                response = self.client.describe_jobs(jobs=[self.jobId])
+                if response["jobs"][-1]["status"] in ["SUCCEEDED", "FAILED"]:
                     retry = False
                 sleep(log1p(retries) * 30)
                 retries += 1
 
     def _check_success_task(self):
-        response = self.client.describe_jobs(
-            jobs=[self.jobId],
-        )
+        response = self.client.describe_jobs(jobs=[self.jobId],)
 
-        self.log.info('AWS Batch stopped, check status: %s', response)
-        if len(response.get('jobs')) < 1:
-            raise AirflowException('No job found for {}'.format(response))
+        self.log.info("AWS Batch stopped, check status: %s", response)
+        if len(response.get("jobs")) < 1:
+            raise AirflowException("No job found for {}".format(response))
 
-        for job in response['jobs']:
-            if 'attempts' in job:
-                containers = job['attempts']
+        for job in response["jobs"]:
+            if "attempts" in job:
+                containers = job["attempts"]
                 for container in containers:
-                    if (job['status'] == 'FAILED' or
-                            container['container']['exitCode'] != 0):
+                    if (
+                        job["status"] == "FAILED"
+                        or container["container"]["exitCode"] != 0
+                    ):
                         print("@@@@")
-                        raise AirflowException('This containers encounter an error during execution {}'.format(job))
-            elif job['status'] is not 'SUCCEEDED':
-                raise AirflowException('This task is still pending {}'.format(job['status']))
+                        raise AirflowException(
+                            "This containers encounter an error during execution {}".format(
+                                job
+                            )
+                        )
+            elif job["status"] is not "SUCCEEDED":
+                raise AirflowException(
+                    "This task is still pending {}".format(job["status"])
+                )
 
     def get_hook(self):
-        return AwsHook(
-            aws_conn_id=self.aws_conn_id
-        )
+        return AwsHook(aws_conn_id=self.aws_conn_id)
 
     def on_kill(self):
         response = self.client.terminate_job(
-            jobId=self.jobId,
-            reason='Task killed by the user')
+            jobId=self.jobId, reason="Task killed by the user"
+        )
 
         self.log.info(response)
+
     def _get_score(self):
-        response = self.client.describe_jobs(
-            jobs=[self.jobId]
-        )
-        runTime = response['jobs'][-1]['stoppedAt'] - response['jobs'][-1]['startedAt']
+        response = self.client.describe_jobs(jobs=[self.jobId])
+        runTime = response["jobs"][-1]["stoppedAt"] - response["jobs"][-1]["startedAt"]
         if self.score_format:
-            logStream = response['jobs'][-1]['container']['logStreamName']
-            self.logClient =self.hook.get_client_type(
-                'logs',
-                region_name=self.region_name
+            logStream = response["jobs"][-1]["container"]["logStreamName"]
+            self.logClient = self.hook.get_client_type(
+                "logs", region_name=self.region_name
             )
             response = self.logClient.get_log_events(
-                logGroupName = '/aws/batch/job',
-                logStreamName = logStream,
+                logGroupName="/aws/batch/job", logStreamName=logStream,
             )
-            logEvents = response['events']
+            logEvents = response["events"]
             # Reads events from most recent to least recent (earliest), so the
             # first match is the most recent score. Perhaps change this?
             for logEvent in logEvents:
-                parsed_event = parse.parse(self.score_format, logEvent['message'])
-                if parsed_event and 'score' in parsed_event.named:
-                    return (runTime, float(parsed_event['score']))
-            self.log.info('Score format present but no score found in logs...')
+                parsed_event = parse.parse(self.score_format, logEvent["message"])
+                if parsed_event and "score" in parsed_event.named:
+                    return (runTime, float(parsed_event["score"]))
+            self.log.info("Score format present but no score found in logs...")
         return (runTime, None)
-        

@@ -18,10 +18,11 @@ import itertools
 import random
 from abc import ABC, abstractmethod
 
+
 def parameterize(p):
     param_ranges = []
     for mp_name, metaparam in p.items():
-        r = metaparam['range']
+        r = metaparam["range"]
         if type(r) == dict:
             param_ranges.append(np.arange(**r))
         elif type(r) == list:
@@ -31,43 +32,58 @@ def parameterize(p):
     iterations = []
     for i in itertools.product(*param_ranges):
         iteration = {}
-        for j,(mp_name, metaparam) in enumerate(p.items()):
+        for j, (mp_name, metaparam) in enumerate(p.items()):
             job = {}
-            if set(metaparam['parameters'].keys()) == set(['min', 'max']):
-                if set(metaparam['range'].keys()) == set(['start', 'stop', 'step']):
-                    job[metaparam['parameters']['min']] = str(i[j])
-                    job[metaparam['parameters']['max']] = str(min(i[j] + metaparam['range']['step'], metaparam['range']['stop']))
+            if set(metaparam["parameters"].keys()) == set(["min", "max"]):
+                if set(metaparam["range"].keys()) == set(["start", "stop", "step"]):
+                    job[metaparam["parameters"]["min"]] = str(i[j])
+                    job[metaparam["parameters"]["max"]] = str(
+                        min(
+                            i[j] + metaparam["range"]["step"],
+                            metaparam["range"]["stop"],
+                        )
+                    )
                 else:
-                    raise KeyError("In order to use min/max parameterization, you need to specify a range with start, stop and step")
-            elif set(metaparam['parameters'].keys()) == set(['abs']):
-                job[metaparam['parameters']['abs']] = str(i[j])
+                    raise KeyError(
+                        "In order to use min/max parameterization, you need to specify a range with start, stop and step"
+                    )
+            elif set(metaparam["parameters"].keys()) == set(["abs"]):
+                job[metaparam["parameters"]["abs"]] = str(i[j])
             else:
-                raise KeyError("Parameters type(s) {} not valid".format(metaparam['parameters'].keys()))
-            for stepname in metaparam['steps']:
+                raise KeyError(
+                    "Parameters type(s) {} not valid".format(
+                        metaparam["parameters"].keys()
+                    )
+                )
+            for stepname in metaparam["steps"]:
                 if stepname in iteration:
                     iteration[stepname].update(job)
                 else:
                     iteration[stepname] = job
-                
+
         iterations.append(iteration)
     return iterations
 
+
 class Sampler(ABC):
-    '''
+    """
     Abstract class for a sampler
-    '''
+    """
+
     def __init__(self, parameterization_dict, job, **kwargs):
         self.job = job
         self.parameters = parameterization_dict
-        
+
         super().__init__()
+
     @abstractmethod
     def update(self, results):
         pass
-    
+
     @abstractmethod
     def sample(self):
         pass
+
 
 class RandomSampler(Sampler):
     def __init__(self, parameterization_dict, job, max_iterations, **kwargs):
@@ -78,12 +94,11 @@ class RandomSampler(Sampler):
 
     def update(self, results):
         self.next_job = random.choice(self.param_grid)
-    
+
     def sample(self):
         for _ in range(self.max_iterations):
             yield self.next_job
 
-# New sampling methods can be added below!
 
 class GridSampler(Sampler):
     def __init__(self, parameterization_dict, job, **kwargs):
@@ -91,7 +106,7 @@ class GridSampler(Sampler):
         self.param_grid = parameterize(parameterization_dict)
         self.count = 0
         self.update(None)
-    
+
     def update(self, results):
         self.next_job = self.param_grid[self.count]
         self.count += 1
@@ -100,18 +115,19 @@ class GridSampler(Sampler):
         for _ in range(len(self.param_grid)):
             yield self.next_job
 
+
 class BatchGridSampler(Sampler):
     def __init__(self, parameterization_dict, job, batch_size, **kwargs):
         super().__init__(parameterization_dict, job)
         self.batch_size = batch_size
         self.param_grid = parameterize(parameterization_dict)
-        self.num_of_batches = int(np.ceil(len(self.param_grid)/self.batch_size))
+        self.num_of_batches = int(np.ceil(len(self.param_grid) / self.batch_size))
         self.batch_index = 0
         self.update(None)
-    
+
     def update(self, results):
         start = self.batch_index
-        end = self.batch_index+self.batch_size
+        end = self.batch_index + self.batch_size
         if end > len(self.param_grid):
             self.next_job = self.param_grid[start:]
         else:
