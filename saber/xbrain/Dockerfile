@@ -25,9 +25,11 @@ RUN conda install --yes --force libgfortran scipy \
 RUN pip install --no-cache-dir mahotas
 RUN pip install --no-cache-dir ndparse
 RUN pip install --no-cache-dir nibabel
+RUN pip install --no-cache-dir blosc==1.4.4
 RUN mkdir app
 RUN git clone https://github.com/jhuapl-boss/intern.git && cd intern && git checkout RemoteExtension && git pull && python3 setup.py install --user
 ADD ./unsupervised_celldetect.py /app/unsupervised_celldetect.py
 #Necessary to use for galaxy
 ADD --chown=1000:100 ./xbrain.py ./process-xbrain.py ./split_cells.py  /app/
 ENV PATH /app:$PATH
+USER root

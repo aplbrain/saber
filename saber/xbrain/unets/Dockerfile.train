@@ -1,11 +1,8 @@
-# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
-#
+# Copyright 2018 The Johns Hopkins University Applied Physics Laboratory.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
+#     http://www.apache.org/licenses/LICENSE-2.0
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,10 +11,6 @@
 
 FROM kaixhin/cuda-theano:7.5
 
-RUN apt-get clean
-RUN apt-get update
-RUN apt-get -y upgrade
-
 # Install dependencies
 RUN apt-get update && apt-get install -y \
   libhdf5-dev \
@@ -25,31 +18,8 @@ RUN apt-get update && apt-get install -y \
   python-yaml \
   vim 
 
-RUN apt-get update \
-  && apt-get install -y python3-pip python3-dev \
-  && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip
-
-RUN apt-get -y install build-essential
-
-RUN apt-get -y install \
-  libx11-dev \
-  #libblosc-dev \
-  libblas-dev \
-  liblapack-dev \
-  wget
-
-# Setup python packages
-RUN pip install --ignore-installed Theano
-RUN pip install numpy
-RUN pip3 install numpy
-RUN pip3 install --ignore-installed awscli
-RUN pip3 install --ignore-installed boto3
-RUN pip install --ignore-installed SimpleITK
-
+RUN pip install --upgrade pip
 # Upgrade six
-RUN pip3 install --upgrade six
 RUN pip install --upgrade six
 
 # Clone Keras repo and move into it
@@ -63,13 +33,17 @@ RUN pip install --ignore-installed keras
 
 # Install intern
 RUN pip install --ignore-installed intern
-RUN mkdir -p /src/weights
-RUN wget --directory-prefix /src/weights https://raw.githubusercontent.com/aplbrain/emcv/master/unets/weights/kasthuri/synapse_weights.hdf5
-RUN wget --directory-prefix /src/weights https://raw.githubusercontent.com/aplbrain/emcv/master/unets/weights/kasthuri/membrane_weights.hdf5
+#RUN pip install awscli
+#RUN pip install boto3
+RUN pip install --ignore-installed SimpleITK
+
 # Create workspace
 # TODO: Re-org this to use git clone and S3
 WORKDIR /src
-COPY ./ /src/
+#COPY ./weights/*.hdf5 /src/weights/
+#COPY ./aws-batch/setup/startup.sh /src/
+#COPY ./*.json /src/
+COPY ./*.py /src/
 
 ENV KERAS_BACKEND=theano
 ENV PATH=/src:$PATH
@@ -83,6 +57,6 @@ ENV GPUARRAY_CUDA_VERSION=75
 ENV THEANO_FLAGS="device=cuda0,blas.ldflags='-lf77blas -latlas -lgfortran',dnn.include_path=/usr/local/cuda/include"
 #ENV THEANO_FLAGS='device=cuda,lib.cnmem=1'
 
-# RUN apt-get install -y python3-pip
+RUN apt-get install -y python3-pip
 
-ENTRYPOINT ["python2", "deploy_pipeline.py"]
+CMD ["python", "train_unet_docker.py"]

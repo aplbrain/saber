@@ -15,7 +15,7 @@
 # Configuration options for AWS
 # IAM configuration
 iam:
-   RoleName: SaberAirflowBatchWF-ecsTaskWithS3-FM8X2T2J3PXJ
+   RoleName: Saber-Airflow-Workflow-ecsTaskWithS3-45XRWHEJJ8DK
    # Must start with file:// or be a url (eg. http://)
    AssumeRolePolicyDocument: file://ec2-trust-policy.json
    Description: Allows ECS tasks to have full access to S3
@@ -65,7 +65,7 @@ security-group:
   Description: Default VPC security group
   GroupName: default
 job-queue:
-  jobQueueName: saber-gen-queue
+  jobQueueName: saber-gpu-queue-enhanced-memory
   state: ENABLED
   priority: 1
   computeEnvironmentOrder:
@@ -77,9 +77,9 @@ job-definitions:
   retryStrategy:
     attempts: 1
   containerProperties:
-    vcpus: 4
-    memory: 40000
-    jobRoleArn: arn:aws:iam::256215146792:role/SaberAirflowBatchWF-ecsTaskWithS3-FM8X2T2J3PXJ
+    vcpus: 2
+    memory: 4000
+    jobRoleArn: arn:aws:iam::438004392447:role/Saber-Airflow-Workflow-BatchInstanceRole-1TQSRWFR81Y5O
     volumes: 
       - name: saber-home
         host: 
@@ -89,3 +89,7 @@ job-definitions:
       - sourceVolume: saber-home
         containerPath: /saber-home
     ulimits: []
+datajoint:
+  host: 'datajoint:3306'
+  user: root
+  password: airflow

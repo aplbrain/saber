@@ -20,8 +20,8 @@ hints:
     DockerRequirement:
         # dockerPull: xbrain:airflow-docker
         dockerPull: aplbrain/xbrain:latest
-baseCommand: process-xbrain.py
-arguments: ["classify"]
+baseCommand: python
+arguments: ["/app/process-xbrain.py", "classify"]
 inputs:
     input:
         type: File

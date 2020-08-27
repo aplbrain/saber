@@ -1,0 +1,30 @@
+# DVID:
+host_name: emdata.janelia.org
+uuid: 822524777d3048b8bd520043f90c1d28
+resource_name: grayscale
+dtype_name: uint8
+type: uint8blk
+resolution: 0
+xmin: 2000
+xmax: 2256
+ymin: 2000
+ymax: 2256
+zmin: 2000
+zmax: 2256
+pull_output_name: medulla7_raw.npy
+
+# FFN segmentation
+image_mean: 128
+image_stddev: 33
+depth: 12
+fov_size: 33,33,33
+deltas: 8,8,8
+init_activation: 0.95
+pad_value: 0.05
+move_threshold: 0.9
+min_boundary_dist: 1,1,1
+segment_threshold: 0.6
+min_segment_size: 1000
+bound_start: 0,0,0
+bound_stop: 64,64,64
+outfile: medulla7_ffn_out.npy

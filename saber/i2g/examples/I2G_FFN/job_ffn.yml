@@ -1,0 +1,39 @@
+# BOSS:
+#------------------------------------------------
+# general:
+host_bossdb: api.bossdb.io
+token_bossdb: public
+coll_name: neuroproof_examples
+exp_name: training_sample
+coord_name: neuroproof_training_sample_2
+resolution: 0
+xmin: 0
+xmax: 250
+ymin: 0
+ymax: 250
+zmin: 0
+zmax: 250
+padding: 0
+onesided: 0
+#inputs:
+in_chan_name_raw: images
+itype_name_in: image
+dtype_name_in: uint8
+#outputs
+pull_output_name_raw: pull_output_raw.npy
+
+# FFN segmentation
+image_mean: 128
+image_stddev: 33
+depth: 12
+fov_size: 33,33,33
+deltas: 8,8,8
+init_activation: 0.95
+pad_value: 0.05
+move_threshold: 0.9
+min_boundary_dist: 1,1,1
+segment_threshold: 0.6
+min_segment_size: 100
+bound_start: 0,0,0
+bound_stop: 250,250,250
+outfile: ffn_seg_out.npy

@@ -369,6 +369,10 @@ def detect_cells(cell_probability, probability_threshold, stopping_criterion,
     import pdb
     import logging
 
+    if len(cell_probability.shape) == 4:
+        print('Assuming Z, Chan, Y, X input')
+        cell_probability = np.transpose(cell_probability[:,0,:,:], (2,1,0))
+
     # threshold probability map.
     newtest = (cell_probability * (cell_probability > probability_threshold)).astype('float32')
     #initial_template_size is an int now but could a vector later on - convert it to an array
@@ -822,8 +826,12 @@ def centroid_f1(C0,C1,thres):
     C0 = np.transpose(C0)
     C1 = np.transpose(C1)
     Y = scipy.spatial.distance.cdist(C0, C1, 'euclidean')
-    vals = np.sort(np.amin(Y,axis=1)) 
-    valinds = np.argsort(np.min(Y,axis=1)) 
+    try:
+        vals = np.sort(np.amin(Y,axis=1)) 
+        valinds = np.argsort(np.min(Y,axis=1)) 
+    except ValueError:
+        print("No Detected Objects")
+        return 0
 
     L = len(vals[np.where(vals<=thres)])
 

@@ -15,7 +15,7 @@
 #### CWL parser dockerfile ####
 
 FROM python:3.6-slim
-ARG AIRFLOW_VERSION=1.10.0
+ARG AIRFLOW_VERSION=1.10.4
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 RUN set -ex \
     && buildDeps=' \
@@ -36,13 +36,13 @@ RUN set -ex \
         $buildDeps \
         python3-pip \
         python3-requests \
-        mysql-client \
-        mysql-server \
         default-libmysqlclient-dev \
         apt-utils \
         curl \
         rsync \
         netcat \
+        default-mysql-server \
+        default-mysql-client \
         locales
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
@@ -51,9 +51,6 @@ RUN apt-get update \
 
 RUN pip3 install apache-airflow==$AIRFLOW_VERSION 
 RUN pip install apache-airflow==$AIRFLOW_VERSION 
-COPY requirements.txt /
-RUN pip install -r /requirements.txt
-RUN pip3 install -r /requirements.txt
 # COPY awsbatch_operator.py \
 #     cwl-to-dag.py \
 #     create_job_definitions.py \
@@ -63,4 +60,7 @@ RUN pip3 install -r /requirements.txt
     # s3wrap \
     # cwl_monitor /scripts/
 # ENTRYPOINT [ "cwl_monitor" ]
+COPY ./conduit /conduit
+COPY ./setup.py /
+RUN pip install -e /
 ENV PATH="/conduit:${PATH}"

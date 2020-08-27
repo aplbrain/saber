@@ -1,17 +1,3 @@
-# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 #!/usr/bin/env python
 
 import argparse
@@ -109,30 +95,15 @@ def cell_metrics(args):
     img = nib.load(args.groundtruth)
     centroids = np.load(args.input)
     volume = img.get_fdata()# np.load(args.input)
-    try:
-        f1 = cell_metrics2D(centroids,volume,args.initial_template_size)
-    except (ValueError, ZeroDivisionError) as v:
-        print('Received following error when trying to calculate F1, returning 0')
-        print(v)
-        f1 = 0
-    print("F1: {}".format(f1))
-
+    f1 = cell_metrics2D(centroids,volume,args.initial_template_size)
     with open(args.output, 'wb') as f:
         np.save(f, f1)
 
 def cell_metrics3D(args):
     img = np.load(args.groundtruth)
     centroids = np.load(args.input)
-    # Enforce shape of centroids
-    if len(centroids.shape) != 2 or centroids.shape[1] != 4:
-        raise ValueError('Dimension mismatch in cell list, should be (n,4), is {}'.format(centroids.shape))
     #volume = img.get_fdata()# np.load(args.input)
-    try:
-        f1 = f1_centroid3D(centroids,img,args.initial_template_size)
-    except ValueError as v:
-        print('Received following error when trying to calculate F1, returning 0')
-        print(v)
-        f1 = 0
+    f1 = f1_centroid3D(centroids,img,args.initial_template_size)
     print("F1: {}".format(f1))
     with open(args.output, 'wb') as f:
         np.save(f, f1)

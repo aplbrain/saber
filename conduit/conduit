@@ -16,29 +16,35 @@
 
 import os
 import argparse
-import yaml 
+import yaml
 import logging
 import csv
-from utils.parameterization import parameterize, RandomSampler
+from utils.parameterization import *
 import requests
-import cwltool.main as cwltool 
+import cwltool.main as cwltool
 import time
+
+
 def init(args):
     raise NotImplementedError
+
+
 def construct_parser(args):
-    if cwltool.main(argsl=['--validate', args.cwl, args.job]) != 0:
-        raise RuntimeError('CWL failed to validate')
-    
+    if cwltool.main(argsl=["--validate", args.cwl, args.job]) != 0:
+        raise RuntimeError("CWL failed to validate")
+
     with open(args.config) as fp:
-        config = yaml.load(fp)
+        config = yaml.full_load(fp)
     from utils.cwlparser import CwlParser
+
     return CwlParser(args.cwl, config)
+
+
 def build(args):
     p = construct_parser(args)
     p.create_job_definitions()
     p.build_docker_images()
-    
-  
+
 
 def parse(args):
     p = construct_parser(args)
@@ -47,142 +53,224 @@ def parse(args):
         p.build_docker_images()
     if args.parameterize:
         with open(args.parameterize) as fp:
-            pm = yaml.load(fp)
+            pm = yaml.full_load(fp)
         p.set_parameterization(pm)
-    dag = p.generate_dag(args.job)
-    
-    log.info('Generating Airflow DAG from workflow CWL')
+    write_dag(p, args.job)
 
-    log.info('Pickling and writing DAG {} to dag folder'.format(dag.dag_id))
-    p.dag_write(dag)
-    
+
+def optimize(args):
+    # TODO: Create optimize samping mappings to load classes from
+    sample_mapping = {
+        "random": RandomSampler,
+        "grid": GridSampler,
+        "batch-grid": BatchGridSampler,
+    }
+    p = construct_parser(args)
+    p.create_job_definitions()
+    with open(args.job) as fp:
+        job = yaml.full_load(fp)
+    with open(args.parameterize) as fp:
+        pm = yaml.full_load(fp)
+
+    try:
+        sampler_params = pm.pop("sampler")
+        method_key = sampler_params.pop("method")
+        method = sample_mapping[method_key]
+    except KeyError:
+        raise KeyError(
+            "Method not found. Available methods: {}".format(
+                list(sample_mapping.keys())
+            )
+        )
+
+    sampler = method(pm, job, **sampler_params)
+    for i, iteration in enumerate(sampler.sample()):
+        log.info("Executing iteration {} of {} sampling".format(i, method_key))
+        log.info("Parameters: " + str(iteration))
+        p.optimization_iteration = i  # keeps track of job iterations for subDAG
+        if type(iteration) == list:
+            p.parameterization = iteration
+        elif type(iteration) == dict:
+            p.parameterization = [iteration]
+
+        # Runs job with parameters from iteration
+        write_dag(p, args.job)
+        wait_for_success(p, args.retry, args.continue_on_failure)
+
+        # Obtains results (iterable of ordered dictionary of all completed iterations) and updates sampler
+        results = p.collect_results()
+        sampler.update(results)
+
+    write_results(results, args)
+    print("Done")
+
+
 def collect(args):
     p = construct_parser(args)
     results = p.collect_results()
-    write_results(results,args)
+    write_results(results, args)
+
+
+def write_dag(parser, job):
+    dag = parser.generate_dag(job)
+    log.info("Generating Airflow DAG from workflow CWL")
+    log.info("Pickling and writing DAG {} to dag folder".format(dag.dag_id))
+    parser.dag_write(dag)
+    r = requests.get("http://webserver:8080/dagbag/fill")
+    if r.status_code != 200:
+        log.warning(
+            "Warning: Dag bag was unable to be filled manually, waiting 60s for the scheduler to do it automatically"
+        )
+        time.sleep(60)
+
+
+def run_dag(dag_id):
+    r = requests.post("http://webserver:8080/dags/{}/run".format(dag_id), json={})
+    if r.status_code != 200:
+        raise ValueError(
+            "Dag did not launch successfully! Error {}".format(r.status_code)
+        )
+    else:
+        log.warning("Dag launched sucessfully")
+    r = requests.get("http://webserver:8080/latest_runs")
+    if r.status_code != 200:
+        raise ValueError("Failed to get latest runs... Error {}".format(r.status_code))
+    r = r.json()
+    execution_date = None
+    try:
+        for dagrun in r["items"]:
+            if dagrun["dag_id"] == dag_id:
+                execution_date = dagrun["execution_date"]
+                break
+        if execution_date == None:
+            raise ValueError("This dag was not found in the latest runs!")
+    except KeyError:
+        raise ValueError("Something went wrong...")
+    return execution_date
+
+
+def wait_for_success(parser, retry=False, continue_on_failure=False):
+    dag_id = parser.dag_id
+    execution_date = run_dag(dag_id)
+    done = False
+    while not done:
+        r = requests.get(
+            "http://webserver:8080/dags/{}/dag_runs/{}".format(dag_id, execution_date)
+        )
+        if r.status_code != 200:
+            raise ValueError(
+                "Unable to get latest run of dag... error {}".format(r.status_code)
+            )
+        state = r.json()["state"]
+        if state == "success":
+            done = True
+        elif state == "failed":
+            if continue_on_failure:
+                log.warning("Failed tasks in DAG {}. Continuing run...".format(dag_id))
+                done = True
+            else:
+                if retry is True:
+                    log.warning("DAG {} failed. Retrying...".format(dag_id))
+                    # retry_failed_tasks(dag_id)
+                    execution_date = run_dag(dag_id)
+                    retry = False
+                else:
+                    raise ValueError("Iteration failed! Check logs...")
+        else:
+            time.sleep(5)
+
+
 def write_results(results, args):
-    with open(args.output,'w') as fp:
+    with open(args.output, "w") as fp:
         w = csv.DictWriter(fp, fieldnames=results[0].keys())
         w.writeheader()
         for row in results:
             w.writerow(row)
-    log.info('Wrote results to {}'.format(args.output))
-def optimize(args):
-    p = construct_parser(args)
-    p.create_job_definitions()
-    with open(args.job) as fp:
-        job = yaml.load(fp)
-    with open(args.parameterize) as fp:
-        pm = yaml.load(fp)
-    if args.sampling_strategy == 'random':
-        sampler = RandomSampler(pm, job, args.max_iterations)
-    else:
-        raise NotImplementedError('Other samplers are not supported yet!')
-    for i,iteration in enumerate(sampler.sample()):
-        print('Executing iteration {} of random sampling'.format(i))
-        print(iteration)
-        if type(iteration) == list:
-            p.set_parameterization(iteration)
-        elif type(iteration) == dict:
-            p.set_parameterization([iteration])
-        dag = p.generate_dag(args.job)
-        p.dag_write(dag)
-        r = requests.get("http://webserver:8080/dagbag/fill")
-        if r.status_code != 200:
-            print('Warning: Dag bag was unable to be filled manually, waiting 60s for the scheduler to do it automatically')
-            time.sleep(60)
-        wait_for_success(p)
-        results = p.collect_results()
-        
-        sampler.update(results)
-    write_results(results, args)
-    print('Done')
-def wait_for_success(parser):
-    dag_id = parser.dag_id
-    r = requests.post('http://webserver:8080/dags/{}/run'.format(dag_id), json={})
-    if r.status_code != 200:
-        raise ValueError('Dag did not launch successfully! Error {}'.format(r.status_code))
-    else:
-        print('Dag launched sucessfully')
-    r = requests.get('http://webserver:8080/latest_runs')
-    if r.status_code != 200:
-        raise ValueError('Failed to get latest runs... Error {}'.format(r.status_code))
-    r = r.json()
-    execution_date = None
-    try:
-        for dagrun in r['items']:
-            if dagrun['dag_id'] == dag_id:
-                execution_date = dagrun['execution_date']
-                break
-        if execution_date == None:
-            raise ValueError('This dag was not found in the latest runs!')
-    except KeyError:
-        raise ValueError('Something went wrong...')
-    done = False
-    while done == False:
-        r = requests.get('http://webserver:8080/dags/{}/dag_runs/{}'.format(dag_id, execution_date))
-        if r.status_code != 200:
-            raise ValueError('Unable to get latest run of dag... error {}'.format(r.status_code))
-        state = r.json()['state']
-        if state == 'success':
-            done = True
-        elif state == 'failed':
-            raise ValueError('Iteration failed! Check logs...')
-        else:
-            done = False
-            time.sleep(5)
-        
-if __name__ == '__main__':
-    
+    log.info("Wrote results to {}".format(args.output))
+
+
+if __name__ == "__main__":
+
     # Arguments
 
-    parent_parser = argparse.ArgumentParser(description='Parses a CWL file and generates dags and AWS batch job definitions')
-    default_config_location = os.path.join(os.path.dirname(__file__), 'config', 'aws_config.yml')
+    parent_parser = argparse.ArgumentParser(
+        description="Parses a CWL file and generates dags and AWS batch job definitions"
+    )
+    default_config_location = os.path.join(
+        os.path.dirname(__file__), "config", "aws_config.yml"
+    )
 
-    parent_parser.add_argument('--config', '-c', help='Config file', default=default_config_location)
-    parent_parser.add_argument('--logLevel', help='Set logging level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='WARNING')
+    parent_parser.add_argument(
+        "--config", "-c", help="Config file", default=default_config_location
+    )
+    parent_parser.add_argument(
+        "--logLevel",
+        help="Set logging level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="WARNING",
+    )
 
-    subparsers = parent_parser.add_subparsers(dest='command')
+    subparsers = parent_parser.add_subparsers(dest="command")
     subparsers.required = True
-    init_parser = subparsers.add_parser('init', help='Starts an AWS cloudformation designed to run SABER')
+    init_parser = subparsers.add_parser(
+        "init", help="Starts an AWS cloudformation designed to run SABER"
+    )
     init_parser.set_defaults(func=init)
 
-    build_parser = subparsers.add_parser('build', help='Builds the relevant docker containers for the workflow')    
-    build_parser.add_argument('cwl', help='CWL file')
-    build_parser.add_argument('job', help='CWL job file')
+    build_parser = subparsers.add_parser(
+        "build", help="Builds the relevant docker containers for the workflow"
+    )
+    build_parser.add_argument("cwl", help="CWL file")
+    build_parser.add_argument("job", help="CWL job file")
     build_parser.set_defaults(func=build)
 
-    parse_parser = subparsers.add_parser('parse', help='Construct an Airflow workflow from a cwl file')
-    parse_parser.add_argument('cwl', help='CWL file')
-    parse_parser.add_argument('job', help='CWL job file')
-    parse_parser.add_argument('--parameterize','-p', help='Parameterization file')
-    parse_parser.add_argument('--build', help='Build the containers as well as write the dag', action='store_true')
+    parse_parser = subparsers.add_parser(
+        "parse", help="Construct an Airflow workflow from a cwl file"
+    )
+    parse_parser.add_argument("cwl", help="CWL file")
+    parse_parser.add_argument("job", help="CWL job file")
+    parse_parser.add_argument("--parameterize", "-p", help="Parameterization file")
+    parse_parser.add_argument(
+        "--build",
+        help="Build the containers as well as write the dag",
+        action="store_true",
+    )
     parse_parser.set_defaults(func=parse)
 
-    collect_parser = subparsers.add_parser('collect', help='Collect results and write to a csv file')
-    collect_parser.add_argument('cwl', help='CWL file')
-    collect_parser.add_argument('job', help='CWL job file')
-    collect_parser.add_argument('output', help='CSV file to write to')
+    collect_parser = subparsers.add_parser(
+        "collect", help="Collect results and write to a csv file"
+    )
+    collect_parser.add_argument("cwl", help="CWL file")
+    collect_parser.add_argument("job", help="CWL job file")
+    collect_parser.add_argument("output", help="CSV file to write to")
     collect_parser.set_defaults(func=collect)
 
-    optimize_parser = subparsers.add_parser('optimize', help='optimize results and write to a csv file')
-    optimize_parser.add_argument('cwl', help='CWL file')
-    optimize_parser.add_argument('job', help='CWL job file')
-    optimize_parser.add_argument('parameterize', help='Parameterization file')
-    optimize_parser.add_argument('--output', help='CSV file to write to', default='optiout.csv')
-    optimize_parser.add_argument('--sampling-strategy', help='Sampling strategy to use', default='random')
-    optimize_parser.add_argument('--max-iterations', help='Max iterations', type=int)
+    optimize_parser = subparsers.add_parser(
+        "optimize", help="optimize results and write to a csv file"
+    )
+    optimize_parser.add_argument("cwl", help="CWL file")
+    optimize_parser.add_argument("job", help="CWL job file")
+    optimize_parser.add_argument("parameterize", help="Parameterization file")
+    optimize_parser.add_argument(
+        "--output", help="CSV file to write to", default="optiout.csv"
+    )
+    optimize_parser.add_argument(
+        "--retry", "-r", help="Retry failed runs once", action="store_true"
+    )
+    optimize_parser.add_argument(
+        "--continue_on_failure",
+        "-c",
+        help="Continue running iterations regardless of failed states",
+        action="store_true",
+    )
     optimize_parser.set_defaults(func=optimize)
 
     args = parent_parser.parse_args()
 
-        
     loglevel = getattr(logging, args.logLevel)
     logging.basicConfig(level=loglevel)
     log = logging.getLogger(__name__)
     log.setLevel(loglevel)
-    log.debug('Debug enabled')
+    log.debug("Debug enabled")
 
     args.func(args)
-
-    

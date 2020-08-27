@@ -24,7 +24,7 @@ services:
     webserver:
         privileged: true
         build:
-            context: ./conduit
+            context: .
             dockerfile: WebDockerfile
         restart: always
         depends_on:
@@ -45,21 +45,25 @@ services:
             - "8080:8080"
         command: webserver
         healthcheck:
-            test: ["CMD-SHELL", "[ -f /home/root/airflow-webserver.pid ]"]
+            test: ["CMD-SHELL", "[ -f /root/airflow-webserver.pid ]"]
             interval: 30s
             timeout: 30s
             retries: 3
     cwl_parser:
         privileged: true
         build:
-            context: ./conduit
+            context: .
             dockerfile: CWLDockerfile
         depends_on: 
             - webserver
+        environment:
+            - DOCKER_CLIENT_TIMEOUT=120
+            - COMPOSE_HTTP_TIMEOUT=120
         volumes:
             - ./conduit:/conduit
             - ~/.aws:/root/.aws
             - ./saber/:/saber
+            - ./demos:/demos
             - /var/run/docker.sock:/var/run/docker.sock
 
         command: tail -F root

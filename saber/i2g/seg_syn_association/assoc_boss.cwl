@@ -18,9 +18,9 @@ cwlVersion: v1.0
 class: CommandLineTool
 hints:
     DockerRequirement:
-        dockerPull: aplbrain/i2g:assoc
+        dockerPull: aplbrain/i2gassoc
 baseCommand: python 
-arguments: ['/app/seg_syn_assoc.py']
+arguments: ['/app/seg_syn_assoc_boss.py']
 inputs:
     # config:
     #     type: File?

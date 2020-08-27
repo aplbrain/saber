@@ -1,0 +1,51 @@
+# Copyright 2019 The Johns Hopkins University Applied Physics Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+sampler:
+  method: batch-grid
+  batch_size: 2
+x:
+  range:
+      start: 5000
+      stop: 6000
+      step: 500
+  parameters:
+      min: xmin
+      max: xmax
+  steps:
+      - boss_pull
+y:
+  range:
+      start: 5000
+      stop: 6000
+      step: 500
+  parameters:
+      min: ymin
+      max: ymax
+  steps:
+      - boss_pull
+# z:
+#   range:
+#       start: 631
+#       stop: 998
+#       step: 92
+#   parameters:
+#       min: zmin
+#       max: zmax
+#   steps:
+#       - boss_pull_raw
+#       - boss_push_synapses_boss
+#       - boss_push_synapses_bossdb
+#       - boss_push_membranes_boss
+#       - boss_push_membranes_bossdb  

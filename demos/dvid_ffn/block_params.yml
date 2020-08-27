@@ -1,0 +1,33 @@
+x:
+    range:
+        start: 2000
+        stop: 2512
+        step: 128
+    parameters:
+        min: xmin
+        max: xmax
+    steps:
+        - dvid_pull_raw
+        - dvid_push_seg
+y:
+    range:
+        start: 2000
+        stop: 2512
+        step: 128
+    parameters:
+        min: ymin
+        max: ymax
+    steps:
+        - dvid_pull_raw
+        - dvid_push_seg
+z:
+    range:
+        start: 2000
+        stop: 2512
+        step: 128
+    parameters:
+        min: zmin
+        max: zmax
+    steps:
+        - dvid_pull_raw
+        - dvid_push_seg
