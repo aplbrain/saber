@@ -1,0 +1,4 @@
+{
+    "plugin": "webanno.plugins.ButtonPressPlugin",
+    "config": {}
+}
