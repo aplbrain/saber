@@ -1,21 +1,17 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 APP = Flask(__name__)
 
-#home page (1)
+#home page
 @APP.route("/", methods=['GET', 'POST'])
 def home_page():
-    return render_template("home_page3.html")
+    return render_template("home_page.html")
 
-#new job page (5)
+#new job page
 @APP.route("/new_job", methods=["GET","POST"])
 def new_job():
-
-   # if request.form['yamlFilename'] == "":
-    #    return "Must specify .yaml filename."
-
-   # yaml_Filename=request.form['yamlFilemname']
-   # print(yaml_Filename)
-
-   # return render_template("new_job.html",
-   # yaml_Filename = yamlFilename)
    return render_template("new_job.html")
+
+#new job page
+@APP.route("/jobs", methods=["GET","POST"])
+def current_jobs():
+   return render_template("current_jobs.html")
