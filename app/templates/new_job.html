@@ -3,5 +3,32 @@
 {% block title %}New Job{% endblock %}
 
 {% block content %}
-    <p> New Job form. Reads in parameters and sends request to airflow API.</p>
+	<div class="container">
+		<form action="/api/job" method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label for="jobName">Job Name</label>
+				<input type="text" name="jobName" min=1 required>
+			</div>
+
+			<div class="form-group">
+				<label for="dockerImage">Docker Image</label>
+				<select name="dockerImage" class="form-control" required>
+					{% for image_id in docker_images %}
+					<option value="{{image_id}}">{{image_id}}</option>
+					{% endfor %}
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="experiment">Experiment</label>
+				<select name="experiment" class="form-control" required>
+					{% for experiment in experiments %}
+					<option value="{{experiment}}">{{experiment}}</option>
+					{% endfor %}
+				</select>
+			</div>
+
+			<button type="submit">Submit Job</button>
+		</form>
+	</div>
 {% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Experiments{% endblock %}
+
+{% block content %}
+	<ul>
+	{% for experiment in experiments %}
+		<li>{{experiment}}</li>
+	{% endfor %}
+	</ul>
+
+{% endblock %}
