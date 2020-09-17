@@ -51,9 +51,17 @@ def new_job():
         ls_output.stdout.decode("utf-8").strip().replace("'", "").split("\n")
     )
 
+    available_images = []
+    for image in docker_images:
+        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in image:
+            tool = image.split('/')[1:]
+            # Remove tag
+            tool[-1] = tool[-1].split(":")[0]
+            available_images.append("/".join(tool))
+
     return render_template(
         "new_job.html",
-        docker_images=docker_images,
+        docker_images=available_images,
         experiments=os.listdir(EXPERIMENT_DIR),
     )
 
@@ -67,6 +75,7 @@ def view_jobs():
 @APP.route("/api/experiment", methods=["POST"])
 def api_new_experiment():
     experiment_name = request.form["name"]
+    mode =  request.form["mode"]
     s3_images_bucket = request.form["s3ImagesBucket"]
     s3_results_bucket = request.form["s3ResultsBucket"]
     experiment_csv = request.files["experiment"]
@@ -89,9 +98,10 @@ def api_new_experiment():
         fp.write(
             yaml.dump(
                 {
-                    "testDataFile": {"class": "file", "path": csv_path},
-                    "imagesDir": s3_images_bucket,
-                    "outputFile": "{experiment_name}-{time_tag}-OUTPUT.txt",
+                    "mode": mode,
+                    "dataFile": {"class": "file", "path": s3_object_key},
+                    "imagesDir": "s3://" + s3_images_bucket,
+                    "outputFile": f"{experiment_name}-{time_tag}-OUTPUT.txt",
                     "_saber_bucket": s3_results_bucket,
                 },
                 default_flow_style=False,
@@ -121,17 +131,18 @@ def api_new_job():
     # copy cwl tool to job dir
     with open(TOOL_TEMPLATE_PATH) as fp:
         tool_template = fp.read()
-    with open(f"{job_dir}/run_algorithm.cwl", "w") as fp:
-        fp.write(tool_template.replace("{{dockerImageName}}:s3", docker_image))
+    with open(os.path.join(job_dir, "run_algorithm.cwl"), "w") as fp:
+        fp.write(tool_template.replace("{{dockerImageName}}", docker_image))
 
+    cwl_path = os.path.join(job_dir, "task_3.cwl")
     yaml_path = f"{EXPERIMENT_DIR}/{experiment_tag}/args.yaml"
 
-    # TODO invoke conduit cli tools
+    #  invoke conduit cli tools
     subprocess.run(
-        "docker exec saber_cwl_parser_1 conduit parse {WORKFLOW_PATH} {yaml_path}",
+        f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
         shell=True,
     )
-    trigger_dag("microns_saber2", "8080", "task_3-cwl_workflows")
+    trigger_dag("localhost", "8080", f"task_3-{time_tag}")
 
     return redirect(url_for("view_jobs"))
 
