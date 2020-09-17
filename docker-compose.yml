@@ -64,6 +64,7 @@ services:
             - ~/.aws:/root/.aws
             - ./saber/:/saber
             - ./demos:/demos
+            - /opt/saber:/opt/saber
             - /var/run/docker.sock:/var/run/docker.sock
 
         command: tail -F root

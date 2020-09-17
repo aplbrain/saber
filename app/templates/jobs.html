@@ -3,5 +3,24 @@
 {% block title %}Jobs{% endblock %}
 
 {% block content %}
-    <p> Current Jobs. Table with job status. Output links, Job details.</p>
+	<table class="table">
+		<thead class="thead-light">
+			<tr>
+				<th>Job</th>
+				<th>Status</th>
+				<th>Output</th>
+				<th>Details</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for job in jobs %}
+			<tr>
+				<td>TODO Job</td>
+				<td>TODO Status</td>
+				<td>TODO Output</td>
+				<td>TODO Details</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
 {% endblock %}

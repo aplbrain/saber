@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 def upload_file(file_name, bucket, key):
     s3 = boto3.client("s3")
     try:
-        response = s3.upload_file(filepath, bucket, key)
+        response = s3.upload_file(file_name, bucket, key)
     except ClientError as e:
         logging.error(e)
         return False
