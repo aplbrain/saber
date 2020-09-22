@@ -3,10 +3,28 @@
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
-	<ul>
-	{% for experiment in experiments %}
-		<li>{{experiment}}</li>
-	{% endfor %}
-	</ul>
-
+	<table class="table">
+		<thead class="thead-light">
+			<tr>
+				<th>Experiment</th>
+				<th>Creation Date</th>
+				<th>Mode</th>
+				<th>Image Bucket</th>
+				<th>Output Bucket</th>
+				<th>Output File</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for experiment in experiments %}
+			<tr>
+				<td>{{experiment["name"]}}</td>
+				<td>{{experiment["date"]}}</td>
+				<td>{{experiment["mode"]}}</td>
+				<td>{{experiment["image_dir"]}}</td>
+				<td>{{experiment["_saber_bucket"]}}</td>
+				<td>{{experiment["output_file"]}}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
 {% endblock %}

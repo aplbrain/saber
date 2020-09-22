@@ -75,8 +75,10 @@ def generate_command_list(tool_yml,iteration_parameters, step, local=False, file
                 command_list.append('--upload')
                 command_list.append('Ref::_saber_output')
     # Not really necessary to split but I dont see a use case where one would want a space in their command...
-    command_list.extend(tool_yml['baseCommand'].split())
-    command_list.extend([arg for arg in tool_yml['arguments']])
+    if tool_yml.get('baseCommand'):
+        command_list.extend(tool_yml['baseCommand'].split())
+    if tool_yml.get('arguments'):
+        command_list.extend([arg for arg in tool_yml['arguments']])
     
     # Create sorted input list to respect CWL input binding
     sorted_inps = [(inpn, inp) for inpn, inp in tool_yml['inputs'].items()]

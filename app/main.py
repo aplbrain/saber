@@ -34,9 +34,21 @@ def new_experiment():
 
 @APP.route("/experiments", methods=["GET", "POST"])
 def view_experiments():
+    exp_list = []
+    for exp in os.listdir(EXPERIMENT_DIR):
+        # load yamls for job and exp
+        with open(os.path.join(EXPERIMENT_DIR, exp, "args.yaml"), 'r') as ed:
+            exp_details = yaml.load(ed)
+
+        exp_details["name"] = exp[:-20]
+        exp_details["date"] = exp[-19:]
+
+        exp_list.append(exp_details)
+    
+    exo_list = sorted(exp_list, key=lambda x: datetime.datetime.strptime(x['date'], '%Y_%m_%d-%H_%M_%S'))
     return render_template(
         "experiments.html",
-        experiments=os.listdir(EXPERIMENT_DIR),
+        experiments=exp_list,
     )
 
 
@@ -53,10 +65,9 @@ def new_job():
 
     available_images = []
     for image in docker_images:
-        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in image:
-            tool = image.split('/')[1:]
-            # Remove tag
-            tool[-1] = tool[-1].split(":")[0]
+        rep, tag = image.split(":")
+        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and "s3" == tag:
+            tool = rep.split('/')[1:]
             available_images.append("/".join(tool))
 
     return render_template(
@@ -69,7 +80,32 @@ def new_job():
 # new job page
 @APP.route("/jobs", methods=["GET", "POST"])
 def view_jobs():
-    return render_template("jobs.html")
+    job_list = []
+    for job in os.listdir(JOB_DIR):
+        # load yamls for job and exp
+        with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
+            job_details = yaml.load(jd)
+        with open(os.path.join(EXPERIMENT_DIR, job_details["experiment"], "args.yaml"), 'r') as ed:
+            exp_details = yaml.load(ed)
+
+        # get dag status
+        job_details["status"] = dag_status("localhost", "8080", job_details["dag_id"], job_details["execution_date"])
+        
+        # get output download link
+        bucket = exp_details["_saber_bucket"]
+        key = os.path.join(job_details["dag_id"], "algorithm.0", exp_details["output_file"])
+        job_details['output'] = generate_download_link(bucket, key, 300)
+
+
+        job_list.append(job_details)
+    
+    # sort by date
+    job_list = sorted(job_list, key=lambda x: datetime.datetime.strptime(x['execution_date'], '%Y-%m-%dT%H:%M:%S'))
+    
+    return render_template(
+        "jobs.html",
+        jobs=job_list
+        )
 
 
 @APP.route("/api/experiment", methods=["POST"])
@@ -99,7 +135,7 @@ def api_new_experiment():
             yaml.dump(
                 {
                     "mode": mode,
-                    "dataFile": {"class": "file", "path": s3_object_key},
+                    "dataFile": {"class": "File", "path": s3_object_key},
                     "imagesDir": "s3://" + s3_images_bucket,
                     "outputFile": f"{experiment_name}-{time_tag}-OUTPUT.txt",
                     "_saber_bucket": s3_results_bucket,
@@ -122,7 +158,7 @@ def api_new_job():
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
     # create this job's directory
-    job_dir = f"{JOB_DIR}/{job_name}/{time_tag}/"
+    job_dir = f"{JOB_DIR}/{job_name}-{time_tag}/"
     os.makedirs(job_dir, exist_ok=True)
 
     # copy cwl workflow to job dir
@@ -136,13 +172,29 @@ def api_new_job():
 
     cwl_path = os.path.join(job_dir, "task_3.cwl")
     yaml_path = f"{EXPERIMENT_DIR}/{experiment_tag}/args.yaml"
+    dag_id = f"task_3_{experiment_tag}"
 
     #  invoke conduit cli tools
     subprocess.run(
         f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
         shell=True,
     )
-    trigger_dag("localhost", "8080", f"task_3-{time_tag}")
+    execution_date, dag_status = trigger_dag("localhost", "8080", dag_id)
+
+    # save job details to yaml file
+    with open(os.path.join(job_dir, "job_details.yaml"), "w") as fp:
+        fp.write(
+            yaml.dump(
+                {
+                    "job_name": job_name,
+                    "dag_id": dag_id,
+                    "docker_image": docker_image,
+                    "experiment": experiment_tag,
+                    "execution_date": execution_date,
+                },
+                default_flow_style=False,
+            )
+        )
 
     return redirect(url_for("view_jobs"))
 

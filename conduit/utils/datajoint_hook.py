@@ -28,9 +28,9 @@ import sys
 class Workflow(dj.Manual):
     definition = """
     # Workflows
-    workflow_id : varchar(40)
+    workflow_id : varchar(255)
     ---
-    workflow_name : varchar(40)
+    workflow_name : varchar(255)
     """
 
 class JobMetadata(dj.Manual):

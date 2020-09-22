@@ -141,7 +141,7 @@ class CwlParser:
 
     def create_subdag(self, iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None):
         subdag_id = '{}_{}.{}'.format(self.workflow_name, wf_id, i) 
-        parent_dag_id = '{}_{}'.format(self.workflow_name, wf_id)
+        parent_dag_id = self.dag_id
         if dag == None:
             subdag = DAG(
                 default_args = self.default_args,
@@ -282,22 +282,22 @@ class CwlParser:
         with open(job) as fp:
             job = yaml.full_load(fp)
 
-        dag_id = '{}_{}'.format(self.workflow_name, wf_id)
-        self.dag_id = dag_id 
+        self.dag_id = '{}_{}'.format(self.workflow_name, wf_id)
+
         default_args = {
             "depends_on_past": False,
             "start_date": datetime(2018, 2, 23),
             "max_retries": 300,   
         }
         try:
-            self.dj_hook.init_workflow(id=dag_id, name=self.workflow_name)
+            self.dj_hook.init_workflow(id=self.dag_id, name=self.workflow_name)
         except( DuplicateError,DataJointError):
             log.warning('Workflow database entry for {} already exists, reinserting'.format(self.workflow_name))
             pass
         if self.cwl['class'] != 'Workflow':
             raise TypeError('CWL is not a workflow')
         dag = DAG(
-            dag_id=dag_id, 
+            dag_id=self.dag_id, 
             default_args=self.default_args,
             schedule_interval=None
         )
@@ -331,6 +331,7 @@ class CwlParser:
                 )
             else:
                 dag = self.create_subdag(iteration, task_id, param_db_update_dict, job_params, job, wf_id, deps, dag=dag)      
+        log.info("DAG ID: {}".format(self.dag_id))
         return dag
 
     def resolve_args(self,job):

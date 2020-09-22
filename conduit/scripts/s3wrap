@@ -85,8 +85,15 @@ else:
                         Key=k
                     )
                 except botocore.exceptions.ClientError as e:
-                        print('Got error {} while trying to download file {}'.format(e, k))
-                        raise e
+                    print('Got error {} while trying to download file {}. Trying again with root bucket path.'.format(e, k))
+                    
+                    unparamterized_path = '/'.join(fs)
+                    print('Downloading {} to {}'.format(unparamterized_path,unparamterized_path))
+                    s3.meta.client.download_file(
+                        Bucket=b,
+                        Filename=unparamterized_path,
+                        Key=unparamterized_path
+                    )
 
     proc = subprocess.call(args.command, shell=False)
     if proc != 0:
