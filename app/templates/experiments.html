@@ -12,6 +12,7 @@
 				<th>Image Bucket</th>
 				<th>Output Bucket</th>
 				<th>Output File</th>
+				<th>Remove</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -23,6 +24,11 @@
 				<td>{{experiment["images_dir"]}}</td>
 				<td>{{experiment["_saber_bucket"]}}</td>
 				<td>{{experiment["output_file"]}}</td>
+				<td>
+					<form action="/api/experiment/{{experiment['name']}}/date/{{experiment["date"]}}/delete", method="post">
+						<button type=submit">Remove</button>
+					</form>
+				</td>
 			</tr>
 		{% endfor %}
 		</tbody>

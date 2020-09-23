@@ -6,6 +6,7 @@ import os
 import datetime
 import shutil
 import yaml
+import shutil
 
 from webportal.airflow_hook import trigger_dag, dag_status, task_status
 from webportal.s3_hook import upload_file, generate_download_link
@@ -50,6 +51,8 @@ def view_experiments():
         "experiments.html",
         experiments=exp_list,
     )
+
+
 
 
 @APP.route("/new_job", methods=["GET", "POST"])
@@ -106,6 +109,25 @@ def view_jobs():
         "jobs.html",
         jobs=job_list
         )
+
+
+@APP.route('/api/experiment/<experiment_name>/date/<experiment_date>/delete', methods=['POST'])
+def api_delete_experiment(experiment_name, experiment_date):
+    delete_dir = experiment_name + "-" + experiment_date
+    print('Deleting ', delete_dir)
+    # TODO: Clean up S3
+    try:
+        shutil.rmtree(os.path.join(EXPERIMENT_DIR, delete_dir))
+    except OSError as e:
+        print(f"Error: {delete_dir} - {e}.")
+    return redirect(url_for("view_experiments"))
+
+
+@APP.route('/api/job/<job_name>/delete', methods=['POST'])
+def api_delete_job(job_name):
+    print('deleting', job_name)
+    # TODO actually delete!
+    return redirect(url_for('view_jobs'))
 
 
 @APP.route("/api/experiment", methods=["POST"])
