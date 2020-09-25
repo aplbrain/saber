@@ -96,8 +96,9 @@ def view_jobs():
         
         # get output download link
         bucket = exp_details["_saber_bucket"]
-        key = os.path.join(job_details["dag_id"], "algorithm.0", exp_details["output_file"])
-        job_details['output'] = generate_download_link(bucket, key, 300)
+        key = os.path.join(job_details["experiment"], "algorithm.0", exp_details["output_file"])
+        # TODO: Links should only be generated on the spot once user clicks download. Not for all jobs everytime.
+        job_details['output'] = generate_download_link(bucket, key, 60)
 
 
         job_list.append(job_details)
@@ -123,12 +124,16 @@ def api_delete_experiment(experiment_name, experiment_date):
     return redirect(url_for("view_experiments"))
 
 
-@APP.route('/api/job/<job_name>/delete', methods=['POST'])
-def api_delete_job(job_name):
-    print('deleting', job_name)
-    # TODO actually delete!
-    return redirect(url_for('view_jobs'))
-
+@APP.route('/api/job/<job_name>/date/<job_date>/delete', methods=['POST'])
+def api_delete_job(job_name, job_date):
+    delete_dir = job_name + "-" + job_date
+    print('Deleting ', delete_dir)
+    # TODO: Clean up S3
+    try:
+        shutil.rmtree(os.path.join(JOB_DIR, delete_dir))
+    except OSError as e:
+        print(f"Error: {delete_dir} - {e}.")
+    return redirect(url_for("view_jobs"))
 
 @APP.route("/api/experiment", methods=["POST"])
 def api_new_experiment():
@@ -209,6 +214,7 @@ def api_new_job():
             yaml.dump(
                 {
                     "job_name": job_name,
+                    "date": time_tag,
                     "dag_id": dag_id,
                     "docker_image": docker_image,
                     "experiment": experiment_tag,
