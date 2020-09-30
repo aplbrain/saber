@@ -8,10 +8,10 @@
 			<tr>
 				<th>Experiment</th>
 				<th>Creation Date</th>
-				<th>Mode</th>
 				<th>Image Bucket</th>
 				<th>Output Bucket</th>
 				<th>Output File</th>
+				<th>Download Data CSV</th>
 				<th>Remove</th>
 			</tr>
 		</thead>
@@ -20,13 +20,17 @@
 			<tr>
 				<td>{{experiment["name"]}}</td>
 				<td>{{experiment["date"]}}</td>
-				<td>{{experiment["mode"]}}</td>
 				<td>{{experiment["images_dir"]}}</td>
 				<td>{{experiment["_saber_bucket"]}}</td>
 				<td>{{experiment["output_file"]}}</td>
 				<td>
+					<form action="/api/experiment/{{experiment["data_file"]["path"]}}/download", method="get">
+						<button type="submit">Download</button>
+					</form>
+				</td>	
+				<td>
 					<form action="/api/experiment/{{experiment['name']}}/date/{{experiment["date"]}}/delete", method="post">
-						<button type=submit">Remove</button>
+						<button type="submit">Remove</button>
 					</form>
 				</td>
 			</tr>
