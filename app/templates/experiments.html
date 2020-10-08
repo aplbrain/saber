@@ -24,17 +24,37 @@
 				<td>{{experiment["_saber_bucket"]}}</td>
 				<td>{{experiment["output_file"]}}</td>
 				<td>
-					<form action="/api/experiment/{{experiment["data_file"]["path"]}}/download", method="get">
-						<button type="submit">Download</button>
+					<form action="/api/experiment/{{experiment['name']}}/download", method="get">
+						<button type="submit" class="btn btn-primary">Download</button>
 					</form>
 				</td>	
 				<td>
-					<form action="/api/experiment/{{experiment['name']}}/date/{{experiment["date"]}}/delete", method="post">
-						<button type="submit">Remove</button>
-					</form>
+					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{experiment['name']}}">
+						Remove
+					</button>
 				</td>
 			</tr>
 		{% endfor %}
 		</tbody>
 	</table>
+	{% for experiment in experiments %}
+	<div class="modal fade" id="modal_{{experiment['name']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Delete {{experiment['name']}}</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<form action="/api/experiment/{{experiment['name']}}/date/{{experiment["date"]}}/delete", method="post">
+						<button type="submit" class="btn btn-danger">Remove</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
 {% endblock %}

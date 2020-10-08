@@ -81,16 +81,38 @@ def new_job():
     )
 
 
+
+@APP.route("/api/jobs/<job>/download", methods=['GET'])
+def api_download_job(job):
+    try:
+        with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
+            job_details = yaml.load(jd)
+        with open(os.path.join(EXPERIMENT_DIR, job_details["experiment"], "args.yaml"), 'r') as ed:
+            exp_details = yaml.load(ed)
+    except FileNotFoundError as e:
+        print(job)
+        abort(404)
+
+    bucket = exp_details["_saber_bucket"]
+    key = os.path.join(job_details["experiment"], "algorithm.0", exp_details["output_file"])
+
+    return redirect(generate_download_link(bucket, key, 3000))
+
+
 # new job page
 @APP.route("/jobs", methods=["GET", "POST"])
 def view_jobs():
     job_list = []
     for job in os.listdir(JOB_DIR):
         # load yamls for job and exp
-        with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
-            job_details = yaml.load(jd)
-        with open(os.path.join(EXPERIMENT_DIR, job_details["experiment"], "args.yaml"), 'r') as ed:
-            exp_details = yaml.load(ed)
+        try:
+            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
+                job_details = yaml.load(jd)
+            with open(os.path.join(EXPERIMENT_DIR, job_details["experiment"], "args.yaml"), 'r') as ed:
+                exp_details = yaml.load(ed)
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            continue
 
         # get dag status
         try:
@@ -101,9 +123,6 @@ def view_jobs():
         # get output download link
         bucket = exp_details["_saber_bucket"]
         key = os.path.join(job_details["experiment"], "algorithm.0", exp_details["output_file"])
-        # TODO: Links should only be generated on the spot once user clicks download. Not for all jobs everytime.
-        job_details['output'] = generate_download_link(bucket, key, 60)
-
 
         job_list.append(job_details)
     
@@ -138,9 +157,9 @@ def api_delete_job(job_name, job_date):
         print(f"Error: {delete_dir} - {e}.")
     return redirect(url_for("view_jobs"))
 
-@APP.route('/api/experiment/<path:datafile>/download', methods=['GET'])
-def api_download_experiment(datafile):
-    file_path = os.path.join(EXPERIMENT_DIR, datafile)
+@APP.route('/api/experiment/<experiment_name>/download', methods=['GET'])
+def api_download_experiment(experiment_name):
+    file_path = os.path.join(EXPERIMENT_DIR, experiment_name)
     try:
         return send_from_directory(file_path, filename="experiment.csv", as_attachment=True)
     except FileNotFoundError:
@@ -215,7 +234,7 @@ def api_new_job():
     dag_id = f"task_3_{experiment_tag}"
 
     # specify output file name
-    output_name = f"{time_tag}-{job_name}-{docker_image}.csv"
+    output_name = f"{job_name}-{docker_image}.csv"
     output_name = output_name.replace('/', '_')
     with open(yaml_path, 'r') as exp_file:
         exp = yaml.load(exp_file)
@@ -240,7 +259,7 @@ def api_new_job():
                     "date": time_tag,
                     "dag_id": dag_id,
                     "docker_image": docker_image,
-                    "experiment": experiment_tag[:-20],
+                    "experiment": experiment_tag,
                     "execution_date": execution_date,
                 },
                 default_flow_style=False,

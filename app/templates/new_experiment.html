@@ -13,7 +13,7 @@
 
 			<div class="form-group">
 				<label for="s3ImagesBucket">S3 Images Bucket</label>
-				<input type="text" name="s3ImagesBucket" min=1 required>
+				<input type="text" name="s3ImagesBucket" min=1 value="microns-phase3-isaid-patches-v2" required>
 			</div>
 
 			<div class="form-group">
@@ -21,7 +21,7 @@
 				<input type="file" name="experiment" accept=".csv" class="form-control" required>
 			</div>
 
-			<button type="submit">Create Experiment</button>
+			<button type="submit" class="btn btn-primary">Create Experiment</button>
 		</form>
 	</div>
 {% endblock %}

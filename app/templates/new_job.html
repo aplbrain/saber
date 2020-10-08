@@ -29,7 +29,21 @@
 				</select>
 			</div>
 
-			<button type="submit">Submit Job</button>
+			<button type="submit" class="btn btn-primary">Submit Job</button>
 		</form>
+	</div>
+	
+	<br>
+	<div class="container">
+		<p>
+			Job outputs will be saved into the 
+				<a href="https://s3.console.aws.amazon.com/s3/buckets/microns-saber/?region=us-east-1&tab=overview">microns-saber S3 bucket</a>. 
+			
+			Output keys are formatted as follows:
+			<br>
+			<br>
+			<b>{experiment_name}/algorithm.0/{time_tag}-{job_name}-{docker_image}.csv</b>
+
+		</p>
 	</div>
 {% endblock %}
