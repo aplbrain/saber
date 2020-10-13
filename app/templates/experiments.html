@@ -3,7 +3,8 @@
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
-	<table class="table">
+<div class="container">
+	<table class="table table-bordered shadow-sm">
 		<thead class="thead-light">
 			<tr>
 				<th>Experiment</th>
@@ -24,9 +25,7 @@
 				<td>{{experiment["_saber_bucket"]}}</td>
 				<td>{{experiment["output_file"]}}</td>
 				<td>
-					<form action="/api/experiment/{{experiment['name']}}/download", method="get">
-						<button type="submit" class="btn btn-primary">Download</button>
-					</form>
+					<a href="/api/experiment/{{experiment['name']}}/download" download>Download</a>
 				</td>	
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{experiment['name']}}">
@@ -57,4 +56,5 @@
 		</div>
 	</div>
 	{% endfor %}
+</div>
 {% endblock %}

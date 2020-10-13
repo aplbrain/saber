@@ -2,15 +2,54 @@
 
 {% block title %}New Job{% endblock %}
 
-{% block content %}
-	<br>
-	<div class="container">
-		<form action="/api/job" method="post" enctype="multipart/form-data">
-			<div class="form-group">
-				<label for="jobName">Job Name</label>
-				<input type="text" name="jobName" min=1 required>
-			</div>
+{% block scripts %}
+<script>
+function submit_job() {
+	var button = document.getElementById("submitButton");
+	button.disabled = true;
+	button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submit Job'
 
+	var formData = new FormData(document.querySelector("form"));
+	fetch("/api/job", {method: 'POST', body: formData}).then(response => {
+		const reader = response.body.getReader();
+		return reader.read().then(function processText({done, value}) {
+			if (done) {
+				button.disabled = false;
+				button.innerHTML = 'Submit Job'
+				return;
+			}
+		
+			var value = new TextDecoder("utf-8").decode(value);
+			console.log(done, value);
+
+			var output = document.getElementById("output");
+			output.innerHTML += value;
+			output.scrollTop = output.scrollHeight;
+
+			return reader.read().then(processText); 
+		});
+	}).catch(error => {
+		console.error(error);
+		window.alert(error);
+	});
+    return false;
+}
+</script>
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="alert alert-info" role="alert">
+			<p>
+				<b>NOTE!</b>
+				Job outputs will be saved into the
+				<a href="https://s3.console.aws.amazon.com/s3/buckets/microns-saber/?region=us-east-1&tab=overview">microns-saber S3 bucket</a>.
+				Output keys are formatted as follows:
+				<br>
+				<b>{experiment_name}/algorithm.0/{time_tag}-{job_name}-{docker_image}.csv</b>
+			</p>
+		</div>
+		<form>
 			<div class="form-group">
 				<label for="dockerImage">Docker Image</label>
 				<select name="dockerImage" class="form-control" required>
@@ -29,21 +68,15 @@
 				</select>
 			</div>
 
-			<button type="submit" class="btn btn-primary">Submit Job</button>
-		</form>
-	</div>
-	
-	<br>
-	<div class="container">
-		<p>
-			Job outputs will be saved into the 
-				<a href="https://s3.console.aws.amazon.com/s3/buckets/microns-saber/?region=us-east-1&tab=overview">microns-saber S3 bucket</a>. 
-			
-			Output keys are formatted as follows:
-			<br>
-			<br>
-			<b>{experiment_name}/algorithm.0/{time_tag}-{job_name}-{docker_image}.csv</b>
+			<button id="submitButton" type="button" class="btn btn-primary" onclick="return submit_job()">
+				Submit Job
+			</button>
 
-		</p>
+		</form>
+
+		<br>
+
+		<label>Submission Output</label>
+		<textarea id="output" rows="5" class="w-100" disabled></textarea>
 	</div>
 {% endblock %}

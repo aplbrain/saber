@@ -2,18 +2,40 @@
 
 {% block title %}New Experiment{% endblock %}
 
+{% block scripts %}
+
+<script>
+var experiments = [
+{% for exp in experiments %}
+"{{exp}}",
+{% endfor %}
+];
+function validate_experiment_name(){
+	document.getElementById("name").classList.remove("is-invalid");
+	document.getElementById("submitButton").disabled = false;
+	if (experiments.includes(document.getElementById("name").value)) {
+		document.getElementById("name").classList.add("is-invalid");
+		document.getElementById("submitButton").disabled = true;
+	}
+}
+</script>
+{% endblock %}
+
 {% block content %}
 	<br>
 	<div class="container">
 		<form action="/api/experiment" method="post" enctype="multipart/form-data">
 			<div class="form-group">
 				<label for="name">Experiment Name</label>
-				<input type="text" name="name" min=1 required>
+				<input id="name" type="text" name="name" class="form-control" min=1 required oninput="validate_experiment_name()">
+				<div class="invalid-feedback">
+					Name must be unique!
+				</div>
 			</div>
 
 			<div class="form-group">
 				<label for="s3ImagesBucket">S3 Images Bucket</label>
-				<input type="text" name="s3ImagesBucket" min=1 value="microns-phase3-isaid-patches-v2" required>
+				<input type="text" name="s3ImagesBucket" min=1 value="microns-phase3-isaid-patches-v2" class="form-control" required>
 			</div>
 
 			<div class="form-group">
@@ -21,7 +43,12 @@
 				<input type="file" name="experiment" accept=".csv" class="form-control" required>
 			</div>
 
-			<button type="submit" class="btn btn-primary">Create Experiment</button>
+			<div class="form-group">
+				<label for="experiment">Additional File(s)</label>
+				<input type="file" name="additional_files" class="form-control" multiple="true">
+			</div>
+
+			<button id="submitButton" type="submit" class="btn btn-primary" disabled>Create Experiment</button>
 		</form>
 	</div>
 {% endblock %}

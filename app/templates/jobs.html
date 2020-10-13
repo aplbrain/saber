@@ -3,7 +3,8 @@
 {% block title %}Jobs{% endblock %}
 
 {% block content %}
-	<table class="table">
+<div class="container">
+	<table class="table table-bordered shadow-sm">
 		<thead class="thead-light">
 			<tr>
 				<th>Job</th>
@@ -22,7 +23,7 @@
 				<td>{{job["status"]}}</td>
 				<td>{{job["experiment"]}}</td>
 				<td>
-					<a href="/api/jobs/{{job['job_name']}}-{{job['date']}}/download" target="_blank">Download</a>
+					<a href="/api/jobs/{{job['job_name']}}-{{job['date']}}/download" class="btn btn-primary" target="_blank">Download</a>
 				</td>
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{job['job_name']}}_{{job['date']}}">
@@ -54,5 +55,5 @@
 		</div>
 	</div>
 	{% endfor %}
-
+</div>
 {% endblock %}

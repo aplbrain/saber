@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 
-from flask import Flask, render_template, redirect, request, url_for, send_from_directory, abort
+from flask import Flask, render_template, redirect, request, url_for, send_from_directory, abort, Response
 import subprocess
+from subprocess import PIPE
 import os
 import datetime
 import shutil
 import yaml
 import shutil
+import zipfile
 
 from webportal.airflow_hook import trigger_dag, dag_status, task_status
 from webportal.s3_hook import upload_file, generate_download_link
@@ -30,31 +32,10 @@ def home_page():
 
 @APP.route("/new_experiment", methods=["GET", "POST"])
 def new_experiment():
-    return render_template("new_experiment.html")
-
-
-@APP.route("/experiments", methods=["GET", "POST"])
-def view_experiments():
-    exp_list = []
-    for exp in os.listdir(EXPERIMENT_DIR):
-        # load yamls for job and exp
-        with open(os.path.join(EXPERIMENT_DIR, exp, "args.yaml"), 'r') as ed:
-            exp_details = yaml.load(ed)
-
-        exp_details["name"] = exp[:-20]
-        exp_details["date"] = exp[-19:]
-
-        exp_list.append(exp_details)
-    
-    exo_list = sorted(exp_list, key=lambda x: datetime.datetime.strptime(x['date'], '%Y_%m_%d-%H_%M_%S'))
     return render_template(
-        "experiments.html",
-        experiments=exp_list,
-        experiment_dir = EXPERIMENT_DIR
+        "new_experiment.html",
+        experiments=os.listdir(EXPERIMENT_DIR),
     )
-
-
-
 
 @APP.route("/new_job", methods=["GET", "POST"])
 def new_job():
@@ -80,24 +61,27 @@ def new_job():
         experiments=os.listdir(EXPERIMENT_DIR),
     )
 
-
-
-@APP.route("/api/jobs/<job>/download", methods=['GET'])
-def api_download_job(job):
-    try:
-        with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
-            job_details = yaml.load(jd)
-        with open(os.path.join(EXPERIMENT_DIR, job_details["experiment"], "args.yaml"), 'r') as ed:
+@APP.route("/experiments", methods=["GET", "POST"])
+def view_experiments():
+    exp_list = []
+    for exp in os.listdir(EXPERIMENT_DIR):
+        # load yamls for job and exp
+        with open(os.path.join(EXPERIMENT_DIR, exp, "args.yaml"), 'r') as ed:
             exp_details = yaml.load(ed)
-    except FileNotFoundError as e:
-        print(job)
-        abort(404)
+        with open(os.path.join(EXPERIMENT_DIR, exp, "metadata.yaml"), 'r') as ed:
+            exp_metadata = yaml.load(ed)
 
-    bucket = exp_details["_saber_bucket"]
-    key = os.path.join(job_details["experiment"], "algorithm.0", exp_details["output_file"])
+        exp_details["name"] = exp
+        exp_details["date"] = exp_metadata["date"]
 
-    return redirect(generate_download_link(bucket, key, 3000))
-
+        exp_list.append(exp_details)
+    
+    exo_list = sorted(exp_list, key=lambda x: datetime.datetime.strptime(x['date'], '%Y_%m_%d-%H_%M_%S'))
+    return render_template(
+        "experiments.html",
+        experiments=exp_list,
+        experiment_dir = EXPERIMENT_DIR
+    )
 
 # new job page
 @APP.route("/jobs", methods=["GET", "POST"])
@@ -127,7 +111,7 @@ def view_jobs():
         job_list.append(job_details)
     
     # sort by date
-    job_list = sorted(job_list, key=lambda x: datetime.datetime.strptime(x['execution_date'], '%Y-%m-%dT%H:%M:%S'))
+    job_list = sorted(job_list, key=lambda x: datetime.datetime.strptime(x['date'], '%Y_%m_%d-%H_%M_%S'))
     
     return render_template(
         "jobs.html",
@@ -135,9 +119,9 @@ def view_jobs():
         )
 
 
-@APP.route('/api/experiment/<experiment_name>/date/<experiment_date>/delete', methods=['POST'])
+@APP.route('/api/experiment/<experiment_name>/delete', methods=['POST'])
 def api_delete_experiment(experiment_name, experiment_date):
-    delete_dir = experiment_name + "-" + experiment_date
+    delete_dir = experiment_name
     print('Deleting ', delete_dir)
     # TODO: Clean up S3
     try:
@@ -146,9 +130,9 @@ def api_delete_experiment(experiment_name, experiment_date):
         print(f"Error: {delete_dir} - {e}.")
     return redirect(url_for("view_experiments"))
 
-@APP.route('/api/job/<job_name>/date/<job_date>/delete', methods=['POST'])
-def api_delete_job(job_name, job_date):
-    delete_dir = job_name + "-" + job_date
+@APP.route('/api/job/<job_name>/delete', methods=['POST'])
+def api_delete_job(job_name):
+    delete_dir = job_name
     print('Deleting ', delete_dir)
     # TODO: Clean up S3
     try:
@@ -161,9 +145,24 @@ def api_delete_job(job_name, job_date):
 def api_download_experiment(experiment_name):
     file_path = os.path.join(EXPERIMENT_DIR, experiment_name)
     try:
-        return send_from_directory(file_path, filename="experiment.csv", as_attachment=True)
+        return send_from_directory(file_path, filename=f"{experiment_name}.zip", as_attachment=True)
     except FileNotFoundError:
         abort(404)
+
+@APP.route("/api/jobs/<job>/download", methods=['GET'])
+def api_download_job(job):
+    try:
+        with open(os.path.join(JOB_DIR, job, "job_details.yaml"), 'r') as jd:
+            job_details = yaml.load(jd)
+    except FileNotFoundError as e:
+        print(job)
+        abort(404)
+
+    bucket = job_details["experiment_details"]["_saber_bucket"]
+    fn = job_details["experiment_details"]["output_file"]
+    key = os.path.join(job_details["experiment"], "algorithm.0", fn)
+
+    return redirect(generate_download_link(bucket, key, 3000))
 
 @APP.route("/api/experiment", methods=["POST"])
 def api_new_experiment():
@@ -172,23 +171,33 @@ def api_new_experiment():
     # s3_results_bucket = request.form["s3ResultsBucket"]
     s3_results_bucket = "microns-saber"
     experiment_csv = request.files["experiment"]
+    if 'additional_files' in request.files:
+        additional_files = request.files.getlist('additional_files')
+    else:
+        additional_files = []
 
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
-    experiment_dir = f"{EXPERIMENT_DIR}/{experiment_name}-{time_tag}/"
+    experiment_dir = f"{EXPERIMENT_DIR}/{experiment_name}/"
     os.makedirs(experiment_dir, exist_ok=True)
 
     csv_path = os.path.abspath(f"{experiment_dir}/experiment.csv")
     experiment_csv.save(csv_path)
 
-    s3_object_key = f"{experiment_name}-{time_tag}/experiment.csv"
-    status = upload_file(csv_path, s3_results_bucket, s3_object_key)
-    if not status:
-        print("Unable to upload experiment to s3. Check logs.")
-        shutil.rmtree(experiment_dir)
-        # TODO: Include pop-up error on app.
+    s3_object_key = f"{experiment_name}/experiment.csv"
 
-    with open(f"{experiment_dir}/args.yaml", "w") as fp:
+    for additional_file in additional_files:
+        additional_file.save(f'{experiment_dir}/{additional_file.filename}')
+ 
+    metadata_path = os.path.abspath(f'{experiment_dir}/metadata.yaml')
+    with open(metadata_path, 'w') as fp:
+        fp.write(yaml.dump({
+            'date': time_tag,
+            'additional_files': [f.filename for f in additional_files],
+        }))
+
+    args_path = os.path.abspath(f"{experiment_dir}/args.yaml")
+    with open(args_path, "w") as fp:
         # Mode and output bucket are currently fixed. 
         fp.write(
             yaml.dump(
@@ -203,21 +212,38 @@ def api_new_experiment():
             )
         )
 
+    # save zipfile of all the files for downloading later
+    with zipfile.ZipFile(f'{experiment_dir}/{experiment_name}.zip', 'w') as ezip:
+        ezip.write(csv_path, 'experiment.csv')
+        ezip.write(metadata_path, 'metadata.yaml')
+        ezip.write(args_path, 'args.yaml')
+        for additional_file in additional_files:
+            ezip.write(os.path.abspath(f'{experiment_dir}/{additional_file.filename}'), additional_file.filename)
+
+    status = upload_file(csv_path, s3_results_bucket, s3_object_key)
+    if not status:
+        print("Unable to upload experiment to s3. Check logs.")
+        shutil.rmtree(experiment_dir)
+        # TODO: Include pop-up error on app.
+
     return redirect(url_for("view_experiments"))
 
 
 @APP.route("/api/job", methods=["POST"])
 def api_new_job():
     # extract args from request
-    job_name = request.form["jobName"]
     docker_image = request.form["dockerImage"]
     experiment_tag = request.form["experiment"]
 
     # each job is tagged with submit time
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
+    sanitized_docker_image = docker_image.replace('/', '_')
+
+    job_name = f'{experiment_tag}-{sanitized_docker_image}-{time_tag}'
+
     # create this job's directory
-    job_dir = f"{JOB_DIR}/{job_name}-{time_tag}/"
+    job_dir = f"{JOB_DIR}/{job_name}/"
     os.makedirs(job_dir, exist_ok=True)
 
     # copy cwl workflow to job dir
@@ -234,39 +260,57 @@ def api_new_job():
     dag_id = f"task_3_{experiment_tag}"
 
     # specify output file name
-    output_name = f"{job_name}-{docker_image}.csv"
-    output_name = output_name.replace('/', '_')
+    output_name = f"{job_name}-{sanitized_docker_image}.csv"
     with open(yaml_path, 'r') as exp_file:
         exp = yaml.load(exp_file)
     
+    yaml_path = os.path.join(job_dir, "args.yaml")
     exp['output_file'] = output_name
     with open(yaml_path, 'w') as exp_file:
         exp_file.write(yaml.dump(exp))
 
-    # invoke conduit cli tools
-    subprocess.run(
-        f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
-        shell=True,
-    )
-    execution_date, dag_status = trigger_dag("localhost", "8080", dag_id)
-
-    # save job details to yaml file
-    with open(os.path.join(job_dir, "job_details.yaml"), "w") as fp:
-        fp.write(
-            yaml.dump(
-                {
-                    "job_name": job_name,
-                    "date": time_tag,
-                    "dag_id": dag_id,
-                    "docker_image": docker_image,
-                    "experiment": experiment_tag,
-                    "execution_date": execution_date,
-                },
-                default_flow_style=False,
-            )
+    def work():
+        yield f'Invoking conduit cli tools... {cwl_path} {yaml_path}\r\n'
+        # invoke conduit cli tools
+        p = subprocess.Popen(
+            f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
+            shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True
         )
+        for line in p.stdout:
+            yield '[DOCKER]' + line
+        # wait for process to finish just to be sure
+        p.wait()
+        
+        yield f'Triggering airflow dag... {dag_id}\r\n'
+        execution_date, dag_status = trigger_dag("localhost", "8080", dag_id)
+        
+        if dag_status == 200:
+            job_details_path = os.path.join(job_dir, "job_details.yaml")
+            yield f'Saving job details... {job_details_path}\r\n'
+            # save job details to yaml file
+            with open(job_details_path, "w") as fp:
+                fp.write(
+                    yaml.dump(
+                        {
+                            "job_name": job_name,
+                            "date": time_tag,
+                            "dag_id": dag_id,
+                            "docker_image": docker_image,
+                            "experiment": experiment_tag,
+                            "execution_date": execution_date,
+                            "experiment_details": exp
+                        },
+                        default_flow_style=False,
+                    )
+                )
+            yield 'Done!\r\n'
+        
+        else:
+            # DAG Failed.
+            shutil.rmtree(job_dir)
+            yield f'DAG Failed to launch. Error Code: {dag_status}'
 
-    return redirect(url_for("view_jobs"))
+    return Response(work(), mimetype='text/plain')
 
 
 if __name__ == "__main__":
