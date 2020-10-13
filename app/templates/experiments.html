@@ -11,7 +11,6 @@
 				<th>Creation Date</th>
 				<th>Image Bucket</th>
 				<th>Output Bucket</th>
-				<th>Output File</th>
 				<th>Download Data CSV</th>
 				<th>Remove</th>
 			</tr>
@@ -23,9 +22,8 @@
 				<td>{{experiment["date"]}}</td>
 				<td>{{experiment["images_dir"]}}</td>
 				<td>{{experiment["_saber_bucket"]}}</td>
-				<td>{{experiment["output_file"]}}</td>
 				<td>
-					<a href="/api/experiment/{{experiment['name']}}/download" download>Download</a>
+					<a href="/api/experiment/{{experiment['name']}}/download" class="btn btn-primary" download>Download</a>
 				</td>	
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{experiment['name']}}">
@@ -48,7 +46,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<form action="/api/experiment/{{experiment['name']}}/date/{{experiment["date"]}}/delete", method="post">
+					<form action="/api/experiment/{{experiment['name']}}/delete", method="post">
 						<button type="submit" class="btn btn-danger">Remove</button>
 					</form>
 				</div>

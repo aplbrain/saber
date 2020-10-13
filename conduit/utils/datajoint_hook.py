@@ -75,7 +75,7 @@ db_types = {
     'boolean' : 'char(4)',
     'float' : 'float',
     'double' : 'double',
-    'string' : 'varchar(64)',
+    'string' : 'varchar(255)',
     'File' : 'varchar(64)'
 }
 

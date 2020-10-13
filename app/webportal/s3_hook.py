@@ -15,6 +15,16 @@ def upload_file(file_name, bucket, key):
         return False
     return True
 
+def delete_folder(bucket, prefix):
+    s3 = boto3.resource("s3")
+    try:
+        bucket = s3.Bucket(bucket) 
+        bucket.objects.filter(Prefix= prefix + "/").delete()
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return True
+
 def generate_download_link(bucket, key, expiration):
     s3 = boto3.client("s3")
     try:

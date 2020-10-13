@@ -23,7 +23,7 @@
 				<td>{{job["status"]}}</td>
 				<td>{{job["experiment"]}}</td>
 				<td>
-					<a href="/api/jobs/{{job['job_name']}}-{{job['date']}}/download" class="btn btn-primary" target="_blank">Download</a>
+					<a href="/api/jobs/{{job['job_name']}}/download" class="btn btn-primary" target="_blank">Download</a>
 				</td>
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{job['job_name']}}_{{job['date']}}">
@@ -47,7 +47,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<form action="/api/job/{{job['job_name']}}/date/{{job['date']}}/delete", method="post">
+					<form action="/api/job/{{job['job_name']}}/delete", method="post">
 						<button type="submit" class="btn btn-danger">Remove</button>
 					</form>
 				</div>
