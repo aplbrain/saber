@@ -20,13 +20,14 @@ import shutil
 import zipfile
 
 from webportal.airflow_hook import trigger_dag, dag_status, task_status
-from webportal.s3_hook import upload_file, delete_folder, generate_download_link
+from webportal.s3_hook import upload_file, delete_folder, generate_download_link, get_batch_logs
 
 APP = Flask(__name__)
 APP.config["TEMPLATES_AUTO_RELOAD"] = True
 
 JOB_DIR = "/opt/saber/jobs"
 EXPERIMENT_DIR = "/opt/saber/experiments"
+LOG_DIR = "/home/lowmaca1/saber/volumes/logs"
 
 WORKFLOW_DIR = "/opt/saber/cwl-workflows"
 WORKFLOW_PATH = WORKFLOW_DIR + "/task_3.cwl"
@@ -356,6 +357,28 @@ def api_new_job():
 
     return Response(work(), mimetype="text/plain")
 
+
+@APP.route("/api/jobs/<job_name>/log", methods=["GET"])
+def api_download_log(job_name):
+
+    # Specify file name and path of the log
+    fn = f"{job_name}.log"
+    fp = os.path.join(JOB_DIR, job_name, fn)
+    
+    # Pull most recent logs from AWS Batch. 
+    dag_id = f"task_3_{job_name}"
+    with open(fp, 'w') as log:
+        log_content = get_batch_logs(dag_id, LOG_DIR)
+        if log_content:
+            log.write(log_content)
+    
+    # Send file to user
+    try:
+        return send_from_directory(
+            fp, filename=fn, as_attachment=True
+        )
+    except FileNotFoundError:
+        abort(404)
 
 if __name__ == "__main__":
     APP.run(debug=True)

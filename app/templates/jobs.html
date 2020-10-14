@@ -12,6 +12,7 @@
 				<th>Status</th>
 				<th>Experiment</th>
 				<th>Output</th>
+				<th>Log</th>
 				<th>Remove</th>
 			</tr>
 		</thead>
@@ -24,6 +25,9 @@
 				<td>{{job["experiment"]}}</td>
 				<td>
 					<a href="/api/jobs/{{job['job_name']}}/download" class="btn btn-primary" target="_blank">Download</a>
+				</td>
+				<td>
+					<a href="/api/jobs/{{job['job_name']}}/log" class="btn btn-secondary" target="_blank">Download Log</a>
 				</td>
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{job['job_name']}}_{{job['date']}}">
