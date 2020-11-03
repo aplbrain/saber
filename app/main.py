@@ -200,40 +200,52 @@ def api_download_job(job):
 
 @APP.route("/api/experiment", methods=["POST"])
 def api_new_experiment():
+
+    # Request necessary params
     experiment_name = request.form["name"]
     s3_images_bucket = request.form["s3ImagesBucket"]
     # s3_results_bucket = request.form["s3ResultsBucket"]
     s3_results_bucket = S3_OUTPUT_BUCKET
     experiment_csv = request.files["experiment"]
-    if "additional_files" in request.files:
-        additional_files = request.files.getlist("additional_files")
-    else:
-        additional_files = []
-
+    
+    # Create time-tagged directories and path variables
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-
     experiment_dir = f"{EXPERIMENT_DIR}/{experiment_name}/"
     os.makedirs(experiment_dir, exist_ok=True)
-
+    
     csv_path = os.path.abspath(f"{experiment_dir}/experiment.csv")
     experiment_csv.save(csv_path)
 
     s3_object_key = f"{experiment_name}/experiment.csv"
 
+    # Check for additional and train files and save them to directory. 
+    additional_files = []
+    if "additional_files" in request.files:
+        additional_files = request.files.getlist("additional_files")
+    
     for additional_file in additional_files:
         additional_file.save(f"{experiment_dir}/{additional_file.filename}")
+    
+    train_file = None
+    if "train_file" in request.files:
+        train_file = request.files["train_file"]
+        train_file.save(f"{experiment_dir}/{train_file.filename}")
 
+    # Save experiment metadata in YAML file
     metadata_path = os.path.abspath(f"{experiment_dir}/metadata.yaml")
     with open(metadata_path, "w") as fp:
         fp.write(
             yaml.dump(
                 {
+                    "name": experiment_name,
                     "date": time_tag,
                     "additional_files": [f.filename for f in additional_files],
+                    "train_file": train_file.filename if train_file else "None"
                 }
             )
         )
 
+    # Create SABER YAML file (args.yaml)
     args_path = os.path.abspath(f"{experiment_dir}/args.yaml")
     with open(args_path, "w") as fp:
         # Mode and output bucket are currently fixed.
@@ -259,6 +271,11 @@ def api_new_experiment():
             ezip.write(
                 os.path.abspath(f"{experiment_dir}/{additional_file.filename}"),
                 additional_file.filename,
+            )
+        if train_file:
+            ezip.write(
+                os.path.abspath(f"{experiment_dir}/{train_file.filename}"),
+                train_file.filename,
             )
 
     status = upload_file(csv_path, s3_results_bucket, s3_object_key)
@@ -343,7 +360,7 @@ def api_new_job():
                             "docker_image": docker_image,
                             "experiment": experiment_tag,
                             "execution_date": execution_date,
-                            "experiment_details": exp,
+                            "experiment_details": exp
                         },
                         default_flow_style=False,
                     )
@@ -360,7 +377,6 @@ def api_new_job():
 
 @APP.route("/api/jobs/<job_name>/log", methods=["GET"])
 def api_download_log(job_name):
-
     # Specify file name and path of the log
     fn = f"{job_name}.log"
     fp = os.path.join(JOB_DIR, job_name, fn)
@@ -375,7 +391,7 @@ def api_download_log(job_name):
     # Send file to user
     try:
         return send_from_directory(
-            fp, filename=fn, as_attachment=True
+            os.path.split(fp)[0], filename=fn, as_attachment=True
         )
     except FileNotFoundError:
         abort(404)

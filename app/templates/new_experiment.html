@@ -18,6 +18,16 @@ function validate_experiment_name(){
 		document.getElementById("submitButton").disabled = true;
 	}
 }
+function toggle_train_step(e) {
+	if (e.checked) {
+		document.getElementById("trainFileGroup").classList.remove("d-none");
+		document.getElementById("train_file").disabled = false;
+	} else {
+		document.getElementById("trainFileGroup").classList.add("d-none");
+		document.getElementById("train_file").disabled = true;
+	}
+}
+
 </script>
 {% endblock %}
 
@@ -46,6 +56,16 @@ function validate_experiment_name(){
 			<div class="form-group">
 				<label for="experiment">Additional File(s)</label>
 				<input type="file" name="additional_files" class="form-control" multiple="true">
+			</div>
+
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="has_train_step" onchange="toggle_train_step(this)">
+				<label for="experiment">Include Train Step?</label>
+			</div>
+
+			<div id="trainFileGroup" class="form-group d-none">
+				<label for="experiment">Training Annotations</label>
+				<input type="file" name="train_file" accept=".json" class="form-control" id="train_file" disabled required>
 			</div>
 
 			<button id="submitButton" type="submit" class="btn btn-primary" disabled>Create Experiment</button>
