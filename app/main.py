@@ -30,7 +30,6 @@ EXPERIMENT_DIR = "/opt/saber/experiments"
 LOG_DIR = "/home/lowmaca1/saber/volumes/logs"
 
 WORKFLOW_DIR = "/opt/saber/cwl-workflows"
-WORKFLOW_PATH = WORKFLOW_DIR + "/task_3.cwl"
 TOOL_TEMPLATE_PATH = WORKFLOW_DIR + "/run_algorithm.cwl.template"
 
 S3_OUTPUT_BUCKET = "microns-saber"
@@ -216,7 +215,8 @@ def api_new_experiment():
     csv_path = os.path.abspath(f"{experiment_dir}/experiment.csv")
     experiment_csv.save(csv_path)
 
-    s3_object_key = f"{experiment_name}/experiment.csv"
+    data_file_object_key = f"{experiment_name}/experiment.csv"
+    train_file_object_key = f"{experiment_name}/train_file.json"
 
     # Check for additional and train files and save them to directory. 
     additional_files = []
@@ -229,7 +229,8 @@ def api_new_experiment():
     train_file = None
     if "train_file" in request.files:
         train_file = request.files["train_file"]
-        train_file.save(f"{experiment_dir}/{train_file.filename}")
+        train_fp = f"{experiment_dir}/{train_file.filename}"
+        train_file.save(train_fp)
 
     # Save experiment metadata in YAML file
     metadata_path = os.path.abspath(f"{experiment_dir}/metadata.yaml")
@@ -240,7 +241,7 @@ def api_new_experiment():
                     "name": experiment_name,
                     "date": time_tag,
                     "additional_files": [f.filename for f in additional_files],
-                    "train_file": train_file.filename if train_file else "None"
+                    "train_file": train_file.filename if train_file else None
                 }
             )
         )
@@ -252,10 +253,11 @@ def api_new_experiment():
         fp.write(
             yaml.dump(
                 {
-                    "mode": "3-test",
-                    "data_file": {"class": "File", "path": s3_object_key},
+                    "test_datafile": {"class": "File", "path": data_file_object_key},
+                    "train_datafile": {"class": "File", "path": train_file_object_key if train_file else None},
                     "images_dir": "s3://" + s3_images_bucket,
                     "output_file": None,
+                    "params_file": "params.zip",
                     "_saber_bucket": s3_results_bucket,
                 },
                 default_flow_style=False,
@@ -278,7 +280,13 @@ def api_new_experiment():
                 train_file.filename,
             )
 
-    status = upload_file(csv_path, s3_results_bucket, s3_object_key)
+    if train_file:
+        status = upload_file(train_fp, s3_results_bucket, train_file_object_key)
+        if not status:
+            print("Unable to upload train file to s3. Check logs.")
+            shutil.rmtree(experiment_dir)
+
+    status = upload_file(csv_path, s3_results_bucket, data_file_object_key)
     if not status:
         print("Unable to upload experiment to s3. Check logs.")
         shutil.rmtree(experiment_dir)
@@ -304,20 +312,20 @@ def api_new_job():
     job_dir = f"{JOB_DIR}/{job_name}/"
     os.makedirs(job_dir, exist_ok=True)
 
-    # copy cwl workflow to job dir
-    shutil.copy(WORKFLOW_PATH, job_dir)
-
     # copy cwl tool to job dir
     with open(TOOL_TEMPLATE_PATH) as fp:
         tool_template = fp.read()
     with open(os.path.join(job_dir, "run_algorithm.cwl"), "w") as fp:
         fp.write(tool_template.replace("{{dockerImageName}}", docker_image))
 
-    cwl_path = os.path.join(job_dir, "task_3.cwl")
     yaml_path = os.path.join(EXPERIMENT_DIR, experiment_tag, "args.yaml")
 
     # specify output file name
     output_name = f"{job_name}.csv"
+
+    if len(output_name) > 64:
+        # Truncate name for SABER
+        output_name = f"{sanitized_docker_image}_OUTPUT.csv"
     with open(yaml_path, "r") as exp_file:
         exp = yaml.load(exp_file)
 
@@ -326,10 +334,25 @@ def api_new_job():
     with open(yaml_path, "w") as exp_file:
         exp_file.write(yaml.dump(exp))
 
-    dag_id = f"task_3_{job_name}"
+    # copy cwl workflow to job dir
+    if exp["train_datafile"]["path"]:
+        train_wf = True
+        workflow_path = os.path.join(WORKFLOW_DIR, "task_3_with_train.cwl")
+        cwl_path = os.path.join(job_dir, "task_3_with_train.cwl")
+        dag_id = f"task_3_with_train_{job_name}"
+    else:
+        train_wf = False 
+        workflow_path = os.path.join(WORKFLOW_DIR, "task_3.cwl")
+        cwl_path = os.path.join(job_dir, "task_3.cwl")
+        dag_id = f"task_3_{job_name}"
+    
+    shutil.copy(workflow_path, job_dir)
+    
 
     def work():
         yield f"Invoking conduit cli tools... {cwl_path} {yaml_path}\r\n"
+        if train_wf:
+            yield "Using Train/Test Workflow with attached train JSON."
         # invoke conduit cli tools
         p = subprocess.Popen(
             f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
