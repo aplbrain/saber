@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}New Image{% endblock %}
+
+{% block scripts %}
+<script type=text/javascript>
+$(document).ready(() => {
+	$('#repository').change(function() {
+		// get current selected repository and empty the image dropdown.
+		let curr = $(this).val();
+		let imageDropdown = $('#image');
+		imageDropdown.empty();
+		imageDropdown.append('<option selected="true" disabled>Choose Image</option>');
+
+		// parse json containing image tags
+		let tags = JSON.parse({{image_json|tojson|safe}})[curr];
+		
+		//iterate through it and append to the select
+		Object.values(tags).forEach(function(ele) {
+		var opt = '<option>' + ele + '</option>';
+		imageDropdown.append(opt);
+		});
+	})
+});
+</script>
+
+<script>
+	function pull_image() {
+		var button = document.getElementById("submitButton");
+		button.disabled = true;
+		button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submit Job'
+
+		var formData = new FormData(document.querySelector("form"));
+		fetch("/api/pull_image", {method: 'POST', body: formData}).then(response => {
+			const reader = response.body.getReader();
+			return reader.read().then(function processText({done, value}) {
+				if (done) {
+					button.disabled = false;
+					button.innerHTML = 'Submit Job'
+					return;
+				}
+			
+				var value = new TextDecoder("utf-8").decode(value);
+				console.log(done, value);
+
+				var output = document.getElementById("output");
+				output.innerHTML += value;
+				output.scrollTop = output.scrollHeight;
+
+				return reader.read().then(processText); 
+			});
+		}).catch(error => {
+			console.error(error);
+			window.alert(error);
+		});
+		return false;
+	}
+</script>
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<form>
+			<div class="form-group">
+				<label for="repositoryName">Repository</label>
+				<select id="repository" name="repositoryName" class="form-control" required>
+					<option selected="true" disabled>Choose Repository</option>
+					{% for repo in repositories %}
+					<option value="{{repo}}">{{repo}}</option>
+					{% endfor %}
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="image">Image Tag</label>
+				<select id = "image" name="imageName" class="form-control" required>
+				</select>
+			</div>
+
+			<button id="submitButton" type="button" class="btn btn-primary" onclick="return pull_image()">
+				Pull Image
+			</button>
+
+		</form>
+
+		<br>
+
+		<label>Pull Log</label>
+		<textarea id="output" rows="5" class="w-100" disabled></textarea>
+	</div>
+{% endblock %}

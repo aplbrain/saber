@@ -8,8 +8,10 @@ from flask import (
     url_for,
     send_from_directory,
     abort,
-    Response,
+    Response
 )
+
+from flask.json import dumps
 import subprocess
 from subprocess import PIPE
 import os
@@ -20,7 +22,14 @@ import shutil
 import zipfile
 
 from webportal.airflow_hook import trigger_dag, dag_status, task_status
-from webportal.s3_hook import upload_file, delete_folder, generate_download_link, get_batch_logs
+from webportal.s3_hook import (
+    upload_file, 
+    delete_folder, 
+    generate_download_link, 
+    get_batch_logs,
+    list_repositories,
+    list_images
+)
 
 APP = Flask(__name__)
 APP.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -63,9 +72,8 @@ def new_job():
     available_images = []
     for image in docker_images:
         rep, tag = image.split(":")
-        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and "s3" == tag:
-            tool = rep.split("/")[1:]
-            available_images.append("/".join(tool))
+        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and tag not in ["s3", "<none>"]:
+            available_images.append(image)
 
     return render_template(
         "new_job.html",
@@ -141,6 +149,16 @@ def view_jobs():
     )
 
     return render_template("jobs.html", jobs=job_list)
+
+
+@APP.route("/new_image", methods=["GET", "POST"])
+def new_image():
+    repositories = {repo : list_images(repo) for repo in list_repositories()} 
+    return render_template(
+        "new_image.html",
+        repositories = repositories.keys(),
+        image_json = dumps(repositories)
+    )
 
 
 @APP.route("/api/experiment/<experiment_name>/delete", methods=["POST"])
@@ -304,7 +322,7 @@ def api_new_job():
     # each job is tagged with submit time
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
-    sanitized_docker_image = docker_image.replace("/", "_")
+    sanitized_docker_image = docker_image.replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "").replace("/", "_").replace(":", "_")
 
     job_name = f"{time_tag}-{experiment_tag}-{sanitized_docker_image}"
 
@@ -392,7 +410,7 @@ def api_new_job():
 
         else:
             # DAG Failed.
-            # shutil.rmtree(job_dir)
+            shutil.rmtree(job_dir)
             yield f"DAG Failed to launch. Error Code: {dag_status}"
 
     return Response(work(), mimetype="text/plain")
@@ -410,7 +428,8 @@ def api_download_log(job_name):
         log_content = get_batch_logs(dag_id, LOG_DIR)
         if log_content:
             log.write(log_content)
-    
+        else:
+            log.write("No logs available. Check Airflow.")
     # Send file to user
     try:
         return send_from_directory(
@@ -418,6 +437,16 @@ def api_download_log(job_name):
         )
     except FileNotFoundError:
         abort(404)
+
+
+@APP.route("/api/pull_image", methods=["POST"])
+def api_new_image():
+    repository = request.form["repositoryName"]
+    image_tag = request.form["imageName"]
+    def work():
+        yield(f"Pulling {repository}:{image_tag} from ECR \n")
+    
+    return Response(work(), mimetype="text/plain")
 
 if __name__ == "__main__":
     APP.run(debug=True)

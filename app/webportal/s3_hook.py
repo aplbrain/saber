@@ -10,6 +10,27 @@ import datetime
 import boto3
 from botocore.exceptions import ClientError
 
+# List of ECR Repositories to not list on webapp.
+REPOSITORY_IGNORE = [
+    "aplbrain/boss-access",
+    "aplbrain/i2gdetect",
+    "aplbrain/i2gdetect_gpu",
+    "aplbrain/i2gseg",
+    "boss-images",
+    "boss-speed-test-images",
+    "colocar/colocard",
+    "colocar/keycloak-proxy.js",
+    "colocar/mongo-grove",
+    "microns-agents",
+    "microns-syn",
+    "microns-unet",
+    "microns-unet-gpu",
+    "nap/ingest",
+    "nap/nri",
+    "nap/test",
+    "nap/trace-to-edgeframe",
+    "test"
+]
 
 def upload_file(file_name, bucket, key):
     s3 = boto3.client("s3")
@@ -71,4 +92,26 @@ def get_batch_logs(dag_id, log_dir, **kwargs):
                 "%m/%d/%Y %H:%M:%S"
             )
             log_buffer.append(time + " " * 8 + event["message"])
-    return "\n".join(log_buffer)
+        return "\n".join(log_buffer)
+
+
+def list_repositories():
+    repository_names = []
+    ecr = boto3.client("ecr")
+    repositories = ecr.describe_repositories()['repositories']
+    for rep in repositories:
+        if rep['repositoryName'] not in REPOSITORY_IGNORE:
+            repository_names.append(rep['repositoryName'])
+    return sorted(repository_names)
+
+
+def list_images(repository):
+    image_tags = []
+    ecr = boto3.client("ecr")
+    images = ecr.describe_images(repositoryName=repository, filter={"tagStatus": "TAGGED"})['imageDetails']
+    sorted_images = sorted(images, key=lambda x: x['imagePushedAt'], reverse=True)
+    for image in sorted_images:
+        for tag in image["imageTags"]:
+            if tag != "s3":
+                image_tags.append(tag)
+    return image_tags

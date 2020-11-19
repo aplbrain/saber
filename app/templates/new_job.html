@@ -54,7 +54,7 @@ function submit_job() {
 				<label for="dockerImage">Docker Image</label>
 				<select name="dockerImage" class="form-control" required>
 					{% for image_id in docker_images %}
-					<option value="{{image_id}}">{{image_id}}</option>
+					<option value="{{image_id}}">{{image_id.replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "")}}</option>
 					{% endfor %}
 				</select>
 			</div>

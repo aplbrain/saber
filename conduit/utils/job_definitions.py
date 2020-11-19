@@ -212,7 +212,10 @@ def make_tag(tool_name, tool_yml, local):
     #     log.warning('Docker repo does not match AWS docker repo')
     if not local:
         docker_registry = docker_registry_login()
-        tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
+        if docker_registry in short_docker_image_name:
+            tag = '{}:s3'.format(short_docker_image_name)
+        else:
+            tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
     if local:
         tag = '{}:local'.format(short_docker_image_name)
     return tag
