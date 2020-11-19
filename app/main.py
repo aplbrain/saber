@@ -153,11 +153,14 @@ def view_jobs():
 
 @APP.route("/new_image", methods=["GET", "POST"])
 def new_image():
-    repositories = {repo : list_images(repo) for repo in list_repositories()} 
+    repositories = {repo : list_images(repo) for repo in list_repositories()}
+    total, used, free = map(lambda x: x // (2**30), shutil.disk_usage("/"))
+    percent_used = round(100*(used/total), 1)
     return render_template(
         "new_image.html",
         repositories = repositories.keys(),
-        image_json = dumps(repositories)
+        image_json = dumps(repositories),
+        disk_space = (percent_used, free)
     )
 
 
@@ -380,9 +383,13 @@ def api_new_job():
             universal_newlines=True,
         )
         for line in p.stdout:
-            yield "[DOCKER]" + line
+            yield "[DOCKER] " + line
         # wait for process to finish just to be sure
         p.wait()
+
+        if p.returncode != 0:
+            for line in p.stderr:
+                yield "[ERROR] " + line
 
         yield f"Triggering airflow dag... {dag_id}\r\n"
         execution_date, dag_status = trigger_dag("localhost", "8080", dag_id)
@@ -411,7 +418,7 @@ def api_new_job():
         else:
             # DAG Failed.
             shutil.rmtree(job_dir)
-            yield f"DAG Failed to launch. Error Code: {dag_status}"
+            yield f"DAG Failed to launch. Error Code: {dag_status}. Check logs in Airflow or contact dev team."
 
     return Response(work(), mimetype="text/plain")
 
@@ -443,8 +450,29 @@ def api_download_log(job_name):
 def api_new_image():
     repository = request.form["repositoryName"]
     image_tag = request.form["imageName"]
+    uri = f"256215146792.dkr.ecr.us-east-1.amazonaws.com/{repository}:{image_tag}"
     def work():
         yield(f"Pulling {repository}:{image_tag} from ECR \n")
+        # invoke conduit cli tools
+        p = subprocess.Popen(
+            "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 256215146792.dkr.ecr.us-east-1.amazonaws.com",
+            shell=True,
+            stdout=PIPE,
+            stderr=PIPE,
+            universal_newlines=True
+        )
+        for line in p.stdout:
+            yield "[AWS ECR] " + line  
+
+        p = subprocess.Popen(
+            f"docker pull {uri}",
+            shell=True,
+            stdout=PIPE,
+            stderr=PIPE,
+            universal_newlines=True,
+        )
+        for line in p.stdout:
+            yield "[DOCKER] " + line
     
     return Response(work(), mimetype="text/plain")
 
