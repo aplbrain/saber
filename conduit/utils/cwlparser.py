@@ -140,7 +140,7 @@ class CwlParser:
         return tool_yamls
 
     def create_subdag(self, iteration, i, param_db_update_dict, job_params, job, wf_id, deps, dag=None):
-        subdag_id = '{}_{}.{}'.format(self.workflow_name, wf_id, i) 
+        subdag_id = '{}.{}'.format(self.dag_id, i) 
         parent_dag_id = self.dag_id
         if dag == None:
             subdag = DAG(
@@ -259,7 +259,7 @@ class CwlParser:
 
         self.parameterization = parameterize(parameterization)
         
-    def generate_dag(self,job,**kwargs):
+    def generate_dag(self,job,dag_id,**kwargs):
 
         '''
         Generates an AWS airflow dag from CWL
@@ -282,7 +282,10 @@ class CwlParser:
         with open(job) as fp:
             job = yaml.full_load(fp)
 
-        self.dag_id = '{}_{}'.format(self.workflow_name, wf_id)
+        if dag_id:
+            self.dag_id = dag_id
+        else:
+            self.dag_id = '{}_{}'.format(self.workflow_name, wf_id)
 
         default_args = {
             "depends_on_past": False,
@@ -456,10 +459,10 @@ class CwlParser:
         dag_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '../dags/'))
         with open(os.path.join(dag_folder, 'template_dag'),'r') as fp:
             template_string = fp.read()
-        with open(os.path.join(dag_folder, '{}_dag.pickle'.format(self.workflow_name)),'wb') as fp:
+        with open(os.path.join(dag_folder, '{}_dag.pickle'.format(self.dag_id)),'wb') as fp:
             pickle.dump(dag, fp)
-        with open(os.path.join(dag_folder, '{}_dag.py'.format(self.workflow_name)),'w') as fp:
-            fp.write(template_string.format(self.workflow_name))
+        with open(os.path.join(dag_folder, '{}_dag.py'.format(self.dag_id)),'w') as fp:
+            fp.write(template_string.format(self.dag_id))
 
     def collect_results(self):
         '''

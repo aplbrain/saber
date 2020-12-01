@@ -65,11 +65,16 @@ def generate_download_link(bucket, key, expiration):
     return response
 
 
-def get_log_stream_name(dag_id, log_dir):
+def get_log_stream_name(dag_id, execution_date, log_dir):
     pattern = re.compile("'logStreamName': '(.*?)'")
-    for logs in os.listdir(log_dir):
-        if dag_id in logs:
-            for root, _, files in os.walk(os.path.join(log_dir, logs)):
+    dag_logs = os.path.join(log_dir, dag_id+".0", 'algorithm.0')
+    if not os.path.isdir(dag_logs):
+        # TODO: Return Airflow Log
+        print("dag log not found")
+        return 
+    for dates in os.listdir(dag_logs):
+        if execution_date in dates:
+            for root, _, files in os.walk(os.path.join(dag_logs, dates)):
                 if files:
                     with open(os.path.join(root, files[0]), "r") as log_file:
                         log_content = log_file.read()
@@ -78,8 +83,8 @@ def get_log_stream_name(dag_id, log_dir):
                         return match.group(1)
 
 
-def get_batch_logs(dag_id, log_dir, **kwargs):
-    log_stream = get_log_stream_name(dag_id, log_dir)
+def get_batch_logs(dag_id, execution_date, log_dir, **kwargs):
+    log_stream = get_log_stream_name(dag_id, execution_date, log_dir)
     if log_stream:
         log_buffer = []
         logs = boto3.client("logs")
@@ -89,8 +94,8 @@ def get_batch_logs(dag_id, log_dir, **kwargs):
         for event in events:
             seconds = event["timestamp"] / 1000
             time = datetime.datetime.fromtimestamp(seconds).strftime(
-                "%m/%d/%Y %H:%M:%S"
-            )
+                "%m/%d/%Y %H:%M:%S.%f"
+            )[:-3]
             log_buffer.append(time + " " * 8 + event["message"])
         return "\n".join(log_buffer)
 

@@ -360,23 +360,23 @@ def api_new_job():
         train_wf = True
         workflow_path = os.path.join(WORKFLOW_DIR, "task_3_with_train.cwl")
         cwl_path = os.path.join(job_dir, "task_3_with_train.cwl")
-        dag_id = f"task_3_with_train_{job_name}"
+        dag_id = f"task_3_with_train_{sanitized_docker_image}"
     else:
         train_wf = False 
         workflow_path = os.path.join(WORKFLOW_DIR, "task_3.cwl")
         cwl_path = os.path.join(job_dir, "task_3.cwl")
-        dag_id = f"task_3_{job_name}"
+        dag_id = f"task_3_{sanitized_docker_image}"
     
     shutil.copy(workflow_path, job_dir)
     
 
     def work():
-        yield f"Invoking conduit cli tools... {cwl_path} {yaml_path}\r\n"
+        yield f"Invoking conduit cli tools... {dag_id}\r\n"
         if train_wf:
             yield "Using Train/Test Workflow with attached train JSON."
         # invoke conduit cli tools
         p = subprocess.Popen(
-            f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --build",
+            f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --dag_id {dag_id} --build",
             shell=True,
             stdout=PIPE,
             stderr=PIPE,
@@ -423,16 +423,15 @@ def api_new_job():
     return Response(work(), mimetype="text/plain")
 
 
-@APP.route("/api/jobs/<job_name>/log", methods=["GET"])
-def api_download_log(job_name):
+@APP.route("/api/jobs/<job_name>/dag/<dag_id>/date/<execution_date>/log", methods=["GET"])
+def api_download_log(job_name, dag_id, execution_date):
     # Specify file name and path of the log
     fn = f"{job_name}.log"
     fp = os.path.join(JOB_DIR, job_name, fn)
     
     # Pull most recent logs from AWS Batch. 
-    dag_id = f"task_3_{job_name}"
     with open(fp, 'w') as log:
-        log_content = get_batch_logs(dag_id, LOG_DIR)
+        log_content = get_batch_logs(dag_id, execution_date, LOG_DIR)
         if log_content:
             log.write(log_content)
         else:

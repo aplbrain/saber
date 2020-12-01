@@ -50,7 +50,7 @@ def parse(args):
         with open(args.parameterize) as fp:
             pm = yaml.full_load(fp)
         p.set_parameterization(pm)
-    write_dag(p, args.job)
+    write_dag(p, args.job, args.dag_id)
 
 def optimize(args):
     # TODO: Create optimize samping mappings to load classes from
@@ -100,8 +100,8 @@ def collect(args):
     results = p.collect_results()
     write_results(results,args)
 
-def write_dag(parser, job):
-    dag = parser.generate_dag(job)
+def write_dag(parser, job, dag_id):
+    dag = parser.generate_dag(job, dag_id)
     log.info('Generating Airflow DAG from workflow CWL')
     log.info('Pickling and writing DAG {} to dag folder'.format(dag.dag_id))
     parser.dag_write(dag)
@@ -196,6 +196,7 @@ if __name__ == '__main__':
     parse_parser.add_argument('cwl', help='CWL file')
     parse_parser.add_argument('job', help='CWL job file')
     parse_parser.add_argument('--parameterize','-p', help='Parameterization file')
+    parse_parser.add_argument('--dag_id','-d', help='Custom DAG ID')
     parse_parser.add_argument('--build', help='Build the containers as well as write the dag', action='store_true')
     parse_parser.set_defaults(func=parse)
 
