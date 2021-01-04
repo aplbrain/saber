@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import tempfile
+
 from flask import (
     Flask,
     render_template,
@@ -24,6 +26,7 @@ import zipfile
 from webportal.airflow_hook import trigger_dag, dag_status, task_status
 from webportal.s3_hook import (
     upload_file, 
+    download_files,
     delete_folder, 
     generate_download_link, 
     get_batch_logs,
@@ -37,6 +40,7 @@ APP.config["TEMPLATES_AUTO_RELOAD"] = True
 JOB_DIR = "/opt/saber/jobs"
 EXPERIMENT_DIR = "/opt/saber/experiments"
 LOG_DIR = "/home/lowmaca1/saber/volumes/logs"
+CONFIG_FILE = "/home/lowmaca1/saber/conduit/config/aws_config.yml"
 
 WORKFLOW_DIR = "/opt/saber/cwl-workflows"
 TOOL_TEMPLATE_PATH = WORKFLOW_DIR + "/run_algorithm.cwl.template"
@@ -150,6 +154,10 @@ def view_jobs():
 
     return render_template("jobs.html", jobs=job_list)
 
+@APP.route("/statistics", methods=["GET"])
+def statistics():
+    # TODO add info here
+    return render_template("statistics.html")
 
 @APP.route("/new_image", methods=["GET", "POST"])
 def new_image():
@@ -162,7 +170,6 @@ def new_image():
         image_json = dumps(repositories),
         disk_space = (percent_used, free)
     )
-
 
 @APP.route("/api/experiment/<experiment_name>/delete", methods=["POST"])
 def api_delete_experiment(experiment_name):
@@ -190,6 +197,39 @@ def api_delete_job(job_name):
         print(f"Error: {job_name} - {e}.")
     return redirect(url_for("view_jobs"))
 
+@APP.route("/api/multi_download", methods=["POST"])
+def api_multi_download():
+    buckets = []
+    keys = []
+    for job in request.json['jobs']:
+        try:
+            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
+                job_details = yaml.load(jd)
+        except FileNotFoundError as e:
+            print(job)
+            abort(404)
+
+        bucket = job_details["experiment_details"]["_saber_bucket"]
+        fn = job_details["experiment_details"]["output_file"]
+        key = os.path.join(job, "algorithm.0", fn)
+
+        buckets.append(bucket)
+        keys.append(key)
+
+    with tempfile.TemporaryDirectory() as directory:
+        download_files(buckets, keys, directory)
+
+        lines = []
+        for job_name, key in zip(request.json['jobs'], keys):
+            with open(os.path.join(directory, key)) as fp:
+                for line in fp:
+                    line = line.strip()
+                    lines.append(line + f',{job_name}')
+
+    with tempfile.NamedTemporaryFile(mode='w') as fp:
+        fp.writelines(lines)
+        return send_from_directory(fp.name, filename='multi-job-output.csv', as_attachment=True)
+
 
 @APP.route("/api/experiment/<experiment_name>/download", methods=["GET"])
 def api_download_experiment(experiment_name):
@@ -210,12 +250,17 @@ def api_download_job(job):
     except FileNotFoundError as e:
         print(job)
         abort(404)
-
-    bucket = job_details["experiment_details"]["_saber_bucket"]
+    
     fn = job_details["experiment_details"]["output_file"]
-    key = os.path.join(job, "algorithm.0", fn)
-
-    return redirect(generate_download_link(bucket, key, 3000))
+    
+    if not job_details["local"]:
+        key = os.path.join(job, "algorithm.0", fn)
+        bucket = job_details["experiment_details"]["_saber_bucket"]
+        return redirect(generate_download_link(bucket, key, 3000))
+    else:
+        local_path =  os.path.join("/opt/saber/", job, "algorithm.0")
+        if os.path.exists(local_path):
+            return send_from_directory(local_path, filename=fn, as_attachment=True)
 
 
 @APP.route("/api/experiment", methods=["POST"])
@@ -236,8 +281,8 @@ def api_new_experiment():
     csv_path = os.path.abspath(f"{experiment_dir}/experiment.csv")
     experiment_csv.save(csv_path)
 
-    data_file_object_key = f"{experiment_name}/experiment.csv"
-    train_file_object_key = f"{experiment_name}/train_file.json"
+    data_file_object_key = f"experiments/{experiment_name}/experiment.csv"
+    train_file_object_key = f"experiments/{experiment_name}/train_file.json"
 
     # Check for additional and train files and save them to directory. 
     additional_files = []
@@ -321,6 +366,8 @@ def api_new_job():
     # extract args from request
     docker_image = request.form["dockerImage"]
     experiment_tag = request.form["experiment"]
+    cpu_config = request.form.get("cpu-toggle")
+    local_config = request.form.get("local-toggle")
 
     # each job is tagged with submit time
     time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
@@ -352,28 +399,39 @@ def api_new_job():
 
     yaml_path = os.path.join(job_dir, "args.yaml")
     exp["output_file"] = output_name
-    with open(yaml_path, "w") as exp_file:
-        exp_file.write(yaml.dump(exp))
 
-    # copy cwl workflow to job dir
+    # Specify dag ID. This helps organize jobs in airflow by docker image. 
+    train_wf = False
+    dag_id = f"task_3_{sanitized_docker_image}"
     if exp["train_datafile"]["path"]:
         train_wf = True
-        workflow_path = os.path.join(WORKFLOW_DIR, "task_3_with_train.cwl")
-        cwl_path = os.path.join(job_dir, "task_3_with_train.cwl")
         dag_id = f"task_3_with_train_{sanitized_docker_image}"
-    else:
-        train_wf = False 
-        workflow_path = os.path.join(WORKFLOW_DIR, "task_3.cwl")
-        cwl_path = os.path.join(job_dir, "task_3.cwl")
-        dag_id = f"task_3_{sanitized_docker_image}"
-    
-    shutil.copy(workflow_path, job_dir)
-    
 
+    # Specify CWL and copy to job dir
+    if train_wf and local_config:
+        cwl = "task_3_with_train_local.cwl"
+    elif train_wf and not local_config:
+        cwl = "task_3_with_train.cwl"
+    elif not train_wf and local_config:
+        cwl = "task_3_local.cwl"
+    else:
+        cwl = "task_3.cwl"
+
+    shutil.copy(os.path.join(WORKFLOW_DIR, cwl), job_dir)
+    cwl_path = os.path.join(job_dir, cwl)
+    
+    # write yaml file 
+    with open(yaml_path, "w") as exp_file:
+        exp_file.write(yaml.dump(exp))    
+    
+    # copy aws job config 
+    if cpu_config:
+        shutil.copy("config/aws_config_cpu.yml", CONFIG_FILE)
+    else:
+        shutil.copy("config/aws_config_gpu.yml", CONFIG_FILE)
+    
     def work():
         yield f"Invoking conduit cli tools... {dag_id}\r\n"
-        if train_wf:
-            yield "Using Train/Test Workflow with attached train JSON."
         # invoke conduit cli tools
         p = subprocess.Popen(
             f"docker exec saber_cwl_parser_1 conduit parse {cwl_path} {yaml_path} --dag_id {dag_id} --build",
@@ -408,7 +466,8 @@ def api_new_job():
                             "docker_image": docker_image,
                             "experiment": experiment_tag,
                             "execution_date": execution_date,
-                            "experiment_details": exp
+                            "experiment_details": exp,
+                            "local": bool(local_config)
                         },
                         default_flow_style=False,
                     )

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<h1>Statistics</h1>
+		<table class="table table-bordered shadow-sm">
+			<thead class="thead-light">
+				<tr>
+					<th>Docker Image</th>
+					<th>Num Successful Runs</th>
+					<th>Avg. Execution Time</th>
+					<th>Image Size (TODO insert size units)</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for image_id in docker_images %}
+			<tr>
+				<td>{{image_id}}</td>
+				<td>TODO Num Successful Runs</td>
+				<td>TODO Avg. Execution Time</td>
+				<td>TODO Image Size/Units</td>
+			</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

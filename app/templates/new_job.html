@@ -35,6 +35,12 @@ function submit_job() {
     return false;
 }
 </script>
+
+<script>
+	$(document).ready(function() {
+        $('#dockerImage').multiselect();
+    });
+</script>
 {% endblock %}
 
 {% block content %}
@@ -55,7 +61,7 @@ function submit_job() {
 		<form>
 			<div class="form-group">
 				<label for="dockerImage">Docker Image</label>
-				<select name="dockerImage" class="form-control" required>
+				<select name="dockerImage" id="dockerImage" class="form-control" multiple="multiple" required>
 					{% for image_id in docker_images %}
 					<option value="{{image_id}}">{{image_id.replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "")}}</option>
 					{% endfor %}
@@ -69,6 +75,16 @@ function submit_job() {
 					<option value="{{experiment}}">{{experiment}}</option>
 					{% endfor %}
 				</select>
+			</div>
+
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="cpu-toggle">
+				<label for="cpu-toggle">Use CPU-Only Compute Environment</label>
+			</div>
+
+			<div class="form-check">
+				<input type="checkbox" class="form-check-input" name="local-toggle">
+				<label for="local-toggle">Run Locally (No AWS)</label>
 			</div>
 
 			<button id="submitButton" type="button" class="btn btn-primary" onclick="return submit_job()">

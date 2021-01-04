@@ -42,6 +42,15 @@ def upload_file(file_name, bucket, key):
     return True
 
 
+def download_files(buckets, keys, directory):
+    s3 = boto3.client("s3")
+    for bucket, key in zip(buckets, keys):
+        path = os.path.join(directory, key)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as fp:
+            s3.download_fileobj(bucket, key, fp)
+
+
 def delete_folder(bucket, prefix):
     s3 = boto3.resource("s3")
     try:
@@ -88,9 +97,13 @@ def get_batch_logs(dag_id, execution_date, log_dir, **kwargs):
     if log_stream:
         log_buffer = []
         logs = boto3.client("logs")
-        events = logs.get_log_events(
-            logGroupName="/aws/batch/job", logStreamName=log_stream, **kwargs
-        )["events"]
+        try:
+            events = logs.get_log_events(
+                logGroupName="/aws/batch/job", logStreamName=log_stream, **kwargs
+            )["events"]
+        except ClientError as e:
+            logging.error(e)
+            return
         for event in events:
             seconds = event["timestamp"] / 1000
             time = datetime.datetime.fromtimestamp(seconds).strftime(

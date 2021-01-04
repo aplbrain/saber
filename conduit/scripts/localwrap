@@ -20,6 +20,7 @@ import os
 import subprocess
 import parse
 import resource 
+import re
 
 """
 Local Execution Wrapper for SABER 
@@ -51,21 +52,25 @@ else:
         input_path = os.path.join(VOLUME_PATH, os.path.split(args.wf)[0])
         infiles = args.input.split(',')
         for f in infiles:
-            fs = os.path.split(f) # splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
-            fn = fs[-1] # gets the file name e.g. 'pull_output.npy'
-            if fs[0] != "": 
-                target = os.path.join(*fs[:-1]) # gets the parent directories e.g. 'boss_pull_raw.0'
-                target = target.split('.')[0] # removes parameterization suffix 
-                if not os.path.exists(target) and target != "":
-                    os.makedirs(target) # creates the parent directories in the volume if it doesn't exist already
+            # splits directory from file name e.g. ('boss_pull_raw.0', 'pull_output.npy')
+            fs = os.path.split(f) 
+
+            # removes parameterization suffix 
+            fp = re.sub(r'\.\d+', '', fs[0])
+
+            # file name
+            fn = fs[-1]
+
+            if fp:
+                target = fp  
+                os.makedirs(target, exist_ok=True)
             else:
-                # fs is just the filename 
                 target = fn
             
-            source = os.path.join(input_path,f)
+            source = os.path.join(input_path, f)
             if not os.path.exists(source):
-                source = os.path.join(VOLUME_PATH, f) #file is not located under workflow name (outside directory)
-            
+                # file is not located under workflow name (outside directory)
+                source = os.path.join(VOLUME_PATH, fp, fn)
             try:
                 print("Filename: " + fn)
                 print("Source: " + source)

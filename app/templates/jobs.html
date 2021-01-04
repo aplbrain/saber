@@ -2,6 +2,20 @@
 
 {% block title %}Jobs{% endblock %}
 
+{% block scripts %}
+<script>
+function download_multiple() {
+	var jobs = [];
+
+	document.querySelectorAll("input[type='checkbox']:checked").forEach(item => jobs.push(item.value));
+
+	console.log(jobs);
+
+	fetch("/api/multi_download", {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({jobs: jobs})});
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
 	<h1>
@@ -17,6 +31,7 @@
 				<th>Output</th>
 				<th>Log</th>
 				<th>Remove</th>
+				<th><button class="btn btn-primary" onclick="download_multiple()">Download</button></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -37,7 +52,11 @@
 						Remove
 					</button>
 				</td>
-
+				<td class="align-middle text-center p-0 m-0">
+					<label class="w-100 h-100 m-0 p-0" for="checkbox_{{job['job_name']}}_{{job['date']}}">
+						<input type="checkbox" id="checkbox_{{job['job_name']}}_{{job['date']}}" value="{{job['job_name']}}">
+					</label>
+				</td>
 			</tr>
 		{% endfor %}
 		</tbody>
