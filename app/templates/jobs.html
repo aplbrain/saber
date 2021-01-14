@@ -11,7 +11,12 @@ function download_multiple() {
 
 	console.log(jobs);
 
-	fetch("/api/multi_download", {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({jobs: jobs})});
+	if (jobs.length == 1) {
+		fetch(`/api/jobs/${jobs[0]}/download`, {method: 'GET'})
+	} else {
+		fetch("/api/multi_download", {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({jobs: jobs})});
+	}
+
 }
 </script>
 {% endblock %}
@@ -28,10 +33,9 @@ function download_multiple() {
 				<th>Execution Date</th>
 				<th>Status</th>
 				<th>Experiment</th>
-				<th>Output</th>
 				<th>Log</th>
 				<th>Remove</th>
-				<th><button class="btn btn-primary" onclick="download_multiple()">Download</button></th>
+				<th><button class="btn btn-primary" onclick="download_multiple()">Download Results</button></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -41,9 +45,6 @@ function download_multiple() {
 				<td>{{job["execution_date"]}}</td>
 				<td>{{job["status"]}}</td>
 				<td>{{job["experiment"]}}</td>
-				<td>
-					<a href="/api/jobs/{{job['job_name']}}/download" class="btn btn-primary" target="_blank">Download</a>
-				</td>
 				<td>
 					<a href="/api/jobs/{{job['job_name']}}/dag/{{job['dag_id']}}/date/{{job['execution_date']}}/log" class="btn btn-secondary" target="_blank">Download Log</a>
 				</td>
