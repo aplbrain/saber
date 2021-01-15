@@ -5,22 +5,54 @@
 {% block content %}
 	<div class="container">
 		<h1>Statistics</h1>
+		<p>{{num_jobs}} jobs run</p>
+		<p>{{num_trials}} trials evaluated</p>
 		<table class="table table-bordered shadow-sm">
 			<thead class="thead-light">
 				<tr>
 					<th>Docker Image</th>
-					<th>Num Successful Runs</th>
+					<th>Size</th>
+					<th>Jobs</th>
+					<th>Successful Jobs</th>
+					<th>Trials</th>
 					<th>Avg. Execution Time</th>
-					<th>Image Size (TODO insert size units)</th>
 				</tr>
 			</thead>
 			<tbody>
-			{% for image_id in docker_images %}
+			{% for stats in image_stats %}
 			<tr>
-				<td>{{image_id}}</td>
-				<td>TODO Num Successful Runs</td>
-				<td>TODO Avg. Execution Time</td>
-				<td>TODO Image Size/Units</td>
+				<td>{{"/".join(stats["image_id"].split("/")[1:])}}</td>
+				<td>{{stats["image_size"]}}</td>
+				<td>{{stats["num_jobs"]}}</td>
+				<td>{{stats["num_successful_jobs"]}}</td>
+				<td>{{stats["num_trials"]}}</td>
+				<td>{{stats["avg_exe_time"]}}</td>
+			</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+		<table class="table table-bordered shadow-sm">
+			<thead class="thead-light">
+				<tr>
+					<th>Job</th>
+					<th>Experiment</th>
+					<th>Docker Image</th>
+					<th>Number of Trials</th>
+					<th>Mean Abs. Error</th>
+					<th>Mean Precision</th>
+					<th>Mean Recall</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for job in job_stats %}
+			<tr>
+				<td>{{job["job_name"]}}</td>
+				<td>{{job["experiment"]}}</td>
+				<td>{{job["docker_image"]}}</td>
+				<td>{{job["num_trials"]}}</td>
+				<td>{{job["mean_abs_error"]}}</td>
+				<td>{{job["mean_precision"]}}</td>
+				<td>{{job["mean_recall"]}}</td>
 			</tr>
 			{% endfor %}
 			</tbody>

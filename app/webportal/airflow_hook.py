@@ -45,6 +45,25 @@ def trigger_dag(ip, port, dag_id):
     
     return execution_date, trigger_dag_status
 
+def dag_run(ip, port, dag_id, execution_date):
+    '''
+    Get the status of a particular DAG run.
+    Uses custom API developed by SABER team.
+
+    Arguments:
+        ip (str): ip address
+        port (str): port for Airflow (saber_webserver_1 container)
+        dag_id (str): the DAG ID
+        execution_date (str): execution date with format 'YYYY-mm-DDTHH:MM:SS'
+
+    Returns:
+        dag_run_status (str): the status of the specified DAG run
+    '''
+    url = 'http://' + ip + ':' + port + '//api/experimental/dags/' + dag_id + '/dag_runs/' + execution_date
+    payload = {}
+    response = get(url, data = json.dumps(payload))
+    return response.json()
+
 def dag_status(ip, port, dag_id, execution_date):
     '''
     Get the status of a particular DAG run.

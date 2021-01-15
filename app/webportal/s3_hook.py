@@ -42,6 +42,19 @@ def upload_file(file_name, bucket, key):
     return True
 
 
+def download_file(bucket, key, directory):
+    s3 = boto3.client("s3")
+    fn = key.split('/')[-1]
+    path = os.path.join(directory, fn)
+    with open(path, 'wb') as fp:
+        try:
+            s3.download_fileobj(bucket, key, fp)
+        except ClientError as e:
+            logging.error(e)
+            return False
+    return True
+
+
 def download_files(buckets, keys, directory):
     s3 = boto3.client("s3")
     for bucket, key in zip(buckets, keys):
@@ -60,18 +73,6 @@ def delete_folder(bucket, prefix):
         logging.error(e)
         return False
     return True
-
-
-def generate_download_link(bucket, key, expiration):
-    s3 = boto3.client("s3")
-    try:
-        response = s3.generate_presigned_url(
-            "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=expiration
-        )
-    except ClientError as e:
-        logging.error(e)
-        return
-    return response
 
 
 def get_log_stream_name(dag_id, execution_date, log_dir):

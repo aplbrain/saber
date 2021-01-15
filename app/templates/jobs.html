@@ -5,23 +5,43 @@
 {% block scripts %}
 <script>
 function download_multiple() {
+	// can't get the fetch calls here to work. Response object code 200 but no download.
 	var jobs = [];
 
 	document.querySelectorAll("input[type='checkbox']:checked").forEach(item => jobs.push(item.value));
 
 	console.log(jobs);
 
+	var r;
+	var fname;
 	if (jobs.length == 1) {
-		fetch(`/api/jobs/${jobs[0]}/download`, {method: 'GET'})
+		fname = jobs[0] + ".csv";
+		r = fetch(`/api/jobs/${jobs[0]}/download`, {method: 'GET'});
 	} else {
-		fetch("/api/multi_download", {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({jobs: jobs})});
+		fname = "multi-download.csv";
+		r = fetch("/api/multi_download", {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({jobs: jobs})});
 	}
 
+	// https://stackoverflow.com/questions/3749231/download-file-using-javascript-jquery
+	r
+	.then(resp => resp.blob())
+	.then(blob => {
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.style.display = 'none';
+		a.href = url;
+		a.download = fname;
+		document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url);
+  	})
+  	.catch(() => alert('oh no!'));
 }
 </script>
 {% endblock %}
 
 {% block content %}
+<iframe id="download_iframe" style="display:none;"></iframe>
 <div class="container">
 	<h1>
 		Current Jobs
@@ -34,8 +54,9 @@ function download_multiple() {
 				<th>Status</th>
 				<th>Experiment</th>
 				<th>Log</th>
+				<!--<th>Output</th>-->
 				<th>Remove</th>
-				<th><button class="btn btn-primary" onclick="download_multiple()">Download Results</button></th>
+				<th><button class="btn btn-primary" onclick="return download_multiple()">Download Results</button></th> 
 			</tr>
 		</thead>
 		<tbody>
@@ -48,6 +69,9 @@ function download_multiple() {
 				<td>
 					<a href="/api/jobs/{{job['job_name']}}/dag/{{job['dag_id']}}/date/{{job['execution_date']}}/log" class="btn btn-secondary" target="_blank">Download Log</a>
 				</td>
+				<!--<td>
+					<a href="/api/jobs/{{job['job_name']}}/download" class="btn btn-primary" target="_blank">Download Job</a>
+				</td>-->
 				<td>
 					<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_{{job['job_name']}}_{{job['date']}}">
 						Remove

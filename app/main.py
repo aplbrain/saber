@@ -23,16 +23,19 @@ import yaml
 import shutil
 import zipfile
 
-from webportal.airflow_hook import trigger_dag, dag_status, task_status
+from webportal.airflow_hook import trigger_dag, dag_run, dag_status, task_status
 from webportal.s3_hook import (
     upload_file, 
     download_files,
     delete_folder, 
-    generate_download_link, 
+    download_file,
     get_batch_logs,
     list_repositories,
     list_images
 )
+
+# from microns_analysis import analyze_experiment
+
 
 APP = Flask(__name__)
 APP.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -156,8 +159,136 @@ def view_jobs():
 
 @APP.route("/statistics", methods=["GET"])
 def statistics():
-    # TODO add info here
-    return render_template("statistics.html")
+    ls_output = subprocess.run(
+            ["docker", "image", "ls", "--format", "'{{.Repository}}:{{.Tag}}:{{.Size}}'"],
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    docker_images = (
+        ls_output.stdout.decode("utf-8").strip().replace("'", "").split("\n")
+    )
+
+    image_stats = {}
+    num_jobs = 0
+    num_trials = 0
+    job_stats = {}
+
+    for image in docker_images:
+        rep, tag, size = image.split(":")
+        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and tag not in ["s3", "<none>"]:
+            image_id = rep + ":" + tag
+            image_stats[image_id] = {
+                "image_id": image_id,
+                "image_size": size,
+                "num_jobs": 0,
+                "num_successful_jobs": 0,
+                "num_trials": 0,
+                "avg_exe_time": 0,
+            }
+    
+    job_results_to_download = []
+    for job in os.listdir(JOB_DIR):
+        try:
+            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
+                job_details = yaml.load(jd)
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            continue
+
+        try:
+            job_details["info"] = dag_run("localhost", "8080", job_details["dag_id"], job_details["execution_date"])
+        except Exception as e:
+            print(f"Error:{e}")
+            continue
+
+        analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
+        if not os.path.exists(analysis_path) and job_details["info"]["state"] == "success":
+            job_results_to_download.append(job)
+
+    # TODO multidownload job_results_to_download
+
+    job_list = []
+    for job in os.listdir(JOB_DIR):
+        # load yamls for job and exp
+        try:
+            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
+                job_details = yaml.load(jd)
+            with open(os.path.join(JOB_DIR, job, "args.yaml"), "r") as ed:
+                exp_details = yaml.load(ed)
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            continue
+
+        # get dag status
+        try:
+            job_details["info"] = dag_run(
+                "localhost",
+                "8080",
+                job_details["dag_id"],
+                job_details["execution_date"],
+            )
+        except Exception as e:
+            print(f"Error:{e}")
+            continue
+
+        job_details["num_trials"] = 0 # TODO extract this
+
+        num_jobs += 1
+        num_trials += job_details["num_trials"]
+
+        image = job_details["docker_image"]
+        image_stats[image]["num_jobs"] += 1
+        image_stats[image]["num_trials"] += num_trials
+        if job_details["info"]["state"] == "success":
+            image_stats[image]["num_successful_jobs"] += 1
+            image_stats[image]["num_trials"] += num_trials
+
+            #start_t = datetime.datetime.strptime(job_details["info"]["start_date"], '%Y-%m-%dT%H:%M:%SZ')
+            #end_t = datetime.datetime.strptime(job_details["info"]["end_date"], '%Y-%m-%dT%H:%M:%SZ')
+            #exec_t = datetime.datetime.strptime(job_details["info"]["execution_date"], '%Y-%m-%dT%H:%M:%SZ')
+            #run_seconds = (end_t - start_t).total_seconds()
+            #print(start_t, end_t, exec_t)
+            run_seconds = 0
+
+            image_stats[image]["avg_exe_time"] += run_seconds
+
+            analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
+            if os.path.exists(analysis_path):
+                results_path = None # TODO what is this?
+                _analyze(job, job_details, exp_details, results_path)
+            # TODO load analysis results
+
+    for image, stats in image_stats.items():
+        if stats["num_successful_jobs"] > 0:
+            stats["avg_exe_time"] /= stats["num_successful_jobs"]
+
+    return render_template(
+        "statistics.html",
+        num_jobs=num_jobs,
+        num_trials=num_trials,
+        image_stats=list(image_stats.values()),
+        job_stats=job_stats,
+    )
+
+def _analyze(job, job_details, exp_details, results_path):
+    exp_dir = os.path.dirname(exp_details["test_datafile"]["path"])
+    exp_metadata_path = os.path.join(exp_dir, "metadata.yaml")
+    if not os.path.exists(exp_metadata_path):
+        return
+
+    with open(exp_metadata_path) as fp:
+        metadata = yaml.load(fp)
+        labels_path = None
+        for fname in metadata["additional_files"]:
+            if "labels" in fname:
+                labels_path = os.path.join(exp_dir, fname)
+                break
+
+    if labels_path is None:
+        return
+
+    analysis = analyze_experiment(labels_path, results_path)
+    analysis.to_csv(os.path.join(JOB_DIR, job, "analysis.csv"))
 
 @APP.route("/new_image", methods=["GET", "POST"])
 def new_image():
@@ -222,13 +353,17 @@ def api_multi_download():
         lines = []
         for job_name, key in zip(request.json['jobs'], keys):
             with open(os.path.join(directory, key)) as fp:
+                print(fp.name)
                 for line in fp:
                     line = line.strip()
                     lines.append(line + f',{job_name}')
 
     with tempfile.NamedTemporaryFile(mode='w') as fp:
-        fp.writelines(lines)
-        return send_from_directory(fp.name, filename='multi-job-output.csv', as_attachment=True)
+        fp.writelines('\n'.join(lines))
+        fp.flush()
+        os.fsync(fp.fileno())
+        head, tail = os.path.split(fp.name)
+        return send_from_directory(head, tail, as_attachment=True, attachment_filename="multi-download.csv")
 
 
 @APP.route("/api/experiment/<experiment_name>/download", methods=["GET"])
@@ -256,7 +391,12 @@ def api_download_job(job):
     if not job_details["local"]:
         key = os.path.join(job, "algorithm.0", fn)
         bucket = job_details["experiment_details"]["_saber_bucket"]
-        return redirect(generate_download_link(bucket, key, 3000))
+        with tempfile.TemporaryDirectory() as directory:   
+            status = download_file(bucket, key, directory)
+            if status:
+                return send_from_directory(directory, filename=fn, as_attachment=True)
+            else:
+                abort(404)
     else:
         local_path =  os.path.join("/opt/saber/", job, "algorithm.0")
         if os.path.exists(local_path):
