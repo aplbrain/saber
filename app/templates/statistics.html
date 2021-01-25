@@ -38,9 +38,13 @@
 					<th>Experiment</th>
 					<th>Docker Image</th>
 					<th>Number of Trials</th>
+					<th>Abs. Error</th>
 					<th>Mean Abs. Error</th>
-					<th>Mean Precision</th>
-					<th>Mean Recall</th>
+					<th>Precision</th>
+					<th>Recall</th>
+					<th>F1</th>
+					<th>AP</th>
+					<th>Accuracy</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -50,9 +54,13 @@
 				<td>{{job["experiment"]}}</td>
 				<td>{{job["docker_image"]}}</td>
 				<td>{{job["num_trials"]}}</td>
+				<td>{{job["abs_error"]}}</td>
 				<td>{{job["mean_abs_error"]}}</td>
-				<td>{{job["mean_precision"]}}</td>
-				<td>{{job["mean_recall"]}}</td>
+				<td>{{job["precision"]}}</td>
+				<td>{{job["recall"]}}</td>
+				<td>{{job["f1"]}}</td>
+				<td>{{job["AP"]}}</td>
+				<td>{{job["accuracy"]}}</td>
 			</tr>
 			{% endfor %}
 			</tbody>

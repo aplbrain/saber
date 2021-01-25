@@ -60,8 +60,12 @@ def download_files(buckets, keys, directory):
     for bucket, key in zip(buckets, keys):
         path = os.path.join(directory, key)
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'wb') as fp:
-            s3.download_fileobj(bucket, key, fp)
+        try:
+            with open(path, 'wb') as fp:
+                s3.download_fileobj(bucket, key, fp)
+        except ClientError as e:
+            logging.error(e)
+            continue
 
 
 def delete_folder(bucket, prefix):

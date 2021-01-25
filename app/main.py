@@ -34,7 +34,8 @@ from webportal.s3_hook import (
     list_images
 )
 
-# from microns_analysis import analyze_experiment
+import pandas as pd
+from microns_analysis import analyze_experiment
 
 
 APP = Flask(__name__)
@@ -159,6 +160,29 @@ def view_jobs():
 
 @APP.route("/statistics", methods=["GET"])
 def statistics():
+    job_details_by_job = {}
+    exp_details_by_job = {}
+
+    for job in os.listdir(JOB_DIR):
+        try:
+            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
+                job_details = yaml.load(jd)
+            with open(os.path.join(JOB_DIR, job, "args.yaml"), "r") as ed:
+                exp_details = yaml.load(ed)
+
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            continue
+
+        try:
+            job_details["info"] = dag_run("localhost", "8080", job_details["dag_id"], job_details["execution_date"])
+        except Exception as e:
+            print(f"Error:{e}")
+            continue
+
+        job_details_by_job[job] = job_details
+        exp_details_by_job[job] = exp_details
+
     ls_output = subprocess.run(
             ["docker", "image", "ls", "--format", "'{{.Repository}}:{{.Tag}}:{{.Size}}'"],
         check=True,
@@ -171,7 +195,7 @@ def statistics():
     image_stats = {}
     num_jobs = 0
     num_trials = 0
-    job_stats = {}
+    job_stats = []
 
     for image in docker_images:
         rep, tag, size = image.split(":")
@@ -187,61 +211,53 @@ def statistics():
             }
     
     job_results_to_download = []
-    for job in os.listdir(JOB_DIR):
-        try:
-            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
-                job_details = yaml.load(jd)
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            continue
-
-        try:
-            job_details["info"] = dag_run("localhost", "8080", job_details["dag_id"], job_details["execution_date"])
-        except Exception as e:
-            print(f"Error:{e}")
-            continue
-
+    for job, job_details in job_details_by_job.items():
         analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
         if not os.path.exists(analysis_path) and job_details["info"]["state"] == "success":
             job_results_to_download.append(job)
 
-    # TODO multidownload job_results_to_download
+    buckets = []
+    keys = []
+    for job in job_results_to_download:
+        job_details = job_details_by_job[job]
+        bucket = job_details["experiment_details"]["_saber_bucket"]
+        fn = job_details["experiment_details"]["output_file"]
+        key = os.path.join(job, "algorithm.0", fn)
 
-    job_list = []
-    for job in os.listdir(JOB_DIR):
-        # load yamls for job and exp
-        try:
-            with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "r") as jd:
-                job_details = yaml.load(jd)
-            with open(os.path.join(JOB_DIR, job, "args.yaml"), "r") as ed:
-                exp_details = yaml.load(ed)
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            continue
+        buckets.append(bucket)
+        keys.append(key)
 
-        # get dag status
-        try:
-            job_details["info"] = dag_run(
-                "localhost",
-                "8080",
-                job_details["dag_id"],
-                job_details["execution_date"],
-            )
-        except Exception as e:
-            print(f"Error:{e}")
-            continue
+    with tempfile.TemporaryDirectory() as directory:
+        print(f"Downloading {len(keys)} results")
+        download_files(buckets, keys, directory)
 
-        job_details["num_trials"] = 0 # TODO extract this
+        for job, bucket, key in zip(job_results_to_download, buckets, keys):
+            _analyze(job, job_details_by_job[job], exp_details_by_job[job], os.path.join(directory, key))
+
+
+    for job, job_details in job_details_by_job.items():
+        exp_details = exp_details_by_job[job]
+
+        stats = {
+            "job_name": job,
+            "experiment": job_details["experiment"],
+            "docker_image": job_details["docker_image"],
+            "num_trials": 0,
+            "abs_error": 0,
+            "mean_abs_error": 0,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "AP": 0,
+            "accuracy": 0,
+        }
 
         num_jobs += 1
-        num_trials += job_details["num_trials"]
 
         image = job_details["docker_image"]
         image_stats[image]["num_jobs"] += 1
-        image_stats[image]["num_trials"] += num_trials
-        if job_details["info"]["state"] == "success":
+        if "info" in job_details and "state" in job_details["info"] and job_details["info"]["state"] == "success":
             image_stats[image]["num_successful_jobs"] += 1
-            image_stats[image]["num_trials"] += num_trials
 
             #start_t = datetime.datetime.strptime(job_details["info"]["start_date"], '%Y-%m-%dT%H:%M:%SZ')
             #end_t = datetime.datetime.strptime(job_details["info"]["end_date"], '%Y-%m-%dT%H:%M:%SZ')
@@ -254,9 +270,22 @@ def statistics():
 
             analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
             if os.path.exists(analysis_path):
-                results_path = None # TODO what is this?
-                _analyze(job, job_details, exp_details, results_path)
-            # TODO load analysis results
+                results = pd.read_csv(analysis_path).to_dict('index')[0]
+                print(results)
+
+                job_details["num_trials"] = results["n_trials"]
+                num_trials += job_details["num_trials"]
+                image_stats[image]["num_trials"] += num_trials
+
+                stats["num_trials"] = results["n_trials"]
+                stats["abs_error"] = results["abs_error"]
+                stats["mean_abs_error"] = results["mean_abs_error"]
+                stats["precision"] = results["precision"]
+                stats["recall"] = results["recall"]
+                stats["f1"] = results["f1"]
+                stats["AP"] = results["AP"]
+                stats["accuracy"] = results["accuracy"]
+        job_stats.append(stats)
 
     for image, stats in image_stats.items():
         if stats["num_successful_jobs"] > 0:
@@ -271,9 +300,9 @@ def statistics():
     )
 
 def _analyze(job, job_details, exp_details, results_path):
-    exp_dir = os.path.dirname(exp_details["test_datafile"]["path"])
-    exp_metadata_path = os.path.join(exp_dir, "metadata.yaml")
+    exp_metadata_path = os.path.join(EXPERIMENT_DIR, job_details["experiment"], "metadata.yaml")
     if not os.path.exists(exp_metadata_path):
+        print(f"Skipping analysis of {job}... missing exp metadata.yaml @ {exp_metadata_path}")
         return
 
     with open(exp_metadata_path) as fp:
@@ -281,14 +310,19 @@ def _analyze(job, job_details, exp_details, results_path):
         labels_path = None
         for fname in metadata["additional_files"]:
             if "labels" in fname:
-                labels_path = os.path.join(exp_dir, fname)
+                labels_path = os.path.join(EXPERIMENT_DIR, job_details["experiment"], fname)
                 break
 
-    if labels_path is None:
+    if labels_path is None or not os.path.exists(labels_path):
+        print(f"Skipping analysis of {job}... missing label file @ {labels_path}")
         return
 
-    analysis = analyze_experiment(labels_path, results_path)
-    analysis.to_csv(os.path.join(JOB_DIR, job, "analysis.csv"))
+    if results_path is None or not os.path.exists(results_path):
+        print(f"Skipping analysis of {job}... missing result file @ {results_path}")
+        return
+
+    analyze_experiment(labels_path, results_path, out_file=os.path.join(JOB_DIR, job, "analysis.csv"))
+    print(f"Analyzed {job}")
 
 @APP.route("/new_image", methods=["GET", "POST"])
 def new_image():
