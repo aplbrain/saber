@@ -15,3 +15,8 @@ saber/i2g/ffns/model/
 conduit/dags
 !conduit/dags/__init__.py
 !conduit/dags/template_dag
+
+#ignore app development files and environments
+/home/lowmaca1/saber/app/app_env/
+/home/lowmaca1/saber/app/webportal/test_*
+/home/lowmaca1/saber/app/config
