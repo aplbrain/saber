@@ -17,6 +17,6 @@ conduit/dags
 !conduit/dags/template_dag
 
 #ignore app development files and environments
-/home/lowmaca1/saber/app/app_env/
-/home/lowmaca1/saber/app/webportal/test_*
-/home/lowmaca1/saber/app/config
+saber/app/app_env/
+saber/app/webportal/test_*
+saber/app/config
