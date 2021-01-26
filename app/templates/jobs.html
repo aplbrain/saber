@@ -49,10 +49,10 @@ function download_multiple() {
 	<table class="table table-bordered shadow-sm">
 		<thead class="thead-light">
 			<tr>
-				<th>Job</th>
 				<th>Execution Date</th>
-				<th>Status</th>
+				<th>Algorithm</th>
 				<th>Experiment</th>
+				<th>Status</th>
 				<th>Log</th>
 				<!--<th>Output</th>-->
 				<th>Remove</th>
@@ -62,10 +62,10 @@ function download_multiple() {
 		<tbody>
 		{% for job in jobs %}
 			<tr>
-				<td>{{job["job_name"]}}</td>
 				<td>{{job["execution_date"]}}</td>
-				<td>{{job["status"]}}</td>
+				<td>{{job["docker_image"]}}</td>
 				<td>{{job["experiment"]}}</td>
+				<td>{{job["status"]}}</td>
 				<td>
 					<a href="/api/jobs/{{job['job_name']}}/dag/{{job['dag_id']}}/date/{{job['execution_date']}}/log" class="btn btn-secondary" target="_blank">Download Log</a>
 				</td>

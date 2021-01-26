@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 
 import tempfile
+import subprocess
+from subprocess import PIPE
+import os
+import datetime
+import shutil
+import yaml
+import shutil
+import zipfile
 
 from flask import (
     Flask,
@@ -14,14 +22,6 @@ from flask import (
 )
 
 from flask.json import dumps
-import subprocess
-from subprocess import PIPE
-import os
-import datetime
-import shutil
-import yaml
-import shutil
-import zipfile
 
 from webportal.airflow_hook import trigger_dag, dag_run, dag_status, task_status
 from webportal.s3_hook import (
@@ -105,10 +105,10 @@ def view_experiments():
 
         exp_list.append(exp_details)
 
-    exo_list = sorted(
+    exp_list = sorted(
         exp_list,
         reverse=True,
-        key=lambda x: datetime.datetime.strptime(x["date"], "%Y_%m_%d-%H_%M_%S"),
+        key=lambda x: datetime.datetime.strptime(x["date"], "%a %b %d %H:%M:%S %Y"),
     )
     return render_template(
         "experiments.html", experiments=exp_list, experiment_dir=EXPERIMENT_DIR
@@ -141,12 +141,8 @@ def view_jobs():
         except:
             job_details["status"] = "Not Available"
 
-        # get output download link
-        bucket = exp_details["_saber_bucket"]
-        key = os.path.join(
-            job_details["experiment"], "algorithm.0", exp_details["output_file"]
-        )
-
+        job_details["execution_date"] = datetime.datetime.strptime(job_details["execution_date"], "%Y-%m-%dT%H:%M:%S").ctime()
+        job_details["docker_image"] = job_details["docker_image"].replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "").replace("/", "_").replace(":", "_")
         job_list.append(job_details)
 
     # sort by date
@@ -320,8 +316,10 @@ def _analyze(job, job_details, exp_details, results_path):
     if results_path is None or not os.path.exists(results_path):
         print(f"Skipping analysis of {job}... missing result file @ {results_path}")
         return
-
-    analyze_experiment(labels_path, results_path, out_file=os.path.join(JOB_DIR, job, "analysis.csv"))
+    try:
+        analyze_experiment(labels_path, results_path, out_file=os.path.join(JOB_DIR, job, "analysis.csv"))
+    except:
+        print(f"Skipping analysis of {job}... error in analyze_experiment")
     print(f"Analyzed {job}")
 
 @APP.route("/new_image", methods=["GET", "POST"])
@@ -448,7 +446,7 @@ def api_new_experiment():
     experiment_csv = request.files["experiment"]
     
     # Create time-tagged directories and path variables
-    time_tag = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    time_tag = datetime.datetime.now().ctime()
     experiment_dir = f"{EXPERIMENT_DIR}/{experiment_name}/"
     os.makedirs(experiment_dir, exist_ok=True)
     

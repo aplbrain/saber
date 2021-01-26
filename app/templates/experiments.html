@@ -13,7 +13,7 @@
 				<th>Experiment</th>
 				<th>Creation Date</th>
 				<th>Image Bucket</th>
-				<th>Output Bucket</th>
+				<!-- <th>Output Bucket</th> -->
 				<th>Download Data CSV</th>
 				<th>Remove</th>
 			</tr>
@@ -23,8 +23,8 @@
 			<tr>
 				<td>{{experiment["name"]}}</td>
 				<td>{{experiment["date"]}}</td>
-				<td>{{experiment["images_dir"]}}</td>
-				<td>{{experiment["_saber_bucket"]}}</td>
+				<td>{{experiment["images_dir"][5:]}}</td>
+				<!-- <td>{{experiment["_saber_bucket"]}}</td> -->
 				<td>
 					<a href="/api/experiment/{{experiment['name']}}/download" class="btn btn-primary" download>Download</a>
 				</td>	

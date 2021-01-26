@@ -35,12 +35,6 @@ function submit_job() {
     return false;
 }
 </script>
-
-<script>
-	$(document).ready(function() {
-        $('#dockerImage').multiselect();
-    });
-</script>
 {% endblock %}
 
 {% block content %}
@@ -55,13 +49,13 @@ function submit_job() {
 				<a href="https://s3.console.aws.amazon.com/s3/buckets/microns-saber/?region=us-east-1&tab=overview">microns-saber S3 bucket</a>.
 				Output keys are formatted as follows:
 				<br>
-				<b>{experiment_name}/algorithm.0/{time_tag}-{job_name}-{docker_image}.csv</b>
+				<b>{experiment_name}/algorithm.0/{job_name}.csv</b>
 			</p>
 		</div>
 		<form>
 			<div class="form-group">
 				<label for="dockerImage">Docker Image</label>
-				<select name="dockerImage" id="dockerImage" class="form-control" multiple="multiple" required>
+				<select name="dockerImage" id="dockerImage" class="form-control" required>
 					{% for image_id in docker_images %}
 					<option value="{{image_id}}">{{image_id.replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "")}}</option>
 					{% endfor %}
