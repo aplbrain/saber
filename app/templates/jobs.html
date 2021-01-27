@@ -62,7 +62,7 @@ function download_multiple() {
 		<tbody>
 		{% for job in jobs %}
 			<tr>
-				<td>{{job["execution_date"]}}</td>
+				<td>{{job["formatted_date"]}}</td>
 				<td>{{job["docker_image"]}}</td>
 				<td>{{job["experiment"]}}</td>
 				<td>{{job["status"]}}</td>

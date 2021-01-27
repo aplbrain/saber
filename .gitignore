@@ -17,6 +17,6 @@ conduit/dags
 !conduit/dags/template_dag
 
 #ignore app development files and environments
-saber/app/app_env/
-saber/app/webportal/test_*
-saber/app/config
+app/app_env/
+app/webportal/test_*
+app/config/

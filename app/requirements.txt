@@ -1,3 +1,7 @@
 flask
 requests
 pandas
+boto3
+PyYAML
+uwsgi
+-e git+https://gitlab.jhuapl.edu/microns/analysis.git@482475e96d1ccca64ffc1f121ac5111afc0a8841#egg=microns_analysis

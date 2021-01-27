@@ -141,7 +141,7 @@ def view_jobs():
         except:
             job_details["status"] = "Not Available"
 
-        job_details["execution_date"] = datetime.datetime.strptime(job_details["execution_date"], "%Y-%m-%dT%H:%M:%S").ctime()
+        job_details["formatted_date"] = datetime.datetime.strptime(job_details["execution_date"], "%Y-%m-%dT%H:%M:%S").ctime()
         job_details["docker_image"] = job_details["docker_image"].replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "").replace("/", "_").replace(":", "_")
         job_list.append(job_details)
 
