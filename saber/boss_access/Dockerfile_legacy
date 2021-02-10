@@ -13,13 +13,17 @@
 # limitations under the License.
 
 #Use an official Python runtime as a parent image
-FROM python:3.6
+#FROM python:3.6
 
 # Install any needed packages specified in requirements.txt
-RUN pip install numpy
-RUN pip install intern
+#RUN pip install numpy
+#RUN pip install scikit-image
+#RUN pip install scipy boto3
+#RUN pip install blosc==1.4.4
+#RUN pip install intern
 
-RUN mkdir /app
-COPY ./boss_access.py /app/
-ENV PATH /app:$PATH
-WORKDIR /app
+#RUN mkdir /app
+#COPY ./boss_access.py /app/
+#RUN chown -R 1000:100 /app/
+#ENV PATH /app:$PATH
+#WORKDIR /app
