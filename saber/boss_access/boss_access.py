@@ -66,10 +66,7 @@ def boss_pull_cutout(args):
 
     # Use intern to get d_type and i_type
     intern_chans = array("bossdb://" + COLL_NAME + '/' + EXP_NAME + '/' + CHAN_NAME)
-    print("This is the data type of your intern array: ")
-    print(intern_chans.dtype)
-    print("This is itype of your intern array: ")
-    print(intern_chans._channel.type)
+
     # Create or get a channel to write to
     chan_setup = ChannelResource(
         CHAN_NAME,
@@ -88,10 +85,11 @@ def boss_pull_cutout(args):
     # Verify that the cutout uploaded correctly.
     # Data will be in Z,Y,X format
     cutout_data = rmt.get_cutout(resource=chan_actual,
-                                 resolution=0,
+                                 resolution=args.res,
                                  x_range=[args.xmin, args.xmax],
                                  y_range=[args.ymin, args.ymax],
-                                 z_range=[args.zmin, args.zmax])
+                                 z_range=[args.zmin, args.zmax]
+                                 )
 
     # Change to X,Y,Z for pipeline
     cutout_data = np.transpose(cutout_data, (2, 1, 0))
@@ -119,10 +117,6 @@ def boss_push_cutout(args):
     CHAN_NAME = args.chan
 
     intern_chans = array("bossdb://" + COLL_NAME + '/' + EXP_NAME + '/' + CHAN_NAME)
-    print("This is the data type of your intern array: ")
-    print(intern_chans.dtype)
-    print("This is itype of your intern array: ")
-    print(intern_chans._channel.type)
 
     # Create or get a channel to write to
     if args.source:
@@ -163,12 +157,13 @@ def boss_push_cutout(args):
     data = data.copy(order="C")
 
     # Verify that the cutout uploaded correctly.
-    rmt.create_cutout(resource=chan_actual,
-                      resolution=1,
-                      x_range=[args.xmin, args.ymax],
-                      y_range=[args.ymin, args.ymax],
-                      z_range=[args.zmin, args.zmax],
-                      data)
+    rmt.create_cutout(chan_actual,
+                      1,
+                      [args.xmin, args.ymax],
+                      [args.ymin, args.ymax],
+                      [args.zmin, args.zmax],
+                      data
+                      )
     print("These are the dimensions: ")
     print(data.shape)
     print("This is the data type:")
@@ -196,6 +191,7 @@ def main():
         help="Name of boss host: api.bossdb.org",
     )
 
+    parent_parser.add_argument("--res", type=int, default= 0, help="Resolution")
     parent_parser.add_argument("--xmin", type=int, default=0, help="Xmin")
     parent_parser.add_argument("--xmax", type=int, default=1, help="Xmax")
     parent_parser.add_argument("--ymin", type=int, default=0, help="Ymin")
@@ -225,4 +221,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    print('hello')
