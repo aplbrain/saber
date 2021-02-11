@@ -1,0 +1,27 @@
+# Inputs for BOSS
+host_bossdb: api.bossdb.io
+token_bossdb: public
+coll_name: Kasthuri
+exp_name: ac4
+chan_name_image: em
+dtype_name_image: uint8
+itype_name_image: image
+chan_name_anno: neuron
+dtype_name_anno: uint64
+itype_name_anno: annotation
+coord_name: ac4-cf
+resolution: 0
+xmin: 0
+xmax: 512
+ymin: 0
+ymax: 512
+zmin: 0
+zmax: 16
+padding: 0
+image_output_name: em.npy
+anno_output_name: neuron.npy
+
+#inputs for mask
+mask_output_name: mask.npy
+#inputs for error detection
+error_detection_output_name: error.txt
