@@ -25,7 +25,7 @@ from requests import HTTPError
 
 
 def _generate_config(token, args):
-    boss_host = os.getenv("BOSSDB_HOST", args.host)
+    boss_host = os.getenv("BOSSDB_HOST", "api.bossdb.io")
     print(boss_host)
 
     cfg = configparser.ConfigParser()
@@ -116,7 +116,12 @@ def boss_push_cutout(args):
     EXP_NAME = args.exp
     CHAN_NAME = args.chan
 
-    intern_chans = array("bossdb://" + COLL_NAME + '/' + EXP_NAME + '/' + CHAN_NAME)
+    if args.type == 'image':
+        DTYPE = 'uint8'
+    else:
+        DTYPE = 'uint64'
+
+
 
     # Create or get a channel to write to
     if args.source:
@@ -124,8 +129,8 @@ def boss_push_cutout(args):
             CHAN_NAME,
             COLL_NAME,
             EXP_NAME,
-            type=intern_chans._channel.type,
-            datatype=intern_chans.dtype,
+            type=args.type,
+            datatype=DTYPE,
             sources=args.source
         )
     else:
@@ -133,8 +138,8 @@ def boss_push_cutout(args):
             CHAN_NAME,
             COLL_NAME,
             EXP_NAME,
-            type=intern_chans._channel.type,
-            datatype=intern_chans.dtype
+            type=args.type,
+            datatype=DTYPE
         )
     try:
         chan_actual = rmt.get_project(chan_setup)
@@ -158,7 +163,7 @@ def boss_push_cutout(args):
 
     # Verify that the cutout uploaded correctly.
     rmt.create_cutout(chan_actual,
-                      1,
+                      args.res,
                       [args.xmin, args.ymax],
                       [args.ymin, args.ymax],
                       [args.zmin, args.zmax],
@@ -184,14 +189,7 @@ def main():
     parent_parser.add_argument("--coll", required=True, help="Coll name")
     parent_parser.add_argument("--exp", required=True, help="EXP_NAME")
     parent_parser.add_argument("--chan", required=True, help="CHAN_NAME")
-    parent_parser.add_argument(
-        "--host",
-        required=False,
-        default="api.bossdb.org",
-        help="Name of boss host: api.bossdb.org",
-    )
-
-    parent_parser.add_argument("--res", type=int, default= 0, help="Resolution")
+    parent_parser.add_argument("--res", type=int, default=0, help="Resolution")
     parent_parser.add_argument("--xmin", type=int, default=0, help="Xmin")
     parent_parser.add_argument("--xmax", type=int, default=1, help="Xmax")
     parent_parser.add_argument("--ymin", type=int, default=0, help="Ymin")
@@ -199,20 +197,13 @@ def main():
     parent_parser.add_argument("--zmin", type=int, default=0, help="Zmin")
     parent_parser.add_argument("--zmax", type=int, default=1, help="Zmax")
 
-    push_parser = subparsers.add_parser(
-        "push", help="Push images to boss", parents=[parent_parser]
-    )
+    push_parser = subparsers.add_parser("push", help="Push images to boss", parents=[parent_parser])
     push_parser.add_argument("-i", "--input", required=True, help="Input file")
-    push_parser.add_argument(
-        "--source", required=False, help="Source channel for upload"
-    )
+    push_parser.add_argument("--type", required=True, help="Annotation or image")
+    push_parser.add_argument("--source", required=False, help="Source channel for upload")
     push_parser.set_defaults(func=boss_push_cutout)
 
-    pull_parser = subparsers.add_parser(
-        "pull",
-        help="Pull images from boss and optionally save to AWS S3",
-        parents=[parent_parser],
-    )
+    pull_parser = subparsers.add_parser("pull", help="Pull images from boss", parents=[parent_parser])
     pull_parser.add_argument("-o", "--output", required=True, help="Output file")
     pull_parser.set_defaults(func=boss_pull_cutout)
 

@@ -8,21 +8,21 @@ This Docker container contains the tools necessary to push and pull data from th
 
 1. Navigate to this folder
 
+    ```bash
+    cd saber/boss_access
     ```
-    cd saber-private/workflows/boss_access
-    ```
-1. Build the docker container
+2. Build the docker image in your current directory
 
-    ```
-    docker build -t boss-access
+    ```bash
+    docker build -t <image_name> .
     ```
 
 ## Running
 
-One can either run this docker container as a standalone tool, or you can launch an interactive terminal and access the tools via the command line. This is recommended, as you only have to attach volumes once.
+To run this docker container
 
-```
-docker run -it -v ./data:/data/ boss-access /bin/bash 
+```bash
+docker run --name <container_name> -it -v $(pwd)/data:/data/ <image_name> /bin/bash
 ```
 
 This will launch the container as an interactive terminal and bind `./data` on your local system to `/data/` in the container.
@@ -31,8 +31,8 @@ This will launch the container as an interactive terminal and bind `./data` on y
 
 #### Usage
 
-```
-boss_access.py pull (-c CONFIG | -t TOKEN) [-b BUCKET] --coll COLL --exp EXP --chan CHAN --coord COORD --dtype DTYPE --itype ITYPE [--res RES] [--xmin XMIN][--xmax XMAX] [--ymin YMIN] [--ymax YMAX] [--zmin ZMIN] [--zmax ZMAX] [--padding PADDING] -o OUTPUT [--s3-only]
+```bash
+boss_access.py pull (-c CONFIG | -t TOKEN) --coll COLL --exp EXP --chan CHAN [--res RES] [--xmin XMIN][--xmax XMAX] [--ymin YMIN] [--ymax YMAX] [--zmin ZMIN] [--zmax ZMAX] -o OUTPUT
 ```
 #### Options
 
@@ -47,12 +47,6 @@ Description: Configuration file for BOSS
 Type: String
 
 Description: BOSS API Token
-
-##### bucket
-
-Type: String
-
-Description: S3 Bucket to save to. If unset, only a local file will be saved.
 
 ##### coll
 
@@ -66,24 +60,6 @@ Type: String
 
 Description: BOSS experiment from which to download from.
 
-##### coord
-
-Type: String
-
-Description: Coordinate system to use when downloading from the BOSS.
-
-##### dtype
-
-Type: numpy data type
-
-Description: Datatype to recieve data in when downloading, or to use when uploading. Ex. uint8
-
-##### itype
-
-Type: "annotation" or "image"
-
-Description: Image type to get.
-
 ##### res
 
 Type: int
@@ -96,30 +72,18 @@ Type: int
 
 Description: Bounds for volume.
 
-##### padding
-
-Type: int
-
-Description: How much padding to use. Padding is applied to pulled images and stripped from pushed images.
-
 ##### Output
 
 Type: File
 
 Description: Output filename
 
-##### s3-only
-
-Type: Flag
-
-Description: If set, no local file will be saved and the resulting cutout will be uploaded to S3. 
-
 ### Pushing data
 
 #### Usage
 
-```
-boss_access.py push (-c CONFIG | -t TOKEN) [-b BUCKET] --coll COLL --exp EXP --chan CHAN --coord COORD --dtype DTYPE --itype ITYPE [--res RES] [--xmin XMIN][--xmax XMAX] [--ymin YMIN] [--ymax YMAX] [--zmin ZMIN] [--zmax ZMAX] [--padding PADDING] -o OUTPUT [--s3-only]
+```bash
+boss_access.py push (-c CONFIG | -t TOKEN) --coll COLL --exp EXP --chan CHAN [--res RES] [--xmin XMIN][--xmax XMAX] [--ymin YMIN] [--ymax YMAX] [--zmin ZMIN] [--zmax ZMAX] --type TYPE -i INPUT
 ```
 #### Options
 
@@ -135,12 +99,6 @@ Type: String
 
 Description: BOSS API Token
 
-##### bucket
-
-Type: String
-
-Description: S3 Bucket to load from. If unset, a local file specified by --input will be used.
-
 ##### coll
 
 Type: String
@@ -152,24 +110,6 @@ Description: BOSS collection from which to upload to.
 Type: String
 
 Description: BOSS experiment from which to upload to.
-
-##### coord
-
-Type: String
-
-Description: Coordinate system to use when uploading to the BOSS.
-
-##### dtype
-
-Type: numpy data type
-
-Description: Datatype to to use when uploading. Ex. uint8
-
-##### itype
-
-Type: "annotation" or "image"
-
-Description: Image type to set.
 
 ##### res
 
@@ -183,11 +123,11 @@ Type: int
 
 Description: Bounds for volume.
 
-##### padding
+##### type
 
-Type: int
+Type: "annotation" or "image"
 
-Description: How much padding to use. Padding is applied to pulled images and stripped from pushed images.
+Description: Image type to set.
 
 ##### Input
 
