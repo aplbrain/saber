@@ -2,68 +2,115 @@
 
 {% block title %}Statistics{% endblock %}
 
+{% block scripts %}
+
+	<link rel="stylesheet" crossorigin="anonymous" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css"/>
+	<link rel="stylesheet" crossorigin="anonymous" href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css"/>
+	<script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+	<script src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+	<script src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+	<script>
+$(document).ready( function () {
+	$('#image_stats').DataTable({
+		searching: false,
+		dom: 'Bfrtip',
+		buttons: [
+			{
+				extend: 'csvHtml5',
+				text: 'Download as .csv',
+				filename: 'image_stats',
+			}
+		],
+	});
+	$('#job_stats').DataTable({
+		order: [[0, 'desc']],
+		searching: false,
+		dom: 'Bfrtip',
+		buttons: [
+			{
+				extend: 'csvHtml5',
+				text: 'Download as .csv',
+				filename: 'job_stats',
+			}
+		],
+
+	});
+} );
+
+	</script>
+{% endblock %}
+
 {% block content %}
 	<div class="container">
 		<h1>Statistics</h1>
 		<p>{{num_jobs}} jobs run</p>
 		<p>{{num_trials}} trials evaluated</p>
-		<table class="table table-bordered shadow-sm">
-			<thead class="thead-light">
+		<h1>Docker Image Statistics</h1>
+		<div class="overflow-auto">
+			<table id="image_stats" class="display">
+				<thead>
+					<tr>
+						<th>Docker Image</th>
+						<th>Size</th>
+						<th>Jobs</th>
+						<th>Successful Jobs</th>
+						<th>Trials</th>
+						<th>Avg. Execution Time</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for stats in image_stats %}
 				<tr>
-					<th>Docker Image</th>
-					<th>Size</th>
-					<th>Jobs</th>
-					<th>Successful Jobs</th>
-					<th>Trials</th>
-					<th>Avg. Execution Time</th>
+					<td>{{"/".join(stats["image_id"].split("/")[1:])}}</td>
+					<td>{{stats["image_size"]}}</td>
+					<td>{{stats["num_jobs"]}}</td>
+					<td>{{stats["num_successful_jobs"]}}</td>
+					<td>{{stats["num_trials"]}}</td>
+					<td>{{stats["avg_exe_time"]}}</td>
 				</tr>
-			</thead>
-			<tbody>
-			{% for stats in image_stats %}
-			<tr>
-				<td>{{"/".join(stats["image_id"].split("/")[1:])}}</td>
-				<td>{{stats["image_size"]}}</td>
-				<td>{{stats["num_jobs"]}}</td>
-				<td>{{stats["num_successful_jobs"]}}</td>
-				<td>{{stats["num_trials"]}}</td>
-				<td>{{stats["avg_exe_time"]}}</td>
-			</tr>
-			{% endfor %}
-			</tbody>
-		</table>
-		<table class="table table-bordered shadow-sm">
-			<thead class="thead-light">
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<br/>
+
+		<h1>Job Statistics</h1>
+		<div class="overflow-auto">
+			<table id="job_stats" class="display">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Experiment</th>
+						<th>Docker Image</th>
+						<th>Number of Trials</th>
+						<th>Abs. Error</th>
+						<th>Mean Abs. Error</th>
+						<th>Precision</th>
+						<th>Recall</th>
+						<th>F1</th>
+						<th>AP</th>
+						<th>Accuracy</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for job in job_stats %}
 				<tr>
-					<th>Job</th>
-					<th>Experiment</th>
-					<th>Docker Image</th>
-					<th>Number of Trials</th>
-					<th>Abs. Error</th>
-					<th>Mean Abs. Error</th>
-					<th>Precision</th>
-					<th>Recall</th>
-					<th>F1</th>
-					<th>AP</th>
-					<th>Accuracy</th>
+					<td>{{"T".join(job["job_name"].split("-")[:2])}}</td>
+					<td>{{job["experiment"]}}</td>
+					<td>{{"/".join(job["docker_image"].split("/")[1:])}}</td>
+					<td>{{job["num_trials"]}}</td>
+					<td>{{job["abs_error"]}}</td>
+					<td>{{job["mean_abs_error"]}}</td>
+					<td>{{"{:.04f}".format(job["precision"])}}</td>
+					<td>{{"{:.04f}".format(job["recall"])}}</td>
+					<td>{{"{:.04f}".format(job["f1"])}}</td>
+					<td>{{"{:.04f}".format(job["AP"])}}</td>
+					<td>{{"{:.04f}".format(job["accuracy"])}}</td>
 				</tr>
-			</thead>
-			<tbody>
-			{% for job in job_stats %}
-			<tr>
-				<td>{{job["job_name"]}}</td>
-				<td>{{job["experiment"]}}</td>
-				<td>{{job["docker_image"]}}</td>
-				<td>{{job["num_trials"]}}</td>
-				<td>{{job["abs_error"]}}</td>
-				<td>{{job["mean_abs_error"]}}</td>
-				<td>{{job["precision"]}}</td>
-				<td>{{job["recall"]}}</td>
-				<td>{{job["f1"]}}</td>
-				<td>{{job["AP"]}}</td>
-				<td>{{job["accuracy"]}}</td>
-			</tr>
-			{% endfor %}
-			</tbody>
-		</table>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<br />
 	</div>
 {% endblock %}

@@ -131,15 +131,26 @@ def view_jobs():
             continue
 
         # get dag status
-        try:
-            job_details["status"] = dag_status(
-                "localhost",
-                "8080",
-                job_details["dag_id"],
-                job_details["execution_date"],
-            )
-        except:
-            job_details["status"] = "Not Available"
+        last_status = job_details.get("status")
+        if last_status is None:
+            try:
+                # get status from airflow
+                job_details["status"] = dag_status(
+                    "localhost",
+                    "8080",
+                    job_details["dag_id"],
+                    job_details["execution_date"],
+                )
+                
+                # save terminal state to job_details file
+                if job_details["status"] == "success" or job_details["status"] == "failed":
+                    with open(os.path.join(JOB_DIR, job, "job_details.yaml"), "w") as jd:
+                        jd.write(
+                            yaml.dump(job_details)
+                        )
+            except Exception as e:
+                print(e)
+                job_details["status"] = "Not Available"
 
         job_details["formatted_date"] = datetime.datetime.strptime(job_details["execution_date"], "%Y-%m-%dT%H:%M:%S").ctime()
         job_details["docker_image"] = job_details["docker_image"].replace("256215146792.dkr.ecr.us-east-1.amazonaws.com/", "").replace("/", "_").replace(":", "_")
@@ -209,7 +220,7 @@ def statistics():
     job_results_to_download = []
     for job, job_details in job_details_by_job.items():
         analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
-        if not os.path.exists(analysis_path) and job_details["info"]["state"] == "success":
+        if not os.path.exists(analysis_path) and job_details.get("status") == "success":
             job_results_to_download.append(job)
 
     buckets = []
@@ -224,7 +235,7 @@ def statistics():
         keys.append(key)
 
     with tempfile.TemporaryDirectory() as directory:
-        print(f"Downloading {len(keys)} results")
+        print(f"Downloading {len(keys)} results into {directory}")
         download_files(buckets, keys, directory)
 
         for job, bucket, key in zip(job_results_to_download, buckets, keys):
@@ -248,12 +259,9 @@ def statistics():
             "accuracy": 0,
         }
 
-        num_jobs += 1
 
         image = job_details["docker_image"]
-        image_stats[image]["num_jobs"] += 1
-        if "info" in job_details and "state" in job_details["info"] and job_details["info"]["state"] == "success":
-            image_stats[image]["num_successful_jobs"] += 1
+        if "info" in job_details and "state" in job_details["info"] and job_details.get("status") == "success":
 
             #start_t = datetime.datetime.strptime(job_details["info"]["start_date"], '%Y-%m-%dT%H:%M:%SZ')
             #end_t = datetime.datetime.strptime(job_details["info"]["end_date"], '%Y-%m-%dT%H:%M:%SZ')
@@ -262,10 +270,14 @@ def statistics():
             #print(start_t, end_t, exec_t)
             run_seconds = 0
 
-            image_stats[image]["avg_exe_time"] += run_seconds
 
             analysis_path = os.path.join(JOB_DIR, job, "analysis.csv")
             if os.path.exists(analysis_path):
+                num_jobs += 1
+                image_stats[image]["num_jobs"] += 1
+                image_stats[image]["num_successful_jobs"] += 1
+                image_stats[image]["avg_exe_time"] += run_seconds
+
                 results = pd.read_csv(analysis_path).to_dict('index')[0]
                 print(results)
 
@@ -281,7 +293,7 @@ def statistics():
                 stats["f1"] = results["f1"]
                 stats["AP"] = results["AP"]
                 stats["accuracy"] = results["accuracy"]
-        job_stats.append(stats)
+                job_stats.append(stats)
 
     for image, stats in image_stats.items():
         if stats["num_successful_jobs"] > 0:
@@ -318,8 +330,13 @@ def _analyze(job, job_details, exp_details, results_path):
         return
     try:
         analyze_experiment(labels_path, results_path, out_file=os.path.join(JOB_DIR, job, "analysis.csv"))
-    except:
+    except Exception as e:
+        #import shutil
+        import traceback
+        #shutil.copy(results_path, f"{job}.results.csv")
         print(f"Skipping analysis of {job}... error in analyze_experiment")
+        traceback.print_exc()
+        #print(e)
     print(f"Analyzed {job}")
 
 @APP.route("/new_image", methods=["GET", "POST"])
@@ -388,7 +405,7 @@ def api_multi_download():
                 print(fp.name)
                 for line in fp:
                     line = line.strip()
-                    lines.append(line + f',{job_name}')
+                    lines.append(job_name + "," + line)
 
     with tempfile.NamedTemporaryFile(mode='w') as fp:
         fp.writelines('\n'.join(lines))
