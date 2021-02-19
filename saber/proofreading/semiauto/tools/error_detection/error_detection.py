@@ -12,45 +12,111 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-from scipy.ndimage.measurements import label
-import math
 import argparse
+import csv
+import json
 
+import numpy as np
+import fastremap
+from skimage.measure import label, regionprops
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Error Detection Tool")
     parser.set_defaults(func=lambda _: parser.print_help())
-    parser.add_argument("-b", "--binary", required=True, help="Input binary file")
-    parser.add_argument("-i", "--image", required=True, help="Input image file")
-    parser.add_argument("-o", "--output", required=True, help="Output file")
+    parser.add_argument("-s", "--seg", required=True, help="Input segmentation file")
+    parser.add_argument("-f", "--source", required=True, help="bossDB URI")
+    parser.add_argument("-i", "--ids", required=False, help="IDs file")
+    parser.add_argument("-o", "--output", required=True, help="Output CSV filename")
     return parser
 
+def generate_ng_link(centroid, segments, source="boss://https://api.bossdb.io/"):
+    state = {
+        "layers": [
+            {
+                "source": source,
+                "type": "segmentation",
+                "name": "seg",
+                "segments" : segments
+            },
+        ],
+        "navigation": {
+            "pose": {
+                "position": {
+                    "voxelCoordinates": [
+                        centroid[2],
+                        centroid[1],
+                        centroid[1]
+                    ],
+                },
+            },
+            "zoomFactor": 8,
+        },
+        "showAxisLines": False,
+        "layout": "xy",
+    }
+    
+    return "https://neuroglancer.bossdb.io/#!"+ json.dumps(state)
 
-def detect_errors(binary, image):
-    # demo 
-    structure = np.ones((3, 3), dtype="uint8")
-    labeled, ncomponents = label(binary, structure)
-    ids = image[labeled>0]
-    if ncomponents == 1:
-        return True
-    else:
-        return False
 
+def detect_errors(seg, source, output, ids=None):
+    """
+    Detect errors in 3D UINT64 segmentation data. 
+
+    Args:
+        seg (numpy.array) : segmentation volume
+        source (str) : bossdb URI
+        output (str) : output file name. Outputs saved as CSV.
+        ids (numpy.array) : 1D of segment IDs to detect on. 
+    """
+    if ids is None:
+        ids = fastremap.unique(seg)
+
+    # Below is code for demo. It just picks two IDs and sees if they touch at some point. 
+    connections = 0
+    
+    csv_rows = []
+    csv_columns = ["ID1", "ID2", "Centroid", "NG Link"]
+    while connections < 10:
+        random_ids = np.random.choice(ids, size=2)
+        mask = fastremap.mask_except(seg, list(random_ids)).astype('bool')
+        labels, ncomponents = label(mask, return_num=True)
+        if ncomponents == 1:
+            connections += 1
+            rp = regionprops(labels)
+            centroid = tuple(map(int, rp[0].centroid))
+            csv_rows.append({
+                "ID1":random_ids[0], 
+                "ID2":random_ids[1], 
+                "Centroid": centroid, 
+                "NG Link": generate_ng_link(centroid, list(map(str, random_ids)), source)
+            })
+            
+    try:
+        with open(output, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for data in csv_rows:
+                writer.writerow(data)
+    except IOError:
+        print("I/O error")
+    
 def main():
+    # Get parser from CWL definition
     parser = get_parser()
     args = parser.parse_args()
-    image_array = np.load(args.image)
-    mask_array = np.load(args.binary)
-    try:
-        error = detect_errors(mask_array, image_array)
-    except:
-        error = True
-        with open(args.output, 'w') as f:
-            if error:
-                f.write("Connected components.")
-            else:
-                f.write("Not connected components.") 
+    
+    # Load input arrays
+    seg = np.load(args.seg)
+    if args.ids:
+        ids = np.load(args.ids)
+    else:
+        ids = None
+
+    source = args.source
+    output = args.output
+    
+    # Run Algorithm
+    detect_errors(seg, source, output, ids)
 
 if __name__ == "__main__":
     main()

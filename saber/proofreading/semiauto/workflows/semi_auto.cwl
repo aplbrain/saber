@@ -44,10 +44,8 @@ inputs:
     image_output_name: string
     anno_output_name: string
 
-    #inputs for mask
-    mask_output_name: string
-
     #inputs for error detection
+    source_uri: string
     error_detection_output_name: string
 
 
@@ -59,9 +57,6 @@ outputs:
     pull_output_anno:
         type: File
         outputSource: boss_pull_anno/pull_output
-    supervoxel_mask:
-        type: File
-        outputSource: generate_supervoxel_mask/supervoxel_mask_out
     errors:
         type: File
         outputSource: error_detection/error_detection_out
@@ -122,30 +117,11 @@ steps:
         out:
             [pull_output]
 
-
-    generate_supervoxel_mask:
-        run: ../tools/supervoxel_mask/supervoxel_mask.cwl
-        in:
-            input: boss_pull_anno/pull_output
-            output: mask_output_name
-        hints:
-            saber:
-                local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/output
-        out: [supervoxel_mask_out]
-
-
     error_detection:
         run: ../tools/error_detection/error_detection.cwl
         in:
-            image: boss_pull_image/pull_output
-            mask: generate_supervoxel_mask/supervoxel_mask_out
-            xmin: xmin
-            xmax: xmax
-            ymin: ymin
-            ymax: ymax
-            zmin: zmin
-            zmax: zmax
+            seg: boss_pull_anno/pull_output
+            source: source_uri
             output: error_detection_output_name
         hints:
             saber:

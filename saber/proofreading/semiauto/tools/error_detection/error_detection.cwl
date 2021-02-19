@@ -11,9 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM python:3.7-slim
-COPY requirements.txt /src/
-RUN pip install -r requirements.txt
-WORKDIR /src/
-COPY *.py /src/
-ENTRYPOINT ["python", "error_detection.py"]
+
+cwlVersion: v1.0
+class: CommandLineTool
+hints:
+    DockerRequirement:
+        dockerPull: proofreading/error_detection
+baseCommand: python
+arguments: ["error_detection.py"]
+inputs:
+  seg:
+    type: File
+    inputBinding:
+      position: 1
+      prefix: --seg
+  source:
+    type: string
+    inputBinding:
+      position: 2
+      prefix: --source
+  output:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: --output
+  ids:
+    type: File?
+    inputBinding:
+      position: 1
+      prefix: --ids
+outputs:
+  error_detection_out:
+    type: File
+    outputBinding:
+      glob: $(inputs.output)

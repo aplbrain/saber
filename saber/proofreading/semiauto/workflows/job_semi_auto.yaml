@@ -21,7 +21,6 @@ padding: 0
 image_output_name: em.npy
 anno_output_name: neuron.npy
 
-#inputs for mask
-mask_output_name: mask.npy
 #inputs for error detection
-error_detection_output_name: error.txt
+error_detection_output_name: local_errors.csv
+source_uri: boss://https://api.bossdb.io/Kasthuri/ac4/neuron 
