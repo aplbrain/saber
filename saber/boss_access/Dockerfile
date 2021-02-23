@@ -16,8 +16,8 @@
 FROM python:3.6
 
 # Install any needed packages specified in requirements.txt
-RUN pip install numpy
-RUN pip install intern
+RUN pip install numpy==1.19.5
+RUN pip install intern==1.2.0
 
 RUN mkdir /app
 COPY ./boss_access.py /app/
