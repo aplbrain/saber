@@ -19,13 +19,11 @@ import configparser
 import os
 from intern.remote.boss import BossRemote
 from intern.resource.boss.resource import *
-from intern import array
 import numpy as np
-from requests import HTTPError
 
 
 def _generate_config(token, args):
-    boss_host = os.getenv("BOSSDB_HOST", "api.bossdb.io")
+    boss_host = os.getenv("BOSSDB_HOST", args.host)
     print(boss_host)
 
     cfg = configparser.ConfigParser()
@@ -60,39 +58,21 @@ def boss_pull_cutout(args):
             cfg.write(f)
         rmt = BossRemote("intern.cfg")
 
-    COLL_NAME = args.coll
-    EXP_NAME = args.exp
-    CHAN_NAME = args.chan
-
-    # Use intern to get d_type and i_type
-    intern_chans = array("bossdb://" + COLL_NAME + '/' + EXP_NAME + '/' + CHAN_NAME)
-
-    # Create or get a channel to write to
-    chan_setup = ChannelResource(
-        CHAN_NAME,
-        COLL_NAME,
-        EXP_NAME,
-        type=intern_chans._channel.type,
-        datatype=intern_chans.dtype
-    )
-    try:
-        chan_actual = rmt.get_project(chan_setup)
-    except HTTPError:
-        chan_actual = rmt.create_project(chan_setup)
+    chan = rmt.get_channel(args.chan, args.coll, args.exp)
 
     print("Data model setup.")
 
     # Verify that the cutout uploaded correctly.
     # Data will be in Z,Y,X format
-    cutout_data = rmt.get_cutout(resource=chan_actual,
+    cutout_data = rmt.get_cutout(resource=chan,
                                  resolution=args.res,
                                  x_range=[args.xmin, args.xmax],
                                  y_range=[args.ymin, args.ymax],
                                  z_range=[args.zmin, args.zmax]
                                  )
-
     # Change to X,Y,Z for pipeline
-    cutout_data = np.transpose(cutout_data, (2, 1, 0))
+    if args.order == 'xyz':
+        cutout_data = np.transpose(cutout_data, (2, 1, 0))
 
     # Clean up.
     with open(args.output, "w+b") as f:
@@ -112,39 +92,33 @@ def boss_push_cutout(args):
     # data is desired range
     data = np.load(args.input)
 
-    COLL_NAME = args.coll
-    EXP_NAME = args.exp
-    CHAN_NAME = args.chan
+    if data.dtype != args.dtype:
+        data = data.astype(args.dtype)
 
-    if args.type == 'image':
-        DTYPE = 'uint8'
+    if args.dtype == 'uint8' or 'uint16':
+        itype = 'image'
     else:
-        DTYPE = 'uint64'
-
-
+        itype = 'annotation'
 
     # Create or get a channel to write to
     if args.source:
         chan_setup = ChannelResource(
-            CHAN_NAME,
-            COLL_NAME,
-            EXP_NAME,
-            type=args.type,
-            datatype=DTYPE,
+            args.chan,
+            args.coll,
+            args.exp,
+            type=itype,
+            datatype=args.dtype,
             sources=args.source
         )
     else:
         chan_setup = ChannelResource(
-            CHAN_NAME,
-            COLL_NAME,
-            EXP_NAME,
-            type=args.type,
-            datatype=DTYPE
+            args.chan,
+            args.coll,
+            args.exp,
+            type=itype,
+            datatype=args.dtype
         )
-    try:
-        chan_actual = rmt.get_project(chan_setup)
-    except HTTPError:
-        chan_actual = rmt.create_project(chan_setup)
+    chan_actual = rmt.create_project(chan_setup)
 
     print("Data model setup.")
 
@@ -157,11 +131,13 @@ def boss_push_cutout(args):
     yend = data_shape[1]
     zend = data_shape[2]
 
-    data = np.transpose(data, (2, 1, 0))
+    if args.order == 'xyz':
+        data = np.transpose(data, (2, 1, 0))
+
     data = data[zstart:zend, ystart:yend, xstart:xend]
     data = data.copy(order="C")
 
-    # Verify that the cutout uploaded correctly.
+    # Upload the cutout to the channel.
     rmt.create_cutout(chan_actual,
                       args.res,
                       [args.xmin, args.ymax],
@@ -173,7 +149,6 @@ def boss_push_cutout(args):
     print(data.shape)
     print("This is the data type:")
     print(data.dtype)
-    # Clean up.
 
 def main():
     parser = argparse.ArgumentParser(description="boss processing script")
@@ -186,6 +161,7 @@ def main():
     group.add_argument("-c", "--config", default=None, help="Boss config file")
     group.add_argument("-t", "--token", default=None, help="Boss API Token")
 
+    parent_parser.add_argument("--host", required=False, default="api.bossdb.io", help="Name of boss host")
     parent_parser.add_argument("--coll", required=True, help="Coll name")
     parent_parser.add_argument("--exp", required=True, help="EXP_NAME")
     parent_parser.add_argument("--chan", required=True, help="CHAN_NAME")
@@ -198,12 +174,14 @@ def main():
     parent_parser.add_argument("--zmax", type=int, default=1, help="Zmax")
 
     push_parser = subparsers.add_parser("push", help="Push images to boss", parents=[parent_parser])
-    push_parser.add_argument("-i", "--input", required=True, help="Input file")
-    push_parser.add_argument("--type", required=True, help="Annotation or image")
+    push_parser.add_argument("--order", required=False, default='xyz', help="xyz or zyx order for data upload")
+    push_parser.add_argument("--dtype", required=True, help="uint8, uint16, ot uint64")
     push_parser.add_argument("--source", required=False, help="Source channel for upload")
+    push_parser.add_argument("-i", "--input", required=True, help="Input file")
     push_parser.set_defaults(func=boss_push_cutout)
 
     pull_parser = subparsers.add_parser("pull", help="Pull images from boss", parents=[parent_parser])
+    pull_parser.add_argument("--order", required=False, default='zyx', help="zyx or xyz order for data download")
     pull_parser.add_argument("-o", "--output", required=True, help="Output file")
     pull_parser.set_defaults(func=boss_pull_cutout)
 
