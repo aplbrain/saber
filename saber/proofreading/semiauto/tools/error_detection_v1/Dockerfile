@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 FROM python:3.7-slim
+WORKDIR /src/
 COPY requirements.txt /src/
 RUN pip install -r requirements.txt
-WORKDIR /src/
 COPY *.py /src/
 ENTRYPOINT ["python", "error_detection.py"]

@@ -30,6 +30,9 @@ def get_parser():
     return parser
 
 def generate_ng_link(centroid, segments, source="boss://https://api.bossdb.io/"):
+    """
+    Adapted from bossdb.org repo. Thank you Jordan!!
+    """
     state = {
         "layers": [
             {
@@ -55,7 +58,7 @@ def generate_ng_link(centroid, segments, source="boss://https://api.bossdb.io/")
         "layout": "xy",
     }
     
-    return "https://neuroglancer.bossdb.io/#!"+ json.dumps(state)
+    return "https://neuroglancer.bossdb.io/#!" + json.dumps(state)
 
 
 def detect_errors(seg, source, output, ids=None):

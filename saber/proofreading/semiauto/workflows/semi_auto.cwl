@@ -85,7 +85,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/output
+                file_path: /home/ubuntu/code/saber/output
         out:
             [pull_output]
 
@@ -113,7 +113,7 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/output
+                file_path: /home/ubuntu/code/saber/output
         out:
             [pull_output]
 
@@ -126,5 +126,5 @@ steps:
         hints:
             saber:
                 local: True
-                file_path: /Users/xenesd1/Projects/aplbrain/saber/output
+                file_path: /home/ubuntu/code/saber/output
         out: [error_detection_out]
