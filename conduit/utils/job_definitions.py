@@ -208,16 +208,17 @@ def make_tag(tool_name, tool_yml, local):
         docker_repo_name = ''
     docker_tag_s = docker_image_name.split(':')
     short_docker_image_name = docker_tag_s[0]
+    original_tag = docker_tag_s[1]
     # if auth_response['proxyEndpoint'] != docker_repo_name:
     #     log.warning('Docker repo does not match AWS docker repo')
     if not local:
         docker_registry = docker_registry_login()
         if docker_registry in short_docker_image_name:
-            tag = '{}:s3'.format(short_docker_image_name)
+            tag = '{}:{}-s3'.format(short_docker_image_name, original_tag)
         else:
-            tag = '{}/{}:s3'.format(docker_registry, short_docker_image_name)
+            tag = '{}/{}:{}-s3'.format(docker_registry, short_docker_image_name, original_tag)
     if local:
-        tag = '{}:local'.format(short_docker_image_name)
+        tag = '{}:{}-local'.format(short_docker_image_name, original_tag)
     return tag
 
 

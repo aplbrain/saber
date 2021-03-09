@@ -43,8 +43,8 @@ APP.config["TEMPLATES_AUTO_RELOAD"] = True
 
 JOB_DIR = "/opt/saber/jobs"
 EXPERIMENT_DIR = "/opt/saber/experiments"
-LOG_DIR = "/home/lowmaca1/saber/volumes/logs"
-CONFIG_FILE = "/home/lowmaca1/saber/conduit/config/aws_config.yml"
+LOG_DIR = "/srv/saber/volumes/logs"
+CONFIG_FILE = "/srv/saber/conduit/config/aws_config.yml"
 
 WORKFLOW_DIR = "/opt/saber/cwl-workflows"
 TOOL_TEMPLATE_PATH = WORKFLOW_DIR + "/run_algorithm.cwl.template"
@@ -80,7 +80,7 @@ def new_job():
     available_images = []
     for image in docker_images:
         rep, tag = image.split(":")
-        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and tag not in ["s3", "<none>"]:
+        if "256215146792.dkr.ecr.us-east-1.amazonaws.com" in rep and "<none>" not in tag and "s3" not in tag:
             available_images.append(image)
 
     return render_template(
@@ -261,7 +261,7 @@ def statistics():
 
 
         image = job_details["docker_image"]
-        if "info" in job_details and "state" in job_details["info"] and job_details.get("status") == "success":
+        if job_details.get("status") == "success":
 
             #start_t = datetime.datetime.strptime(job_details["info"]["start_date"], '%Y-%m-%dT%H:%M:%SZ')
             #end_t = datetime.datetime.strptime(job_details["info"]["end_date"], '%Y-%m-%dT%H:%M:%SZ')
@@ -479,7 +479,8 @@ def api_new_experiment():
         additional_files = request.files.getlist("additional_files")
     
     for additional_file in additional_files:
-        additional_file.save(f"{experiment_dir}/{additional_file.filename}")
+        if additional_file.filename != '':
+            additional_file.save(f"{experiment_dir}/{additional_file.filename}")
     
     train_file = None
     if "train_file" in request.files:
