@@ -13,9 +13,13 @@
 # limitations under the License.
 
 import argparse
+import os
+import pickle
+import tempfile
+
 import numpy as np
 import boto3
-import os
+
 from intern.remote.boss import BossRemote
 from segmentation_error import SegmentationError
 
@@ -62,7 +66,7 @@ def download_data(args):
         "token": args.token
     })
     resource = rmt.get_channel(args.seg_channel, args.collection, args.experiment)
-    return rmt.get_cutout(resource, args.resolution, x_rng, y_rng, z_rng)
+    return rmt.get_cutout(resource, args.resolution, x_rng, y_rng, z_rng).T
 
 
 def detect_errors(args):
@@ -110,7 +114,7 @@ def upload_errors(queue, bucket, error_list):
     # Get the service resource
     s3 = boto3.client('s3')
     sqs = boto3.client('sqs')
-    queue = sqs.get_queue_url(QueueName=queue)
+    queue_url = sqs.get_queue_url(QueueName=queue)['QueueUrl']
     
     if "/" in bucket:
         bucket, prefix = bucket.split('/')
@@ -120,9 +124,11 @@ def upload_errors(queue, bucket, error_list):
             key = os.path.join(prefix, error.uuid)
         else:
             key = error.uuid
-        response = sqs.send_message(MessageBody=os.path.join(bucket, key))
-        pickle_obj = pickle.dumps(error)
-        s3.upload_fileobj(pickle_obj, bucket, key)
+        response = sqs.send_message(QueueUrl=queue_url, MessageBody=os.path.join(bucket, key))
+        with tempfile.TemporaryFile() as fp:
+            pickle.dump(error, fp)
+            fp.seek(0)
+            s3.upload_fileobj(fp, bucket, key)
 
 
 def generate_random_bboxes(shape, extents, n=1):
@@ -144,9 +150,9 @@ def generate_random_bboxes(shape, extents, n=1):
 
         bboxes.append(
             (
-                [x_start, x_start+size[0]],
-                [y_start, y_start+size[1]],
-                [z_start, z_start+size[2]]
+                [x_start, x_start+shape[0]],
+                [y_start, y_start+shape[1]],
+                [z_start, z_start+shape[2]]
             )
         )
     return bboxes
