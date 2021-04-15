@@ -1,4 +1,5 @@
 import argparse
+import torch
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -15,7 +16,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Arguments", args)
-
+    print("GPU Enabled:", torch.cuda.is_available())
+    
     with open(args.data_file) as datafile:
         data = datafile.read()
 
