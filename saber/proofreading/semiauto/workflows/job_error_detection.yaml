@@ -1,0 +1,14 @@
+host: api.bossdb.io
+token: public
+image_uri: bossdb://Kasthuri/ac4/em
+seg_uri: bossdb://Kasthuri/ac4/neuron
+resolution: 0
+xmin: 0
+xmax: 1024
+ymin: 0
+ymax: 1024
+zmin: 0
+zmax: 100
+queue: error-detection
+bucket: saber-batch-dev/task3
+output_file: ac4_errors.pkl

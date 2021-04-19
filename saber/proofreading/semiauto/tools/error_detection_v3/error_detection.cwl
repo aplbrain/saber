@@ -20,94 +20,83 @@ hints:
 baseCommand: python
 arguments: ["error_detection.py"]
 inputs:
-  channel:
+  image_uri:
     type: string
     inputBinding:
       position: 1
-      prefix: --channel
-  experiment:
+      prefix: --image_uri
+  seg_uri:
     type: string
     inputBinding:
       position: 2
-      prefix: --experiment
-  collection:
-    type: string
-    inputBinding:
-      position: 3
-      prefix: --collection
+      prefix: --seg_uri
   xmin:
     type: int
     inputBinding:
-      position: 4
+      position: 5
       prefix: --xmin
   xmax:
     type: int
     inputBinding:
-      position: 5
+      position: 6
       prefix: --xmax
   ymin:
     type: int
     inputBinding:
-      position: 6
+      position: 7
       prefix: --ymin
   ymax:
     type: int
     inputBinding:
-      position: 7
+      position: 8
       prefix: --ymax
   zmin:
     type: int
     inputBinding:
-      position: 8
+      position: 9
       prefix: --zmin
   zmax:
     type: int
     inputBinding:
-      position: 9
+      position: 10
       prefix: --zmax
 
   host:
     type: string?
     inputBinding:
-      position: 10
+      position: 11
       prefix: --host
   token:
     type: string?
     inputBinding:
-      position: 11
+      position: 12
       prefix: --token
   resolution:
     type: string?
     inputBinding:
-      position: 12
-      prefix: --resolution
-  colocard:
-    type: string?
-    inputBinding:
       position: 13
-      prefix: --colocard
-  colocard_username:
-    type: string
+      prefix: --resolution
+  output_file:
+    type: string?
+    default: "error_detection.pkl"
     inputBinding:
       position: 14
-      prefix: --colocard_username
-  colocard_password:
-    type: string
-    inputBinding:
-      position: 15
-      prefix: --colocard_password
-  assignees:
-    type: string
-    inputBinding:
-      position: 16
-      prefix: --assignees
-  author:
+      prefix: --output_file
+
+# AWS Args
+  queue:
     type: string?
     inputBinding:
-      position: 17
-      prefix: --author
-  priority:
-    type: int?
+      position: 15
+      prefix: --queue
+  bucket:
+    type: string?
     inputBinding:
-      position: 18
-      prefix: --priority
+      position: 16
+      prefix: --bucket
+
+outputs:
+  error_detection_out:
+    type: ["null", File] 
+    outputBinding:
+      glob: $(inputs.output_file)

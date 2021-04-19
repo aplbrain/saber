@@ -1,4 +1,4 @@
-# Copyright 2020 The Johns Hopkins University Applied Physics Laboratory
+# Copyright 2021 The Johns Hopkins University Applied Physics Laboratory
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import numpy as np
 import boto3
 
 from intern.remote.boss import BossRemote
+from intern import array
 from segmentation_error import SegmentationError
 
 
@@ -29,10 +30,8 @@ def get_parser():
     parser.set_defaults(func=lambda _: parser.print_help())
     
     # BossDB Arguments
-    parser.add_argument("--image_channel", required=True, help="bossDB Image Channel")
-    parser.add_argument("--seg_channel", required=True, help="bossDB Segmentation Channel")
-    parser.add_argument("--experiment", required=True, help="bossDB experiment")
-    parser.add_argument("--collection", required=True, help="bossDB collection")
+    parser.add_argument("--image_uri", required=False, help="bossDB Image Channel")
+    parser.add_argument("--seg_uri", required=True, help="bossDB Segmentation Channel")
     parser.add_argument("--xmin", required=True, type=int, help="Xmin")
     parser.add_argument("--xmax", required=True, type=int, help="Xmax")
     parser.add_argument("--ymin", required=True, type=int, help="Ymin")
@@ -55,26 +54,37 @@ def get_parser():
     return parser
 
 
-def download_data(args):
-    x_rng = [args.xmin, args.xmax]
-    y_rng = [args.ymin, args.ymax]
-    z_rng = [args.zmin, args.zmax]
-
-    rmt = BossRemote({
+def download_data(args, channel="segmentation"):
+    config = {
         "protocol": "https",
         "host": args.host,
         "token": args.token
-    })
-    resource = rmt.get_channel(args.seg_channel, args.collection, args.experiment)
-    return rmt.get_cutout(resource, args.resolution, x_rng, y_rng, z_rng).T
+    }
+    if channel == "segmentation":
+        volume = array(args.seg_uri, resolution=args.resolution, boss_config=config)
+    elif channel == "image":
+        volume = array(args.image_uri, resolution=args.resolution, boss_config=config)
+    else:
+        print(f"Channel {channel} not valid. Must be ['Segmentation'|'Image']")
+        return
+    data = volume[args.zmin:args.zmax, args.ymin:args.ymax, args.xmin:args.xmax]
+    # Return data in X,Y,Z
+    return data.T
 
 
 def detect_errors(args):
-    # Download data
+    # Download segmentation data
     try:
-        data = download_data(args)
+        data = download_data(args, channel="segmentation")
     except Exception as e:
         raise Exception(f"Failed to download segmentation data. {e}")
+
+    # Download image data
+    if args.image_uri:
+        try:
+            data = download_data(args, channel="image")
+        except Exception as e:
+            raise Exception(f"Failed to download image data. {e}")
     
     error_list = []
     # Run Error Detection on this volume:
@@ -83,24 +93,29 @@ def detect_errors(args):
     # Returns: SegmentationError Objects 
 
     # Placeholder code
-    bboxes = generate_random_bboxes((100, 100, 10), data.shape, 10)
-
+    bboxes = generate_random_bboxes((100, 100, 5), data.shape, 10)
     # Once we have detected errors. place them in error detection class. 
     if len(bboxes) == 0:
         print("No errors found in this volume.")
         return
     
     for bbox in bboxes:
+        subvolume = data[
+            bbox[0][0]:bbox[0][1],
+            bbox[1][0]:bbox[1][1],
+            bbox[2][0]:bbox[2][1],
+        ]
+        ids = np.random.choice(np.unique(subvolume), size=2, replace=False)
         error = SegmentationError(
             host=args.host,
-            collection=args.collection,
-            experiment=args.experiment,
-            channel_seg=args.seg_channel,
-            channel_em=args.image_channel,
+            seg_uri=args.seg_uri,
+            image_uri=args.image_uri,
+            resolution=args.resolution,
             error_type="merge",
             x_bounds=bbox[0],
             y_bounds=bbox[1],
-            z_bounds=bbox[2]
+            z_bounds=bbox[2],
+            ids=tuple(ids)
         )
         error_list.append(error)
 
