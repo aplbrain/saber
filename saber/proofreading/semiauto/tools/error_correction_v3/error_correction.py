@@ -29,7 +29,7 @@ def process_messages(args):
     sqs = boto3.client('sqs')
     queue_url = sqs.get_queue_url(QueueName=args.queue)['QueueUrl']
     while True: 
-        message = sqs.recieve_message(QueueUrl=queue_url)['Messages']
+        message = sqs.receive_message(QueueUrl=queue_url)['Messages']
         if len(message) == 0:
             # Possibly done with all messages. Wait 5 minutes.
             time.sleep(300)
@@ -38,12 +38,12 @@ def process_messages(args):
             message = sqs.recieve_message(QueueUrl=queue_url)["Messages"]
             if len(message) == 0:
                 break
-        status = process_error(args, message['Body'])
+        status = process_error(args, message[0]['Body'])
         if status:
             print("Message successfully processed.")
         else:
             print("Message failed to be processed. Deleting anyways for now.")
-        sqs.delete_message(queue_url, message['ReceiptHandle'])
+        sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=message[0]['ReceiptHandle'])
 
 
 def process_error(args, message):
