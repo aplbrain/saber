@@ -17,16 +17,8 @@ The following link explains detail the process behind the connection.
 https://medium.com/@christyjacob4/using-vscode-remotely-on-an-ec2-instance-7822c4032cff
 
 ## Installation
-Simply clone this repository and run
-`docker-compose up -d` inside it!
+CD into the docker file to get the full repository with all the included dependencies for running dectron2 and bossdb.
 
-## Execution of workflows
-
-Please see our [wiki](https://github.com/aplbrain/saber/wiki) for more information!
-
-## Data Access
-
-Please see our [wiki](https://github.com/aplbrain/saber/wiki/Data-Access) for more information about public access to data for testing Electron Microscopy and X-ray Microtomography workflows. 
 
 ## Legal
 
