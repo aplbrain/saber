@@ -22,8 +22,8 @@ NAME="test.py"
     --mount type=bind,source=/home/ubuntu/saber/files/test2.py,target=/home/appuser/detectron2/test2.py \
     --mount type=bind,source=/home/ubuntu/saber/files/demo.py,target=/home/appuser/detectron2/demo.py \
      --mount type=bind,source=/home/ubuntu/saber/files/via_region_data.json,target=/home/appuser/detectron2/via_region_data.json \
-    --mount type=bind,source=/home/ubuntu/saber/kasthuri_challenge,target=/home/appuser/detectron/kasthuri \
-    detectron2:v3
+    --mount type=bind,source=/home/ubuntu/saber/kasthuri_challenge,target=/home/appuser/kasthuri \
+    detectron2:v0
 
 # remove the repo from catkin workspace if it already exists
 # start an interactive terminal

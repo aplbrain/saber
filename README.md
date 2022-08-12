@@ -8,9 +8,9 @@ This Branch includes the repository of detestron2,  Facebook AI Research's next 
 Detectron2 requires a GPU. If needed connect an AWS Instance. Below is the skeleton configuration file to connect through Visual Studio Code. 
 
 Host aws-ec2 \
-\t HostName ec2-44-229-243-8.us-west-2.compute.amazonaws.com \
-\t User ubuntu \
-\t IdentityFile ~/aws-key/test-key-pair.pem
+    HostName ec2-44-229-243-8.us-west-2.compute.amazonaws.com \
+    User ubuntu \
+    IdentityFile ~/aws-key/test-key-pair.pem
 
 The following link explains detail the process behind the connection.
 
@@ -18,6 +18,8 @@ https://medium.com/@christyjacob4/using-vscode-remotely-on-an-ec2-instance-7822c
 
 ## Installation
 CD into the docker file to get the full repository with all the included dependencies for running dectron2 and bossdb.
+
+The files folder has documents that are bind mounted. This aspect means you can edit them either on your local machine or within the docker container. Most files found there can be used for testing.
 
 
 ## Legal
