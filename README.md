@@ -2,10 +2,8 @@
 
 # SABER <img src="https://avatars2.githubusercontent.com/u/34253653?s=200&v=4" alt="APL Brain logo" width="80"/>
 
-## What is SABER?
-SABER (Scalable Analytics for Brain Exploration Research) is a library of containerized tools and a workflow deployment system for enabling processing of large neuroimaging datasets. Current workflows include processing of X-ray Microtomorography data to produce cell density estimates as well as processing Electron Microscopy images to segment neuron bodies. 
-This project builds on Apache Airflow (http://airflow.apache.org) to orchestrate workflow deployment. This project interfaces with Datajoint (https://datajoint.io) and bossDB (https://github.com/jhuapl-boss/boss) to enable data storage and reproducible workflows. 
-
+## What is in this branch?
+This Branch includes the repository of detestron2,  Facebook AI Research's next generation library that provides state-of-the-art detection and segmentation algorithms. It supports a number of computer vision research projects and production applications in Facebook. Our goal is to study this repository and use its algorithms to help identify different parts of the brain. The attached link is a google colab that shows a demo of how detectron works with image data: https://colab.research.google.com/drive/16jcaJoc6bCFAQ96jDe2HwtXj7BMD_-m5.
 ## Prerequisites
 SABER requires docker and docker-compose. Please use the latest versions. To run our example workflows, you will need an AWS account to enable cloud storage through the AWS S3 service (https://aws.amazon.com/account/). To access data for our example workflows you will need an account at https://api.bossdb.org
 
