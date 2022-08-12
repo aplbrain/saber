@@ -8,9 +8,9 @@ This Branch includes the repository of detestron2,  Facebook AI Research's next 
 Detectron2 requires a GPU. If needed connect an AWS Instance. Below is the skeleton configuration file to connect through Visual Studio Code. 
 
 Host aws-ec2 \
-&emsp HostName ec2-44-229-243-8.us-west-2.compute.amazonaws.com \
-&emsp User ubuntu \
-&emsp IdentityFile ~/aws-key/test-key-pair.pem
+\t HostName ec2-44-229-243-8.us-west-2.compute.amazonaws.com \
+\t User ubuntu \
+\t IdentityFile ~/aws-key/test-key-pair.pem
 
 The following link explains detail the process behind the connection.
 
