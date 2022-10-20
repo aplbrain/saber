@@ -26,4 +26,3 @@ output/
 saber/postprocessing/threshold/test_*
 saber/postprocessing/blob_detect/test_*
 saber/example_tool/
-delete_batch_jobs.sh

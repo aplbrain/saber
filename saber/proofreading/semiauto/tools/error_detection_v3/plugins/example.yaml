@@ -1,0 +1,6 @@
+name: name of the algorithm
+exec_path: path of the executable
+exec_command: function or command to launch
+type: bbox | centroid
+args: ['list', 'of', 'arguments', 'to', 'pass', 'to', 'function']
+kwargs: {"keyword": foo, "arguments": bar}

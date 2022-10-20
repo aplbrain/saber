@@ -1,0 +1,5 @@
+name: random_baseline
+exec_path: random/random.py
+exec_command: run
+args: null
+kwargs: {"shape": [100, 100, 10], "num_of_bboxes": 10}

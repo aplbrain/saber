@@ -16,6 +16,7 @@ import argparse
 import os
 import pickle
 import tempfile
+import yaml
 
 import numpy as np
 import boto3
@@ -144,33 +145,6 @@ def upload_errors(queue, bucket, error_list):
             pickle.dump(error, fp)
             fp.seek(0)
             s3.upload_fileobj(fp, bucket, key)
-
-
-def generate_random_bboxes(shape, extents, n=1):
-    """
-    Generate n number of random bounding boxes in the data. Useful for testing purposes.
-
-    shape (tuple[int]): shape of the data
-    extents (tuple(int))
-    """
-    bboxes = []
-    for i in range(n):
-        x_max = extents[0] - shape[0]
-        y_max = extents[1] - shape[1]
-        z_max = extents[2] - shape[2]
-
-        x_start = np.random.randint(x_max)
-        y_start = np.random.randint(y_max)
-        z_start = np.random.randint(z_max)
-
-        bboxes.append(
-            (
-                [x_start, x_start+shape[0]],
-                [y_start, y_start+shape[1]],
-                [z_start, z_start+shape[2]]
-            )
-        )
-    return bboxes
 
 if __name__ == "__main__":
     # Get parser from CWL definition
