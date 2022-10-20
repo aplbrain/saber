@@ -49,6 +49,7 @@ RUN apt-get update \
   && cd /usr/local/bin \
   && pip3 install --upgrade pip
 
+# RUN pip3 install cython pandas
 RUN pip3 install apache-airflow==$AIRFLOW_VERSION 
 RUN pip install apache-airflow==$AIRFLOW_VERSION 
 # COPY awsbatch_operator.py \
