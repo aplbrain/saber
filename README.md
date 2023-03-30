@@ -4,6 +4,8 @@
 
 ## What is in this branch?
 This Branch includes the repository of detestron2,  Facebook AI Research's next generation library that provides state-of-the-art detection and segmentation algorithms. It supports a number of computer vision research projects and production applications in Facebook. Our goal is to study this repository and use its algorithms to help identify different parts of the brain. The attached link is a google colab that shows a demo of how detectron works with image data: https://colab.research.google.com/drive/16jcaJoc6bCFAQ96jDe2HwtXj7BMD_-m5.
+
+This link is to the actual detectron2 algorithm: https://github.com/facebookresearch/detectron2
 ## Prerequisites
 Detectron2 requires a GPU. If needed connect an AWS Instance. Below is the skeleton configuration file to connect through Visual Studio Code. 
 
